@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Mentor 🤖🎓
 
-## Getting Started
+An AI-powered learning mentor web app — built by trainees as a hands-on full-stack
+project using **Next.js + React + TypeScript + Tailwind CSS**.
 
-First, run the development server:
+تطبيق ويب لمرشد تعلّم مدعوم بالذكاء الاصطناعي — يبنيه المتدربون كمشروع Full-stack
+تطبيقي باستخدام **Next.js + React + TypeScript + Tailwind CSS**.
+
+---
+
+## 📚 Documentation / التوثيق
+
+Start here / ابدأ من هنا:
+
+| Doc | Content |
+| --- | --- |
+| [Overview](docs/00-overview.md) | Project vision & scope / رؤية المشروع ونطاقه |
+| [Tech Stack & Setup](docs/01-tech-stack.md) | Stack & how to run / التقنيات والتشغيل |
+| [Phases](docs/02-phases.md) | Development roadmap / مراحل التطوير |
+| [Project Structure](docs/03-project-structure.md) | Folders & conventions / الهيكل والاصطلاحات |
+| [Git Workflow](docs/04-git-workflow.md) | Branches & commits / الفروع والـ commits |
+| [Tasks](docs/tasks/README.md) | Trainee tasks / مهام المتدربين |
+
+---
+
+## 🚀 Quick start / بداية سريعة
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requirements: Node.js ≥ 20 and pnpm ≥ 9. See [Tech Stack & Setup](docs/01-tech-stack.md).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+المتطلبات: Node.js ≥ 20 و pnpm ≥ 9. للتفاصيل راجع دليل [التقنيات والإعداد](docs/01-tech-stack.md).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🌿 Contributing / المساهمة
 
-To learn more about Next.js, take a look at the following resources:
+1. Create a branch from `main`: `feature/<name>`.
+2. Commit in small steps using [Conventional Commits](docs/04-git-workflow.md).
+3. Push and open a **Pull Request** — never push directly to `main`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+اقرأ [دليل سير عمل Git](docs/04-git-workflow.md) قبل البدء: افتح فرعاً من `main`،
+والتزم بـ commits صغيرة واضحة، ثم افتح Pull Request — ولا ترفع مباشرة على `main`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🗺️ Current phase / المرحلة الحالية
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Phase 1 — Front-end Foundation.** First task:
+[Landing / Home Page + Project Structure](docs/tasks/task-01-landing-home.md).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**المرحلة 1 — أساس الواجهة الأمامية.** أول تاسك: بناء صفحة Landing/Home وهيكلة المشروع.
