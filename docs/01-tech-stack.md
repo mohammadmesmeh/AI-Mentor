@@ -1,8 +1,6 @@
-# Tech Stack & Setup / التقنيات والإعداد
+# Tech Stack and Setup
 
----
-
-## 1. Tech stack / التقنيات
+## 1. Tech stack
 
 | Layer | Technology |
 | --- | --- |
@@ -13,44 +11,35 @@
 | Linting | **ESLint 9** (`eslint-config-next`) |
 | Package manager | **pnpm** |
 
-نستخدم **Next.js 16** مع **React 19** و**TypeScript** و**Tailwind CSS 4**،
-وإدارة الحزم عبر **pnpm**، والتحقق من الكود عبر **ESLint**.
+## 2. Prerequisites
 
----
+- **Node.js** version 20 or higher
+- **pnpm** version 9 or higher, install with: `npm install -g pnpm`
+- A code editor (VS Code recommended) with ESLint and Tailwind extensions.
 
-## 2. Prerequisites / المتطلبات المسبقة
-
-- **Node.js** ≥ 20
-- **pnpm** ≥ 9 → install with: `npm install -g pnpm`
-- A code editor (VS Code recommended) with ESLint & Tailwind extensions.
-
----
-
-## 3. Run the project / تشغيل المشروع
+## 3. Run the project
 
 ```bash
-# 1) Install dependencies / تثبيت الاعتماديات
+# 1) Install dependencies
 pnpm install
 
-# 2) Start the dev server / تشغيل خادم التطوير
+# 2) Start the dev server
 pnpm dev
 
-# 3) Open in browser / افتح في المتصفح
+# 3) Open in browser
 # http://localhost:3000
 ```
 
-Available scripts / الأوامر المتاحة:
+Available scripts:
 
 | Script | Purpose |
 | --- | --- |
-| `pnpm dev` | Start the development server / تشغيل بيئة التطوير |
-| `pnpm build` | Build for production / بناء نسخة الإنتاج |
-| `pnpm start` | Run the production build / تشغيل نسخة الإنتاج |
-| `pnpm lint` | Run ESLint checks / فحص الكود بـ ESLint |
+| `pnpm dev` | Start the development server |
+| `pnpm build` | Build for production |
+| `pnpm start` | Run the production build |
+| `pnpm lint` | Run ESLint checks |
 
----
-
-## 4. Before you push / قبل رفع الكود
+## 4. Before you push
 
 Always make sure the project builds and lints cleanly:
 
@@ -58,5 +47,3 @@ Always make sure the project builds and lints cleanly:
 pnpm lint
 pnpm build
 ```
-
-تأكّد دائماً أن المشروع يمرّ بـ `pnpm lint` و`pnpm build` بدون أخطاء قبل رفع الكود.

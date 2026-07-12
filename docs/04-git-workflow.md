@@ -1,18 +1,15 @@
-# Git Workflow & Commit Rules / سير عمل Git وقواعد الـ Commits
+# Git Workflow and Commit Rules
 
 > This is how the whole team collaborates. Please follow it for every task.
-> هذه طريقة تعاون الفريق كاملاً. الرجاء الالتزام بها في كل تاسك.
 
----
+## 1. Branching model
 
-## 1. Branching model / نموذج الفروع
+- `main`: stable, always working. **No direct commits.**
+- `docs`: documentation updates.
+- `feature/<name>`: a new feature or task.
+- `fix/<name>`: a bug fix.
 
-- `main` → stable, always working. **No direct commits.**
-- `docs` → documentation updates.
-- `feature/<name>` → a new feature or task.
-- `fix/<name>` → a bug fix.
-
-Examples / أمثلة:
+Examples:
 
 ```
 feature/landing-home
@@ -20,48 +17,40 @@ feature/auth-pages
 fix/navbar-mobile-menu
 ```
 
-`main` هو الفرع المستقر ويجب أن يعمل دائماً — **ممنوع الـ commit المباشر عليه**.
-كل تاسك يبدأ من فرع جديد باسم `feature/...`.
-
----
-
-## 2. Standard workflow / سير العمل القياسي
+## 2. Standard workflow
 
 ```bash
-# 1) Update main / حدّث الفرع الرئيسي
+# 1) Update main
 git checkout main
 git pull origin main
 
-# 2) Create a task branch / أنشئ فرع التاسك
+# 2) Create a task branch
 git checkout -b feature/landing-home
 
-# 3) Work + commit in small steps / اعمل و commit بخطوات صغيرة
+# 3) Work and commit in small steps
 git add .
 git commit -m "feat(home): add hero section"
 
-# 4) Push the branch / ارفع الفرع
+# 4) Push the branch
 git push -u origin feature/landing-home
 
-# 5) Open a Pull Request on GitHub → request review
-# افتح Pull Request على GitHub واطلب المراجعة
+# 5) Open a Pull Request on GitHub and request review
 ```
 
----
-
-## 3. Commit message convention / اصطلاح رسائل الـ Commit
+## 3. Commit message convention
 
 We use **Conventional Commits**: `type(scope): short description`
 
 | Type | When to use |
 | --- | --- |
-| `feat` | A new feature / ميزة جديدة |
-| `fix` | A bug fix / إصلاح خطأ |
-| `docs` | Documentation only / توثيق فقط |
-| `style` | Formatting, no logic change / تنسيق بدون تغيير منطق |
-| `refactor` | Code change, no feature/fix / إعادة هيكلة |
-| `chore` | Config, deps, tooling / إعدادات وأدوات |
+| `feat` | A new feature |
+| `fix` | A bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting, no logic change |
+| `refactor` | Code change, no feature/fix |
+| `chore` | Config, deps, tooling |
 
-Good examples / أمثلة جيدة:
+Good examples:
 
 ```
 feat(home): add responsive hero section
@@ -70,32 +59,26 @@ docs(readme): add setup instructions
 refactor(ui): extract Button component
 ```
 
-Rules / قواعد:
+Rules:
 - Write in the **imperative** ("add", not "added").
-- Keep the summary under ~60 characters.
-- One logical change per commit — avoid huge commits.
+- Keep the summary under about 60 characters.
+- One logical change per commit, avoid huge commits.
 
-اكتب الرسالة بصيغة الأمر، أبقِ الملخّص قصيراً، واجعل كل commit تغييراً منطقياً واحداً.
+## 4. Pull Request checklist
 
----
+Before requesting review:
 
-## 4. Pull Request checklist / قائمة تحقّق الـ Pull Request
+- [ ] Branch is up to date with `main`
+- [ ] `pnpm lint` passes
+- [ ] `pnpm build` passes
+- [ ] PR title follows commit convention
+- [ ] Description explains **what** and **why**
+- [ ] Screenshots for UI changes
 
-Before requesting review / قبل طلب المراجعة:
+## 5. Golden rules
 
-- [ ] Branch is up to date with `main` / الفرع محدّث مع `main`
-- [ ] `pnpm lint` passes / يمرّ الفحص
-- [ ] `pnpm build` passes / يمرّ البناء
-- [ ] PR title follows commit convention / عنوان الـ PR يتبع الاصطلاح
-- [ ] Description explains **what** and **why** / الوصف يشرح ماذا ولماذا
-- [ ] Screenshots for UI changes / صور للتغييرات في الواجهة
-
----
-
-## 5. Golden rules / قواعد ذهبية
-
-1. Never push directly to `main` / لا ترفع مباشرة على `main`.
-2. Pull before you start / اسحب آخر تحديث قبل البدء.
-3. Small, frequent commits / commits صغيرة ومتكرّرة.
-4. Never commit secrets or `.env` files / لا ترفع الأسرار أو ملفات `.env`.
-5. Ask for review — don't self-merge without approval / اطلب مراجعة قبل الدمج.
+1. Never push directly to `main`.
+2. Pull before you start.
+3. Small, frequent commits.
+4. Never commit secrets or `.env` files.
+5. Ask for review, do not self-merge without approval.

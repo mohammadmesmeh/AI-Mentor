@@ -1,30 +1,26 @@
-# Project Structure & Conventions / هيكل المشروع والاصطلاحات
+# Project Structure and Conventions
 
----
-
-## 1. Current structure / الهيكل الحالي
+## 1. Current structure
 
 ```
 AI-Mentor/
-├─ docs/                     # Project documentation / توثيق المشروع
-│  └─ tasks/                 # Trainee tasks / مهام المتدربين
-├─ public/                   # Static assets / الملفات الثابتة
+├─ docs/                     # Project documentation
+│  └─ tasks/                 # Trainee tasks
+├─ public/                   # Static assets
 ├─ src/
 │  ├─ app/                   # Next.js App Router (routes, layout)
-│  │  ├─ layout.tsx          # Root layout / التخطيط الجذري
-│  │  ├─ not-found.tsx       # 404 page / صفحة غير موجود
+│  │  ├─ layout.tsx          # Root layout
+│  │  ├─ not-found.tsx       # 404 page
 │  │  └─ home/page.tsx       # /home route
-│  ├─ components/            # React components / المكوّنات
-│  │  └─ pages/              # Page-level components / مكوّنات الصفحات
+│  ├─ components/            # React components
+│  │  └─ pages/              # Page-level components
 │  └─ style/
-│     └─ globals.css         # Global styles / التنسيقات العامة
+│     └─ globals.css         # Global styles
 ├─ package.json
 └─ tsconfig.json
 ```
 
----
-
-## 2. Recommended structure (target) / الهيكل المقترح (الهدف)
+## 2. Recommended structure (target)
 
 As the project grows, organize `src` like this:
 
@@ -42,12 +38,7 @@ src/
 └─ style/                    # Global styles
 ```
 
-مع نمو المشروع، نظّم مجلّد `src` كما بالأعلى: عناصر واجهة قابلة لإعادة الاستخدام في
-`ui`، ومكوّنات التخطيط في `layout`، وأقسام الصفحات في `sections`، والأدوات في `lib`.
-
----
-
-## 3. Naming conventions / اصطلاحات التسمية
+## 3. Naming conventions
 
 | Item | Convention | Example |
 | --- | --- | --- |
@@ -57,15 +48,10 @@ src/
 | Folders | `kebab-case` or `lowercase` | `components`, `learning-plans` |
 | Types/Interfaces | `PascalCase` | `type UserPlan`, `interface ChatMessage` |
 
----
-
-## 4. Component rules / قواعد المكوّنات
+## 4. Component rules
 
 - One component per file; export it as default or a named export consistently.
 - Keep components small and focused (single responsibility).
 - Put shared, reusable pieces in `components/ui`.
-- Use TypeScript props types — **no `any`**.
+- Use TypeScript props types, no `any`.
 - Style with Tailwind classes; avoid inline styles.
-
-**قواعد المكوّنات:** مكوّن واحد لكل ملف، مكوّنات صغيرة ومركّزة، العناصر المشتركة في
-`components/ui`، تعريف أنواع الـ props بـ TypeScript (**بدون `any`**)، والتنسيق عبر Tailwind.
