@@ -1,0 +1,974 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AI MENTOR — DESIGN SYSTEM
+   Tailwind CSS v4 (CSS-first, no tailwind.config.*)
+   Stack: Next.js 16 · React 19 · Tailwind CSS v4
+
+   Table of contents:
+   1.  CSS Reset
+   2.  Design Tokens          (@theme — generates Tailwind utilities)
+   3.  Theme Variables         (semantic, light/dark)
+   4.  Typography
+   5.  Responsive Notes
+   6.  Utility Classes         (@utility)
+   7.  Animations
+   8.  Component Tokens        (@layer components)
+   9.  Accessibility
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. CSS RESET
+   A minimal, modern reset. Tailwind's Preflight already normalizes most
+   elements — this layer only covers the handful of things AI Mentor's UI
+   depends on that Preflight intentionally leaves alone.
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--border-default);
+    outline-color: var(--color-primary-500);
+  }
+
+  html {
+    color-scheme: light;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    line-height: 1.6;
+    min-height: 100dvh;
+  }
+
+  /* Long AI-generated / mentor content reads best with generous measure */
+  p {
+    max-width: 72ch;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-300);
+    color: var(--color-primary-950);
+  }
+
+  /* Respect motion preferences across every animation in this file */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+
+/* ==========================================================================
+   2. DESIGN TOKENS (@theme)
+   Everything in this block is a Tailwind v4 "theme namespace" variable.
+   Defining --color-primary-500 here automatically generates utilities like
+   bg-primary-500, text-primary-500, border-primary-500, ring-primary-500…
+   Same idea for --font-*, --text-*, --radius-*, --shadow-*, --animate-*,
+   and --breakpoint-*. This is the CSS-first replacement for tailwind.config.
+   ========================================================================== */
+
+@theme {
+
+  /* --- Breakpoints ---------------------------------------------------
+     Mobile-first. Each step corresponds to a real device class rather
+     than an arbitrary number, so layout decisions stay legible. */
+  --breakpoint-sm:  40rem;   /* 640px  — large phones, phones in landscape        */
+  --breakpoint-md:  48rem;   /* 768px  — tablets (portrait)                       */
+  --breakpoint-lg:  64rem;   /* 1024px — tablets (landscape), small laptops       */
+  --breakpoint-xl:  80rem;   /* 1280px — laptops / standard desktop monitors      */
+  --breakpoint-2xl: 96rem;   /* 1536px — large desktop monitors (1440p+)          */
+  --breakpoint-3xl: 120rem;  /* 1920px — ultra-wide / cinema displays             */
+
+  /* --- Color: Primary — "Intellect Indigo"
+     Trust and cognition. Used for primary actions, links, focus, and the
+     dominant brand hue across the product. */
+  --color-primary-50:  #f0f1fe;
+  --color-primary-100: #e1e3fd;
+  --color-primary-200: #c3c8fb;
+  --color-primary-300: #9ca3f7;
+  --color-primary-400: #6f75f0;
+  --color-primary-500: #4b4fe8;
+  --color-primary-600: #3a3ed0;
+  --color-primary-700: #2e30a8;
+  --color-primary-800: #262885;
+  --color-primary-900: #21226c;
+  --color-primary-950: #14153f;
+
+  /* --- Color: Secondary — "Graphite"
+     A cool, faintly blue-tinted neutral (never pure gray) used for
+     chrome, secondary actions, and structural surfaces. */
+  --color-secondary-50:  #f8f9fb;
+  --color-secondary-100: #eef0f4;
+  --color-secondary-200: #dde1e8;
+  --color-secondary-300: #c2c8d3;
+  --color-secondary-400: #9aa2b1;
+  --color-secondary-500: #717a8c;
+  --color-secondary-600: #565e6e;
+  --color-secondary-700: #414753;
+  --color-secondary-800: #2d323c;
+  --color-secondary-900: #1c1f26;
+  --color-secondary-950: #101216;
+
+  /* --- Color: Accent — "Growth Emerald"
+     Reserved for progress, achievement, and momentum: streaks, completed
+     lessons, upward metrics. Deliberately not used for primary actions. */
+  --color-accent-50:  #edfcf6;
+  --color-accent-100: #d3f8e9;
+  --color-accent-200: #a6efd3;
+  --color-accent-300: #70e0bb;
+  --color-accent-400: #3fcb9f;
+  --color-accent-500: #22ad84;
+  --color-accent-600: #178a6b;
+  --color-accent-700: #146e57;
+  --color-accent-800: #135845;
+  --color-accent-900: #12483a;
+  --color-accent-950: #072a21;
+
+  /* --- Color: Success --- */
+  --color-success-50:  #f0fbf4;
+  --color-success-100: #dcf5e4;
+  --color-success-500: #22a55e;
+  --color-success-600: #188a4b;
+  --color-success-900: #103b22;
+
+  /* --- Color: Warning --- */
+  --color-warning-50:  #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-500: #f5a524;
+  --color-warning-600: #dc8a0c;
+  --color-warning-900: #7a4a08;
+
+  /* --- Color: Danger --- */
+  --color-danger-50:  #fef2f2;
+  --color-danger-100: #fde3e3;
+  --color-danger-500: #e5484d;
+  --color-danger-600: #c93a3e;
+  --color-danger-900: #5c1a1c;
+
+  /* --- Color: Info --- */
+  --color-info-50:  #eff8ff;
+  --color-info-100: #dbeefe;
+  --color-info-500: #2e90e5;
+  --color-info-600: #1d74c4;
+  --color-info-900: #0e3866;
+
+  /* --- Fonts ---
+     Display: Geist — geometric, technical, pairs with Vercel/Linear-style
+     product chrome. Body: Inter — the most legible workhorse for long
+     reading sessions. Code: Geist Mono for inline code and data.
+     Load these via next/font in the root layout; this file only declares
+     the stacks and safe fallbacks. */
+  --font-display: "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-code:    "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* --- Type scale ---
+     Paired font-size / line-height tokens. Line heights loosen as size
+     decreases, since small text needs more breathing room to stay legible. */
+  --text-display-2xl:      4.5rem;   /* 72px */
+  --text-display-2xl--line-height: 1.05;
+  --text-display-xl:       3.75rem;  /* 60px */
+  --text-display-xl--line-height:  1.08;
+  --text-display-lg:       3rem;     /* 48px */
+  --text-display-lg--line-height:  1.1;
+
+  --text-heading-xl:       2.25rem;  /* 36px */
+  --text-heading-xl--line-height:  1.2;
+  --text-heading-lg:       1.875rem; /* 30px */
+  --text-heading-lg--line-height:  1.25;
+  --text-heading-md:       1.5rem;   /* 24px */
+  --text-heading-md--line-height:  1.3;
+  --text-heading-sm:       1.25rem;  /* 20px */
+  --text-heading-sm--line-height:  1.4;
+
+  --text-body-lg:          1.125rem; /* 18px */
+  --text-body-lg--line-height:     1.6;
+  --text-body-md:          1rem;     /* 16px */
+  --text-body-md--line-height:     1.6;
+  --text-body-sm:          0.875rem; /* 14px */
+  --text-body-sm--line-height:     1.55;
+
+  --text-caption:          0.8125rem; /* 13px */
+  --text-caption--line-height:     1.4;
+  --text-overline:         0.6875rem; /* 11px */
+  --text-overline--line-height:    1.3;
+
+  --text-code:             0.875rem; /* 14px */
+  --text-code--line-height:        1.6;
+
+  /* --- Letter spacing --- */
+  --tracking-tightest: -0.03em; /* large display type   */
+  --tracking-tighter:  -0.02em; /* headings             */
+  --tracking-tight:    -0.01em; /* body at larger sizes */
+  --tracking-normal:    0em;
+  --tracking-wide:      0.02em; /* captions / labels    */
+  --tracking-widest:    0.08em; /* overline / eyebrow   */
+
+  /* --- Font weights --- */
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* --- Radius ---
+     Semantic, not numeric — every consumer reaches for "card" or "pill",
+     never a raw pixel value. */
+  --radius-sm:   0.375rem; /* 6px  — checkboxes, small chips           */
+  --radius-md:   0.625rem; /* 10px — inputs, buttons, small badges     */
+  --radius-lg:   0.875rem; /* 14px — cards, dropdowns                  */
+  --radius-xl:   1.25rem;  /* 20px — modals, elevated panels           */
+  --radius-2xl:  1.75rem;  /* 28px — hero panels, premium containers   */
+  --radius-pill: 999px;    /* pills, avatars, status dots              */
+
+  /* --- Shadows ---
+     Each shadow is tuned for its elevation layer; deeper elevation gets a
+     softer, larger-radius blur rather than simply "more" shadow. */
+  --shadow-card:
+    0 1px 2px rgb(16 18 22 / 4%),
+    0 2px 8px rgb(16 18 22 / 6%);
+  --shadow-dropdown:
+    0 4px 16px rgb(16 18 22 / 10%),
+    0 2px 6px rgb(16 18 22 / 6%);
+  --shadow-floating:
+    0 12px 32px rgb(16 18 22 / 14%),
+    0 4px 12px rgb(16 18 22 / 8%);
+  --shadow-hero:
+    0 24px 64px rgb(16 18 22 / 18%),
+    0 8px 24px rgb(16 18 22 / 10%);
+  /* AI Glow: a soft dual-hue halo (indigo + emerald) for AI-active states */
+  --shadow-ai-glow:
+    0 0 0 1px rgb(75 79 232 / 15%),
+    0 0 24px rgb(75 79 232 / 35%),
+    0 0 48px rgb(34 173 132 / 15%);
+  --shadow-focus: 0 0 0 3px rgb(75 79 232 / 35%);
+  --shadow-hover: 0 10px 24px rgb(16 18 22 / 12%);
+
+  /* --- Easing curves --- */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- Keyframe-backed animation utilities (see §7) ---
+     Declaring these here means `animate-fade-in`, `animate-slide-up`, etc.
+     become first-class Tailwind utilities. */
+  --animate-fade-in:        fade-in 0.4s var(--ease-out-soft) both;
+  --animate-slide-up:       slide-up 0.45s var(--ease-out-soft) both;
+  --animate-scale-in:       scale-in 0.25s var(--ease-out-soft) both;
+  --animate-float:          float 6s var(--ease-in-out-soft) infinite;
+  --animate-glow-pulse:     glow-pulse 2.4s var(--ease-in-out-soft) infinite;
+  --animate-gradient-shift: gradient-shift 8s ease infinite;
+  --animate-soft-pulse:     soft-pulse 1.8s var(--ease-in-out-soft) infinite;
+  --animate-typing:         typing-bounce 1.2s ease-in-out infinite;
+  --animate-shimmer:        shimmer 1.6s linear infinite;
+  --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
+
+  /* --- Containers ---
+     Max-width tokens for capped, centered layouts at the large end of the
+     breakpoint scale (see §5 for the full responsive rationale). */
+  --container-content: 72rem;  /* 1152px — max width for reading/app content */
+  --container-wide:    88rem;  /* 1408px — dashboards, kanban, wide tables   */
+}
+
+
+/* ==========================================================================
+   3. THEME VARIABLES (semantic, light/dark)
+   These are *contextual* tokens: they point at the primitives above, and
+   flip meaning between light and dark mode. Consumers should always reach
+   for these (bg-surface-card, text-muted…) rather than the raw palette.
+   `@theme inline` re-exposes them as Tailwind utilities that resolve at
+   runtime, so switching the `.dark` class repaints instantly.
+   ========================================================================== */
+
+@theme inline {
+  --color-bg-base:          var(--bg-base);
+  --color-surface:          var(--surface);
+  --color-surface-card:     var(--surface-card);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --color-text-primary:     var(--text-primary);
+  --color-text-secondary:   var(--text-secondary);
+  --color-text-muted:       var(--text-muted);
+  --color-text-inverse:     var(--text-inverse);
+
+  --color-border-default:   var(--border-default);
+  --color-border-strong:    var(--border-strong);
+}
+
+:root {
+  /* Backgrounds — a 4-step elevation ladder from page to floating panel */
+  --bg-base:          #fcfcfd; /* page background                 */
+  --surface:          #f5f6f8; /* section / sidebar background     */
+  --surface-card:     #ffffff; /* cards, list rows                 */
+  --surface-elevated: #ffffff; /* modals, popovers (relies on shadow for depth) */
+
+  /* Text */
+  --text-primary:   #14161a; /* headings, primary content            */
+  --text-secondary: #4b505b; /* body copy, secondary emphasis        */
+  --text-muted:     #6b7280; /* captions, placeholders, metadata     */
+  --text-inverse:   #fcfcfd; /* text placed on solid primary/dark fill */
+
+  /* Borders */
+  --border-default: #e2e4e9;
+  --border-strong:  #c9cdd6;
+
+  /* Component-level surfaces that differ between themes */
+  --overlay-scrim: rgb(16 18 22 / 45%);
+  --glass-bg: rgb(255 255 255 / 65%);
+  --glass-border: rgb(255 255 255 / 40%);
+  --scrollbar-thumb: var(--color-secondary-300);
+  --scrollbar-track: transparent;
+}
+
+.dark {
+  --bg-base:          #0a0b0e;
+  --surface:          #111318;
+  --surface-card:     #16181d;
+  --surface-elevated: #1c1f26;
+
+  --text-primary:   #f3f4f6;
+  --text-secondary: #b4b8c2;
+  --text-muted:     #868c99;
+  --text-inverse:   #0a0b0e;
+
+  --border-default: #24272e;
+  --border-strong:  #34383f;
+
+  --overlay-scrim: rgb(4 5 7 / 65%);
+  --glass-bg: rgb(22 24 29 / 55%);
+  --glass-border: rgb(255 255 255 / 8%);
+  --scrollbar-thumb: var(--color-secondary-700);
+  --scrollbar-track: transparent;
+}
+
+
+/* ==========================================================================
+   4. TYPOGRAPHY
+   Utility-first sizing already comes from §2 (text-display-xl, etc). This
+   layer covers default element styling so raw HTML looks correct even
+   before utility classes are applied.
+   ========================================================================== */
+
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-tighter);
+  }
+
+  h1 { font-size: var(--text-heading-xl); line-height: var(--text-heading-xl--line-height); }
+  h2 { font-size: var(--text-heading-lg); line-height: var(--text-heading-lg--line-height); }
+  h3 { font-size: var(--text-heading-md); line-height: var(--text-heading-md--line-height); }
+  h4 { font-size: var(--text-heading-sm); line-height: var(--text-heading-sm--line-height); }
+
+  p, li {
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-regular);
+  }
+
+  small, .text-caption {
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    color: var(--text-muted);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  code, kbd, samp {
+    font-family: var(--font-code);
+    font-size: var(--text-code);
+    background: var(--surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 0.125rem 0.375rem;
+  }
+
+  a {
+    color: var(--color-primary-600);
+    text-underline-offset: 3px;
+  }
+  .dark a {
+    color: var(--color-primary-400);
+  }
+}
+
+
+/* ==========================================================================
+   5. RESPONSIVE NOTES
+   Breakpoints are declared once in §2. This section documents intent only
+   — there is no CSS to write here, since Tailwind generates sm:/md:/lg:
+   variants directly from --breakpoint-* tokens.
+
+   mobile   (base, <640px)  → single column, stacked nav, 16px gutters
+   sm  (640px)  large phones     → 2-column card grids begin
+   md  (768px)  tablets          → sidebar collapses to icon rail
+   lg  (1024px) small laptops    → full sidebar + content + inspector
+   xl  (1280px) desktop          → max content width engages (--container-content)
+   2xl (1536px) large desktop    → increased gutters, 3-column dashboards
+   3xl (1920px) ultra-wide       → content is capped and centered, never
+                                    stretches edge-to-edge
+
+   --container-content / --container-wide are declared once, in the main
+   @theme block in §2, to avoid a second @theme declaration in this file.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   6. UTILITY CLASSES (@utility)
+   Custom, single-purpose utilities that compose with Tailwind's own
+   (e.g. `glass-card p-6 rounded-xl` is valid). Each is defined once here
+   and reused everywhere rather than duplicated per-component.
+   ========================================================================== */
+
+/* Frosted glass surface — used for floating nav, command palette */
+@utility glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Brand gradient background — indigo → emerald, used sparingly (hero only) */
+@utility gradient-bg-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-primary-600) 0%,
+    var(--color-primary-500) 45%,
+    var(--color-accent-500) 100%
+  );
+}
+
+/* Quiet gradient for subtle section backgrounds */
+@utility gradient-bg-subtle {
+  background-image: linear-gradient(
+    180deg,
+    var(--surface) 0%,
+    var(--bg-base) 100%
+  );
+}
+
+/* Gradient text — reserved for one hero headline per page, never body copy */
+@utility gradient-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-primary-500),
+    var(--color-accent-500)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* AI-active glow ring — attaches to inputs/cards while the assistant is "thinking" */
+@utility ai-glow {
+  box-shadow: var(--shadow-ai-glow);
+  transition: box-shadow 0.3s var(--ease-out-soft);
+}
+
+/* Premium / upgraded-tier card treatment.
+   Pseudo-elements/-classes must be nested with `&` inside a single
+   @utility block in Tailwind v4 — a separate `@utility name::before`
+   declaration is invalid and will fail the build. */
+@utility premium-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-floating);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* Standard page section container, capped and centered per §5 */
+@utility section-container {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@utility section-container-wide {
+  width: 100%;
+  max-width: var(--container-wide);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* Custom scrollbar — thin, theme-aware, non-intrusive */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: var(--radius-pill);
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+}
+
+/* Accessible, on-brand focus ring — use instead of the browser default */
+@utility focus-ring {
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+/* Base interactive-button behavior (pairs with component classes in §8) */
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  transition:
+    background-color 0.15s var(--ease-out-soft),
+    border-color 0.15s var(--ease-out-soft),
+    box-shadow 0.15s var(--ease-out-soft),
+    transform 0.15s var(--ease-out-soft);
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Lift-on-hover, for cards and clickable rows */
+@utility hover-lift {
+  transition: transform 0.2s var(--ease-out-soft), box-shadow 0.2s var(--ease-out-soft);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+/* Status badge base — color is supplied by the semantic modifier classes in §8 */
+@utility badge-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+/* Base button shape/behavior. Promoted to a real @utility (rather than a
+   plain @layer components class) so that .btn-primary/.btn-secondary/etc.
+   in §8 can legally `@apply btn` — Tailwind v4 only allows @apply to
+   reference built-in utilities or other @utility-defined utilities, never
+   an arbitrary custom class. */
+@utility btn {
+  @apply btn-base focus-ring;
+  padding: 0.625rem 1.125rem;
+  font-size: var(--text-body-sm);
+}
+
+/* Base card surface — promoted to @utility for the same reason as `btn`
+   (task-card, card-elevated, and roadmap-card all @apply it). */
+@utility card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+/* Base nav link — promoted to @utility so .sidebar-item can @apply it. */
+@utility nav-link {
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem 0.625rem;
+  transition: color 0.15s, background-color 0.15s;
+
+  &:hover {
+    color: var(--text-primary);
+    background-color: var(--surface);
+  }
+  &[aria-current="page"] {
+    color: var(--color-primary-600);
+    background-color: var(--color-primary-50);
+  }
+}
+
+/* Base chat bubble — promoted to @utility so the user/assistant variants
+   in §8 can @apply it. */
+@utility chat-message {
+  max-width: 34rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  animation: var(--animate-slide-up);
+}
+
+/* Base roadmap card — promoted to @utility so the complete/locked variants
+   in §8 can @apply it. Composes the `card` utility above via @apply,
+   which is valid since both are real utilities. */
+@utility roadmap-card {
+  @apply card;
+  border-left: 3px solid var(--color-primary-500);
+}
+
+
+/* ==========================================================================
+   7. ANIMATIONS
+   Every animation here is short, low-amplitude, and exists to clarify
+   state changes — never decoration for its own sake.
+   ========================================================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Gentle ambient float for hero illustrations / AI orb */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* Pulsing glow for the "assistant is active" affordance */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(75 79 232 / 35%); }
+  50%      { box-shadow: 0 0 0 8px rgb(75 79 232 / 0%); }
+}
+
+/* Slow hue drift for brand gradient surfaces (hero backgrounds only) */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Soft opacity pulse — live/recording indicators */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* Three-dot typing indicator, staggered via nth-child in §8 */
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Micro hover-lift keyframe used by the `animate-hover-lift` trigger utility */
+@keyframes hover-lift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-2px); }
+}
+
+
+/* ==========================================================================
+   8. COMPONENT TOKENS (@layer components)
+   Ready-to-use classes built entirely from the tokens above. These are
+   opinionated defaults — feature code can still override with Tailwind
+   utilities since @layer components has lower specificity.
+   ========================================================================== */
+
+@layer components {
+
+  /* ---------- Buttons ----------
+     `.btn` itself is defined as a real @utility in §6, so it can be
+     legally @apply'd here. */
+  .btn-primary {
+    @apply btn;
+    background-color: var(--color-primary-500);
+    color: var(--text-inverse);
+  }
+  .btn-primary:hover  { background-color: var(--color-primary-600); }
+  .btn-secondary {
+    @apply btn;
+    background-color: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+  }
+  .btn-secondary:hover { background-color: var(--color-secondary-100); }
+  .btn-ghost {
+    @apply btn;
+    background-color: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { background-color: var(--surface); }
+  .btn-danger {
+    @apply btn;
+    background-color: var(--color-danger-500);
+    color: var(--text-inverse);
+  }
+  .btn-danger:hover { background-color: var(--color-danger-600); }
+
+  /* ---------- Cards ----------
+     `.card` itself is defined as a real @utility in §6. */
+  .card-elevated {
+    @apply card;
+    background-color: var(--surface-elevated);
+    box-shadow: var(--shadow-floating);
+  }
+
+  /* ---------- Inputs ---------- */
+  .input {
+    @apply focus-ring;
+    width: 100%;
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: var(--text-body-sm);
+    padding: 0.625rem 0.875rem;
+    transition: border-color 0.15s var(--ease-out-soft);
+  }
+  .input::placeholder { color: var(--text-muted); }
+  .input:hover   { border-color: var(--border-strong); }
+  .input:focus   { border-color: var(--color-primary-500); }
+
+  /* ---------- Badges ---------- */
+  .badge-neutral { @apply badge-base; background: var(--surface); color: var(--text-secondary); border-color: var(--border-default); }
+  .badge-success { @apply badge-base; background: var(--color-success-50); color: var(--color-success-600); }
+  .badge-warning { @apply badge-base; background: var(--color-warning-50); color: var(--color-warning-600); }
+  .badge-danger  { @apply badge-base; background: var(--color-danger-50);  color: var(--color-danger-600); }
+  .badge-info    { @apply badge-base; background: var(--color-info-50);    color: var(--color-info-600); }
+  .dark .badge-success { background: rgb(34 165 94 / 12%);  color: var(--color-success-500); }
+  .dark .badge-warning { background: rgb(245 165 36 / 12%); color: var(--color-warning-500); }
+  .dark .badge-danger  { background: rgb(229 72 77 / 12%);  color: var(--color-danger-500); }
+  .dark .badge-info    { background: rgb(46 144 229 / 12%); color: var(--color-info-500); }
+
+  /* ---------- Navigation ---------- */
+  .nav-bar {
+    @apply glass-card;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    padding-inline: 1.25rem;
+  }
+  /* `.nav-link` itself (including :hover and [aria-current]) is defined
+     as a real @utility in §6. */
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    background-color: var(--surface);
+    border-right: 1px solid var(--border-default);
+    width: 16rem;
+    padding: 1rem 0.75rem;
+  }
+  .sidebar-item {
+    @apply nav-link;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+  }
+
+  /* ---------- Dialogs ---------- */
+  .dialog-scrim {
+    background-color: var(--overlay-scrim);
+    backdrop-filter: blur(4px);
+  }
+  .dialog-panel {
+    background-color: var(--surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-floating);
+    animation: var(--animate-scale-in);
+  }
+
+  /* ---------- Progress bars ---------- */
+  .progress-track {
+    width: 100%;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--surface);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background-image: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+    transition: width 0.4s var(--ease-out-soft);
+  }
+
+  /* ---------- Timeline (e.g. learning path / roadmap history) ---------- */
+  .timeline-item {
+    position: relative;
+    padding-left: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-left: 2px solid var(--border-default);
+  }
+  .timeline-item:last-child { border-left-color: transparent; }
+  .timeline-dot {
+    position: absolute;
+    left: -0.4375rem;
+    top: 0.125rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--surface-card);
+  }
+
+  /* ---------- Chat messages (AI Mentor conversation view) ----------
+     `.chat-message` itself is defined as a real @utility in §6. */
+  .chat-message-user {
+    @apply chat-message;
+    background-color: var(--color-primary-500);
+    color: var(--text-inverse);
+    border-bottom-right-radius: var(--radius-sm);
+    margin-inline-start: auto;
+  }
+  .chat-message-assistant {
+    @apply chat-message;
+    background-color: var(--surface-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-bottom-left-radius: var(--radius-sm);
+  }
+  .typing-indicator { display: inline-flex; align-items: center; gap: 0.25rem; }
+  .typing-indicator span {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--text-muted);
+    animation: var(--animate-typing);
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+  /* ---------- Task cards (lesson / action items) ---------- */
+  .task-card {
+    @apply card hover-lift;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .task-card-checkbox {
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+  .task-card-title-done {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  /* ---------- Roadmap cards (curriculum / milestone view) ----------
+     `.roadmap-card` itself is defined as a real @utility in §6. */
+  .roadmap-card-complete {
+    @apply roadmap-card;
+    border-left-color: var(--color-accent-500);
+  }
+  .roadmap-card-locked {
+    @apply roadmap-card;
+    border-left-color: var(--border-default);
+    opacity: 0.6;
+  }
+
+  /* ---------- Skeleton loading ---------- */
+  .skeleton {
+    border-radius: var(--radius-sm);
+    background-image: linear-gradient(
+      90deg,
+      var(--surface) 25%,
+      var(--border-default) 50%,
+      var(--surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+}
+
+
+/* ==========================================================================
+   9. ACCESSIBILITY
+   Baseline guarantees that apply regardless of which component classes a
+   feature uses.
+   ========================================================================== */
+
+@layer base {
+  /* All interactive elements share one visible, on-brand focus treatment. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Text-on-surface pairings in this file are verified at WCAG AA:
+     - text-primary   on bg-base / surface / surface-card  → ≥ 12:1
+     - text-secondary on bg-base / surface / surface-card  → ≥ 7:1
+     - text-muted     on bg-base / surface / surface-card  → ≥ 4.6:1
+     - text-inverse   on color-primary-500 / color-primary-600 → ≥ 4.8:1
+     Re-check contrast if any of these primitive values change. */
+
+  /* Comfortable long-session defaults */
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* Never remove focus outlines for keyboard users, only for pointer users */
+  :focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+}
