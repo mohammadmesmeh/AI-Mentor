@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ملاحظة تطبيقية (خارج نطاق هالملف):
+   الهوية هون Dark-first فعليًا — التوكنز نفسها Dark بشكل افتراضي حتى
+   بدون أي class (شوف :root في §3). لكن لو حاب أي Tailwind utility
+   بصيغة dark:xxx (بره التوكنز الدلالية زي bg-surface) يشتغل بانسجام
+   من أول تحميل، لازم تضيف class="dark" فعليًا على <html> بشكل افتراضي:
+   - Next.js:  <html lang="ar" className="dark"> في الـ root layout, أو
+   - next-themes: <ThemeProvider attribute="class" defaultTheme="dark">
+   الـ .light class (تحت) هو الخيار الصريح لما اليوزر يبدّل يدويًا. */
+
 /* ==========================================================================
    AI MENTOR — DESIGN SYSTEM
    Tailwind CSS v4 (CSS-first, no tailwind.config.*)
@@ -36,7 +45,10 @@
   }
 
   html {
-    color-scheme: light;
+    /* Dark هو الوضع الافتراضي: color-scheme يبقى dark حتى بدون أي
+       class على <html>، فمتصفح (scrollbars, form controls..) بيطابق
+       الهوية الغامقة فوراً، وما بصير "ومضة" فاتحة قبل ما JS يشتغل. */
+    color-scheme: dark;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -46,6 +58,11 @@
 
   html.dark {
     color-scheme: dark;
+  }
+
+  /* .light: صنف صريح لما اليوزر يختار الوضع الفاتح يدويًا (عبر toggle) */
+  html.light {
+    color-scheme: light;
   }
 
   body {
@@ -102,37 +119,40 @@
   --breakpoint-2xl: 96rem;   /* 1536px — large desktop monitors (1440p+)          */
   --breakpoint-3xl: 120rem;  /* 1920px — ultra-wide / cinema displays             */
 
-  /* --- Color: Primary — "Intellect Indigo"
-     Trust and cognition. Used for primary actions, links, focus, and the
-     dominant brand hue across the product. */
-  --color-primary-50:  #f0f1fe;
-  --color-primary-100: #e1e3fd;
-  --color-primary-200: #c3c8fb;
-  --color-primary-300: #9ca3f7;
-  --color-primary-400: #6f75f0;
-  --color-primary-500: #4b4fe8;
-  --color-primary-600: #3a3ed0;
-  --color-primary-700: #2e30a8;
-  --color-primary-800: #262885;
-  --color-primary-900: #21226c;
-  --color-primary-950: #14153f;
+  /* --- Color: Primary — "Calm Teal"
+     Trust and clarity without the coldness of pure blue. Used for primary
+     actions, links, focus, and the dominant brand hue across the product —
+     the calm, dependable register that AI/assistant products lean on. */
+  --color-primary-50:  #eefcfb;
+  --color-primary-100: #d2f6f1;
+  --color-primary-200: #a6ece1;
+  --color-primary-300: #70dcc9;
+  --color-primary-400: #3fc4ab;
+  --color-primary-500: #1ea28c;
+  --color-primary-600: #158272;
+  --color-primary-700: #12685b;
+  --color-primary-800: #12534a;
+  --color-primary-900: #12443d;
+  --color-primary-950: #062824;
 
-  /* --- Color: Secondary — "Graphite"
-     A cool, faintly blue-tinted neutral (never pure gray) used for
-     chrome, secondary actions, and structural surfaces. */
-  --color-secondary-50:  #f8f9fb;
-  --color-secondary-100: #eef0f4;
-  --color-secondary-200: #dde1e8;
-  --color-secondary-300: #c2c8d3;
-  --color-secondary-400: #9aa2b1;
-  --color-secondary-500: #717a8c;
-  --color-secondary-600: #565e6e;
-  --color-secondary-700: #414753;
-  --color-secondary-800: #2d323c;
-  --color-secondary-900: #1c1f26;
-  --color-secondary-950: #101216;
+  /* --- Color: Secondary — "Slate Mist"
+     A cool, faintly teal-tinted neutral (never pure gray) used for chrome,
+     secondary actions, and structural surfaces — echoes the primary hue at
+     near-zero saturation so neutrals never fight the brand color. */
+  --color-secondary-50:  #f4f8f7;
+  --color-secondary-100: #e5eeed;
+  --color-secondary-200: #cedbd9;
+  --color-secondary-300: #adc1be;
+  --color-secondary-400: #85a19d;
+  --color-secondary-500: #64827e;
+  --color-secondary-600: #4c6763;
+  --color-secondary-700: #3c524f;
+  --color-secondary-800: #304240;
+  --color-secondary-900: #223231;
+  --color-secondary-950: #131e1d;
 
   /* --- Color: Accent — "Growth Emerald"
+     Pairs with Calm Teal as the product's signature teal→emerald duo.
      Reserved for progress, achievement, and momentum: streaks, completed
      lessons, upward metrics. Deliberately not used for primary actions. */
   --color-accent-50:  #edfcf6;
@@ -258,12 +278,12 @@
   --shadow-hero:
     0 24px 64px rgb(16 18 22 / 18%),
     0 8px 24px rgb(16 18 22 / 10%);
-  /* AI Glow: a soft dual-hue halo (indigo + emerald) for AI-active states */
+  /* AI Glow: a soft dual-hue halo (teal + emerald) for AI-active states */
   --shadow-ai-glow:
-    0 0 0 1px rgb(75 79 232 / 15%),
-    0 0 24px rgb(75 79 232 / 35%),
+    0 0 0 1px rgb(30 162 140 / 15%),
+    0 0 24px rgb(30 162 140 / 35%),
     0 0 48px rgb(34 173 132 / 15%);
-  --shadow-focus: 0 0 0 3px rgb(75 79 232 / 35%);
+  --shadow-focus: 0 0 0 3px rgb(30 162 140 / 35%);
   --shadow-hover: 0 10px 24px rgb(16 18 22 / 12%);
 
   /* --- Easing curves --- */
@@ -355,63 +375,10 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  /* Backgrounds — a 4-step elevation ladder from page to floating panel */
-  --bg-base:          #fcfcfd; /* page background                 */
-  --surface:          #f5f6f8; /* section / sidebar background     */
-  --surface-card:     #ffffff; /* cards, list rows                 */
-  --surface-elevated: #ffffff; /* modals, popovers (relies on shadow for depth) */
-
-  /* Text */
-  --text-primary:   #14161a; /* headings, primary content            */
-  --text-secondary: #4b505b; /* body copy, secondary emphasis        */
-  --text-muted:     #6b7280; /* captions, placeholders, metadata     */
-  --text-inverse:   #fcfcfd; /* text placed on solid primary/dark fill */
-
-  /* Borders */
-  --border-default: #e2e4e9;
-  --border-strong:  #c9cdd6;
-
-  /* Component-level surfaces that differ between themes */
-  --overlay-scrim: rgb(16 18 22 / 45%);
-  --glass-bg: rgb(255 255 255 / 65%);
-  --glass-border: rgb(255 255 255 / 40%);
-  --scrollbar-thumb: var(--color-secondary-300);
-  --scrollbar-track: transparent;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
+/* :root, .dark: نفس القيم — Dark هو الوضع الافتراضي الحقيقي (يظهر حتى
+   بدون أي class على <html>)، و.dark محفوظة كمان بشكل صريح للتوافق مع
+   أي مكتبة theme-toggle (زي next-themes) بتضيف .dark يدويًا. */
+:root,
 .dark {
   --bg-base:          #0a0b0e;
   --surface:          #111318;
@@ -437,8 +404,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.75 0.10 175);
+  --primary-foreground: oklch(0.16 0.02 175);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -448,20 +415,76 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.60 0.10 175);
+  --chart-1: oklch(0.85 0.06 175);
+  --chart-2: oklch(0.70 0.09 175);
+  --chart-3: oklch(0.62 0.11 150);
+  --chart-4: oklch(0.50 0.10 175);
+  --chart-5: oklch(0.38 0.08 175);
+  --radius: 0.625rem;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.55 0.14 175);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.60 0.10 175);
+}
+
+/* .light: الوضع الفاتح الثانوي — يفعّل فقط لما اليوزر يختاره صراحة
+   (toggle)، عكس الوضع القديم اللي كان :root نفسه هو الفاتح. */
+.light {
+  --bg-base:          #fcfcfd;
+  --surface:          #f5f6f8;
+  --surface-card:     #ffffff;
+  --surface-elevated: #ffffff;
+
+  --text-primary:   #14161a;
+  --text-secondary: #4b505b;
+  --text-muted:     #6b7280;
+  --text-inverse:   #fcfcfd;
+
+  --border-default: #e2e4e9;
+  --border-strong:  #c9cdd6;
+
+  --overlay-scrim: rgb(16 18 22 / 45%);
+  --glass-bg: rgb(255 255 255 / 65%);
+  --glass-border: rgb(255 255 255 / 40%);
+  --scrollbar-thumb: var(--color-secondary-300);
+  --scrollbar-track: transparent;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.62 0.11 175);
+  --primary-foreground: oklch(0.98 0.01 175);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.65 0.10 175);
+  --chart-1: oklch(0.85 0.06 175);
+  --chart-2: oklch(0.70 0.09 175);
+  --chart-3: oklch(0.62 0.11 150);
+  --chart-4: oklch(0.50 0.10 175);
+  --chart-5: oklch(0.38 0.08 175);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.62 0.11 175);
+  --sidebar-primary-foreground: oklch(0.98 0.01 175);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.65 0.10 175);
 }
 
 /* ==========================================================================
@@ -548,7 +571,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 
-/* Brand gradient background — indigo → emerald, used sparingly (hero only) */
+/* Brand gradient background — teal → emerald, used sparingly (hero only) */
 @utility gradient-bg-brand {
   background-image: linear-gradient(
     135deg,
@@ -782,8 +805,8 @@
 
 /* Pulsing glow for the "assistant is active" affordance */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(75 79 232 / 35%); }
-  50%      { box-shadow: 0 0 0 8px rgb(75 79 232 / 0%); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(30 162 140 / 35%); }
+  50%      { box-shadow: 0 0 0 8px rgb(30 162 140 / 0%); }
 }
 
 /* Slow hue drift for brand gradient surfaces (hero backgrounds only) */
