@@ -1,4 +1,4 @@
-import HomePage from "@/components/pages/home";
+import HomePage from "@/features/home/components/pages/home";
 import { setRequestLocale } from "next-intl/server";
 
 
@@ -8,9 +8,9 @@ export default async function Home({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const {locale} = await params;
+  const { locale } = await params;
 
   setRequestLocale(locale);
 
-return <HomePage/>
+  return <HomePage />
 }
