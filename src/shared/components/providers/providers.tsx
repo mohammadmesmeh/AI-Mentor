@@ -1,16 +1,17 @@
 "use client";
 
 import { NextIntlClientProvider } from "next-intl";
+import type { AbstractIntlMessages } from "next-intl";
 import { Provider } from "react-redux";
-import  store  from "@/redux/store";
+import store from "@/redux/store";
 
 export default function Providers({
   children,
   messages,
-  locale
+  locale,
 }: {
   children: React.ReactNode;
-  messages: any;
+  messages: AbstractIntlMessages;
   locale: string;
 }) {
   return (
