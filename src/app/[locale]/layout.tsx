@@ -6,9 +6,9 @@ import {  hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import { getMessages, setRequestLocale } from "next-intl/server";
-import Providers from "@/components/providers/providers";
-
-
+import Providers from "@/shared/components/providers/providers";
+import { Navbar } from "@/shared/components/layout/Navbar";
+import { Footer } from "@/shared/components/layout/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,11 +49,14 @@ export default async function RootLayout({
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-primary-950">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
           <Providers messages={messages} locale={locale}>
-            {children}
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
           </Providers>
-   
       </body>
     </html>
   );
