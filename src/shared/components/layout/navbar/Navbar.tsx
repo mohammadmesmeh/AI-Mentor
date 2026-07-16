@@ -1,7 +1,6 @@
 "use client"
 
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
-import { Link, usePathname } from "@/i18n/navigation"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
 import { cn } from "@/lib/utils"
@@ -14,33 +13,21 @@ const navLinks = [
   { href: "/about", label: "About" },
 ]
 
-const navLinkStyles = {
-  desktop: {
-    base: "text-sm font-medium transition-colors",
-    active:
-      "text-foreground font-semibold underline underline-offset-4 decoration-2 decoration-primary",
-    inactive: "text-muted-foreground hover:text-foreground",
-  },
-  mobile: {
-    base: "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-    active: "bg-muted text-foreground font-semibold",
-    inactive: "text-muted-foreground hover:bg-muted hover:text-foreground",
-  },
-} as const
+
 
 function Navbar() {
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
-  const pathname = usePathname()
+
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-border light:bg-background/30 backdrop-blur-lg">
       <Container className="flex h-14 items-center justify-between">
        <Logo />
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <NavLinks key={link.href} link={link} />
           ))}
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" >
             Get Started
           </Button>
         </nav>
