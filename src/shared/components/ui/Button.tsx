@@ -1,17 +1,18 @@
 import { cva, type VariantProps } from "class-variance-authority"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { Link } from "@/i18n/navigation"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex shrink-0 items-center cursor-pointer justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors duration-200  outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         primary:
-          "bg-primary text-primary-foreground hover:bg-primary/80 shadow-xs",
+          "bg-primary text-primary-foreground hover:bg-primary/80 shadow-xs hover:shadow-md hover:shadow-primary/20 hover:scale-[1.02]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02]",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -33,33 +34,44 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
   className?: string
 }
 
-function Button({
+const tapConfig = { scale: 0.92 }
+const tapTransition = { type: "spring" as const, stiffness: 400, damping: 17 }
+
+const Button = ({
   variant,
   size,
   children,
   onClick,
   href,
   className,
-}: ButtonProps) {
+}: ButtonProps) => {
   if (href) {
     return (
-      <Link
-        href={href}
-        onClick={onClick}
-        className={cn(buttonVariants({ variant, size, className }))}
+      <motion.span
+        className="inline-flex"
+        whileTap={tapConfig}
+        transition={tapTransition}
       >
-        {children}
-      </Link>
+        <Link
+          href={href}
+          onClick={onClick}
+          className={cn(buttonVariants({ variant, size, className }))}
+        >
+          {children}
+        </Link>
+      </motion.span>
     )
   }
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
       className={cn(buttonVariants({ variant, size, className }))}
+      whileTap={tapConfig}
+      transition={tapTransition}
     >
       {children}
-    </button>
+    </motion.button>
   )
 }
 
