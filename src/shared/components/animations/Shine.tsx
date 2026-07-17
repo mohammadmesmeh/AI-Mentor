@@ -54,7 +54,7 @@ function Shine({
         على أب مباشر ملاصق للعنصر نفسه (بدل ما نعتمد على الأب الأبعد
         بس)، القص بيصير مضمون 100% بكل المتصفحات.
       */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden="true">
         <motion.div
           className="absolute top-0 h-full w-20 skew-x-[-20deg]"
           style={{

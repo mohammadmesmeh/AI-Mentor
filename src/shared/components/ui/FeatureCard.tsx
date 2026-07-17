@@ -32,8 +32,8 @@ function FeatureCard({
       >
         <CardHeader className="flex-1 justify-between">
           <div>
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/20">
-            <span className="transition-transform duration-300 group-hover:scale-110">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/20" aria-hidden="true">
+            <span className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
               {icon}
             </span>
           </div>

@@ -16,10 +16,10 @@ export function Features() {
   const t = useTranslations("features")
 
   return (
-    <section className="py-14 md:py-24">
+    <section className="py-14 md:py-24" aria-labelledby="features-heading">
       <Container>
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl"  id="features-heading">
             {t("heading")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">

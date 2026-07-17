@@ -15,13 +15,13 @@ export default function NotFound() {
       Error 404
     </span>
 
-    <h1 className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-8xl font-bold tracking-tight text-transparent">
+    <span className="bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-8xl font-bold tracking-tight text-transparent" aria-hidden="true">
       404
-    </h1>
+    </span>
 
-    <h2 className="mt-4 text-heading-md font-semibold">
+    <h1 className="mt-4 text-heading-md font-semibold">
       Page Not Found
-    </h2>
+    </h1>
 
     <p className="mt-3 max-w-sm text-text-secondary">
       يبدو أن الصفحة التي تبحث عنها غير موجودة أو تم نقلها إلى مكان آخر.

@@ -32,10 +32,13 @@ function Navbar() {
           </Button>
         </nav>
 
-       < MobileMenuButton isOpen={mobileOpen} toggle={toggle} />
+       <MobileMenuButton isOpen={mobileOpen} toggle={toggle} />
       </Container>
 
       <div
+        id="mobile-menu"
+        role="region"
+        aria-label="Mobile navigation"
         className={cn(
           "overflow-hidden transition-all duration-300 ease-out md:hidden",
           mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
