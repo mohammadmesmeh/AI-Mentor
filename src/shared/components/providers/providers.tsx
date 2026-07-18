@@ -15,7 +15,7 @@ export default function Providers({
   locale: string;
 }) {
   return (
-    <NextIntlClientProvider messages={messages} locale={locale}>
+    <NextIntlClientProvider messages={messages} locale={locale} timeZone="Asia/Riyadh">
       <Provider store={store}>
         {children}
       </Provider>
