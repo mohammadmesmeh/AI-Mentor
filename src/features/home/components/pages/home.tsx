@@ -1,8 +1,7 @@
 "use client"
-
-import { Hero } from "../sections/Hero"
-import { Features } from "../sections/Features"
-import { CTA } from "../sections/CTA"
+import { Hero } from "@/features/home/components/sections/Hero"
+import { Features } from "@/features/home/components/sections/Features"
+import { CTA } from "@/features/home/components/sections/CTA"
 
 export default function HomePage() {
   return (

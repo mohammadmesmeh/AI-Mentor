@@ -4,11 +4,17 @@ import { useRef, useEffect, type CSSProperties, type ReactNode, type MouseEventH
 import { Renderer, Program, Mesh, Triangle, Color } from "ogl"
 
 type ButtonSize = "sm" | "md" | "lg"
+type ButtonTheme = "dark" | "light"
 
 export interface SpecularButtonProps {
   children?: ReactNode
   size?: ButtonSize
+  // theme: بيتحكم بأي مجموعة ألوان من THEME_COLORS تنستخدم افتراضيًا.
+  // "dark" هو نفس افتراضي globals.css (Dark-first)، فبنطابقه هون كمان.
+  theme?: ButtonTheme
   radius?: number
+  // أي واحد من الأربعة تحت لو مرّرته صراحة بيتغلّب على قيمة الـ theme —
+  // للتخصيص الاستثنائي بس.
   tint?: string
   tintOpacity?: number
   blur?: number
@@ -41,6 +47,48 @@ interface ShaderProps {
   followMouse: boolean
   proximity: number
   autoAnimate: boolean
+}
+
+interface ThemePalette {
+  tint: string
+  textColor: string
+  baseColor: string
+  lineColor: string
+  boxShadow: string
+}
+
+/*
+  القيم هون منقولة حرفيًا من globals.css (مش var() لأن baseColor/lineColor
+  بيترسموا جوا WebGL shader ما بيفهم CSS variables مباشرة). كل قيمة
+  معلّق جنبها اسم المتغيّر المصدر بالملف.
+
+  primary-500/600 و accent-400 و shadow-ai-glow ثابتين أصلًا بين
+  Light/Dark بالملف — الفرق الوحيد الفعلي هو textColor، المبني على
+  --text-inverse اللي قيمته معكوسة فعلًا بين الوضعين.
+*/
+const THEME_COLORS: Record<ButtonTheme, ThemePalette> = {
+  dark: {
+    tint: "#1ea28c",       // --color-primary-500
+    textColor: "#0a0b0e",  // --text-inverse (داخل :root/.dark)
+    baseColor: "#158272",  // --color-primary-600
+    lineColor: "#3fcb9f",  // --color-accent-400
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.05), " +
+      "0 0 0 1px rgb(30 162 140 / 15%), " +
+      "0 0 24px rgb(30 162 140 / 35%), " +
+      "0 0 48px rgb(34 173 132 / 15%)",
+  },
+  light: {
+    tint: "#1ea28c",       // --color-primary-500 (ثابت بين الثيمين)
+    textColor: "#fcfcfd",  // --text-inverse (داخل .light)
+    baseColor: "#158272",  // --color-primary-600 (ثابت بين الثيمين)
+    lineColor: "#3fcb9f",  // --color-accent-400 (ثابت بين الثيمين)
+    boxShadow:
+      "inset 0 1px 0 rgba(255,255,255,0.05), " +
+      "0 0 0 1px rgb(30 162 140 / 15%), " +
+      "0 0 24px rgb(30 162 140 / 35%), " +
+      "0 0 48px rgb(34 173 132 / 15%)",
+  },
 }
 
 const PAD = 20
@@ -109,49 +157,17 @@ void main() {
 }
 `
 
-/*
-  الـ shader بيشتغل بالـ JavaScript/WebGL، فمش قادر يفهم var(--xxx) مباشرة
-  زي ما بتفهمها خصائص CSS العادية — لازم قيمة hex/rgb فعلية.
-  هالدالة بتفحص إذا كانت القيمة "var(--اسم-متغير)"، وإذا هيك بتقرأ
-  القيمة الفعلية المحسوبة من <html> (getComputedStyle) وقت التشغيل.
-  هيك لو غيّرت لون الهوية بالـ globals.css بالمستقبل، الزر بيتحدث
-  تلقائيًا بدون ما ترجع تعدّل هالكومبوننت، بالظبط متل أي عنصر CSS عادي.
-  ملاحظة: بتشتغل بس مع متغيرات مخزّنة كـ hex صريح (--color-primary-*,
-  --color-accent-*)، مش مع متغيرات shadcn المخزّنة بصيغة oklch(...) لأن
-  ogl.Color ما بتقدر تفسّرها.
-*/
-function resolveCssVar(value: string): string {
-  if (typeof document === "undefined") return value
-  const match = /var\((--[\w-]+)\)/.exec(value)
-  if (!match) return value
-  const resolved = getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim()
-  return resolved || value
-}
-
 function SpecularButton({
   children = "Get Started",
   size = "lg",
+  theme = "dark",
   radius = 18,
-  // القيم دي بتُستخدم بالـ CSS العادي (inline style → color-mix)، فبتقبل
-  // var() مباشرة بدون أي معالجة إضافية.
-  tint = "var(--color-primary-500)",
+  tint,
   tintOpacity = 0,
   blur = 0,
-  // نص أبيض تقريبًا مطابق لـ --text-inverse المستخدم أصلًا بـ .btn-primary
-  // بالملف — نفس منطق "نص فاتح فوق تعبئة primary غامقة".
-  textColor = "var(--text-inverse)",
-  // lineColor/baseColor بيترسموا جوا الـ WebGL shader، فلازم قيمة hex
-  // فعلية وقت التشغيل — بنستخدم resolveCssVar عشان نقدر نكتبهم كمتغيرات
-  // زي باقي البروبس، وبنفس الوقت الـ shader ياخذ hex صريح.
-  //
-  // baseColor = primary-600: تعبئة الزر الأساسية (طبقة شفافة 0.45 alpha
-  // بالـ shader) — نفس التركواز الأساسي بالهوية، بيطلع كزجاج تركوازي
-  // داكن ناعم، منسجم مع glass-card بالملف.
-  baseColor = "var(--color-primary-600)",
-  // lineColor = accent-400: خط اللمعان المتحرك بلون الزمردي — نفس ثنائي
-  // primary-400 → accent-400 المستخدم أصلًا بـ premium-card::before،
-  // فالزر بيصير "بطاقة مميزة" متحركة بنفس روح باقي النظام.
-  lineColor = "var(--color-accent-400)",
+  textColor,
+  lineColor,
+  baseColor,
   intensity = 1,
   shineSize = 10,
   shineFade = 40,
@@ -169,28 +185,22 @@ function SpecularButton({
   const fxRef = useRef<HTMLSpanElement>(null)
   const propsRef = useRef<ShaderProps>({} as ShaderProps)
 
-  // resolveCssVar بينفّذ هون بس (كل render)، مش جوا الـ rAF loop تحت —
-  // عشان نتفادى قراءة getComputedStyle 60 مرة بالثانية (بتعمل reflow
-  // وبتأثر على الأداء). القيمة المحلولة بتنخزن بالـ ref وتستخدم كما هي
-  // جوا حلقة الأنيميشن.
-  useEffect(() => {
-    propsRef.current = {
-      radius,
-      lineColor: resolveCssVar(lineColor),
-      baseColor: resolveCssVar(baseColor),
-      intensity,
-      shineSize,
-      shineFade,
-      thickness,
-      speed,
-      followMouse,
-      proximity,
-      autoAnimate,
-    }
-  }, [
+  // palette: مصدر القيم الافتراضية حسب theme. أي prop لون مرّرته صراحة
+  // بيتغلّب على قيمة الـ palette — "??" بيرجع لقيمة الـ theme بس لو
+  // الـ prop undefined.
+  const palette = THEME_COLORS[theme]
+  const resolvedTint = tint ?? palette.tint
+  const resolvedTextColor = textColor ?? palette.textColor
+  const resolvedBaseColor = baseColor ?? palette.baseColor
+  const resolvedLineColor = lineColor ?? palette.lineColor
+
+  // القيم صارت hex صريح جاهز من THEME_COLORS — ما عاد في داعي
+  // resolveCssVar/getComputedStyle وقت التشغيل زي النسخة السابقة.
+useEffect(() => {
+  propsRef.current = {
     radius,
-    lineColor,
-    baseColor,
+    lineColor: resolvedLineColor,
+    baseColor: resolvedBaseColor,
     intensity,
     shineSize,
     shineFade,
@@ -199,7 +209,20 @@ function SpecularButton({
     followMouse,
     proximity,
     autoAnimate,
-  ])
+  }
+}, [
+  radius,
+  resolvedLineColor,
+  resolvedBaseColor,
+  intensity,
+  shineSize,
+  shineFade,
+  thickness,
+  speed,
+  followMouse,
+  proximity,
+  autoAnimate,
+])
 
   useEffect(() => {
     const btn = btnRef.current
@@ -332,16 +355,11 @@ function SpecularButton({
       style={
         {
           "--sb-radius": `${radius}px`,
-          "--sb-tint": tint,
+          "--sb-tint": resolvedTint,
           "--sb-tint-opacity": tintOpacity,
           "--sb-blur": `${blur}px`,
-          "--sb-text-color": textColor,
-          // بدّلنا الظل الخارجي الأسود العام بـ --shadow-ai-glow: هالة
-          // تركوازية/زمردية مزدوجة الطبقة، جاهزة أصلًا بالملف، فبتربط
-          // الزر بصريًا بنفس لغة "التوهج" المستخدمة بباقي الواجهة
-          // (اللوقو، حالات AI-active..) بدل ظل عام مالوش علاقة بالهوية.
-          // بقّينا اللمعة الداخلية الخفيفة (inset) للإحساس الزجاجي.
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), var(--shadow-ai-glow)",
+          "--sb-text-color": resolvedTextColor,
+          boxShadow: palette.boxShadow,
         } as CSSProperties
       }
     >

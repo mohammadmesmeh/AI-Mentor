@@ -2,12 +2,12 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "concurrently --raw \"next dev --turbo\" \"i18nexus listen\"",
-    "build": "i18nexus pull -k $I18NEXUS_API_KEY && next build",
-    "start": "i18nexus pull -k $I18NEXUS_API_KEY && next start",
-    "lint": "eslint"
-  },
+ "scripts": {
+  "dev": "concurrently --raw \"next dev --turbo\" \"i18nexus listen\"",
+  "build": "i18nexus pull && next build",
+  "start": "i18nexus pull && next start",
+  "lint": "eslint"
+},
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "class-variance-authority": "^0.7.1",
