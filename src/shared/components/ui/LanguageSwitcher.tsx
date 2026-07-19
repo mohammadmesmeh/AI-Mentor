@@ -27,7 +27,7 @@ function LanguageSwitcher({ mobile = false }: { mobile?: boolean }) {
             type="button"
             onClick={() => switchLocale(value)}
             className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200",
+              "cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200",
               currentLocale === value
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -47,12 +47,12 @@ function LanguageSwitcher({ mobile = false }: { mobile?: boolean }) {
           key={value}
           type="button"
           onClick={() => switchLocale(value)}
-          className={cn(
-            "rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-200",
-            currentLocale === value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
+            className={cn(
+              "cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-200",
+              currentLocale === value
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
         >
           {label}
         </button>
