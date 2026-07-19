@@ -930,7 +930,7 @@
   /* ---------- Sidebar ---------- */
   .sidebar {
     background-color: var(--surface);
-    border-right: 1px solid var(--border-default);
+    border-inline-end: 1px solid var(--border-default);
     width: 16rem;
     padding: 1rem 0.75rem;
   }
@@ -974,14 +974,14 @@
   /* ---------- Timeline (e.g. learning path / roadmap history) ---------- */
   .timeline-item {
     position: relative;
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
     padding-bottom: 1.5rem;
-    border-left: 2px solid var(--border-default);
+    border-inline-start: 2px solid var(--border-default);
   }
-  .timeline-item:last-child { border-left-color: transparent; }
+  .timeline-item:last-child { border-inline-start-color: transparent; }
   .timeline-dot {
     position: absolute;
-    left: -0.4375rem;
+    inset-inline-start: -0.4375rem;
     top: 0.125rem;
     width: 0.75rem;
     height: 0.75rem;
@@ -996,7 +996,7 @@
     @apply chat-message;
     background-color: var(--color-primary-500);
     color: var(--text-inverse);
-    border-bottom-right-radius: var(--radius-sm);
+    border-end-start-radius: var(--radius-sm);
     margin-inline-start: auto;
   }
   .chat-message-assistant {
@@ -1004,7 +1004,7 @@
     background-color: var(--surface-card);
     color: var(--text-primary);
     border: 1px solid var(--border-default);
-    border-bottom-left-radius: var(--radius-sm);
+    border-end-end-radius: var(--radius-sm);
   }
   .typing-indicator { display: inline-flex; align-items: center; gap: 0.25rem; }
   .typing-indicator span {
@@ -1041,11 +1041,11 @@
      `.roadmap-card` itself is defined as a real @utility in §6. */
   .roadmap-card-complete {
     @apply roadmap-card;
-    border-left-color: var(--color-accent-500);
+    border-inline-start-color: var(--color-accent-500);
   }
   .roadmap-card-locked {
     @apply roadmap-card;
-    border-left-color: var(--border-default);
+    border-inline-start-color: var(--border-default);
     opacity: 0.6;
   }
 

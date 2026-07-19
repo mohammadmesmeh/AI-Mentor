@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Logo } from "./Logo"
 import { MobileMenuButton } from "./MobileMenuButton"
 import { NavLinks } from "./NavLinks"
+import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -36,6 +37,7 @@ function Navbar() {
           {navLinks.map((link) => (
             <NavLinks key={link.href} link={link} />
           ))}
+          <LanguageSwitcher />
           <Button variant="primary" size="sm">
             Get Started
           </Button>
@@ -57,6 +59,7 @@ function Navbar() {
           {navLinks.map((link) => (
             <NavLinks key={link.href} link={link} onClick={close} mobile />
           ))}
+          <LanguageSwitcher mobile />
           <Button
             variant="primary"
             className="mt-2 w-full"
