@@ -9,7 +9,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import Providers from "@/shared/components/providers/providers";
 import { Navbar } from "@/shared/components/layout/navbar/Navbar";
 import { Footer } from "@/shared/components/layout/Footer";
-import { BlobCursor } from "@/shared/components/ui/BlobCursor";
+import { AiCursor} from "@/shared/components/ui/AiCursor";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -51,7 +51,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
           <Providers messages={messages} locale={locale}>
-            <BlobCursor />
+            <AiCursor />
             <Navbar />
             <main className="flex-1">
               {children}
