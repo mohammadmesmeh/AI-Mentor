@@ -45,6 +45,8 @@
   }
 
   html {
+    /* منع التمرير الأفقي نهائياً */
+    overflow-x: hidden;
     /* Dark هو الوضع الافتراضي: color-scheme يبقى dark حتى بدون أي
        class على <html>، فمتصفح (scrollbars, form controls..) بيطابق
        الهوية الغامقة فوراً، وما بصير "ومضة" فاتحة قبل ما JS يشتغل. */

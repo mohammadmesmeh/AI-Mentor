@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useCallback } from "react"
+import { useRef, useEffect } from "react"
 import gsap from "gsap"
 
 export interface BlobCursorProps {
@@ -65,56 +65,40 @@ function BlobCursor({
   // power2.out بدل power1.out: تباطؤ أكثر انضباطًا في النهاية، بيحس
   // المستخدم إن الحركة "تستقر" بلطف بدل ما تفضل تتراخى ببطء.
   slowEase = "power2.out",
-  zIndex = 0,
+  zIndex = 9999,
 }: BlobCursorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const blobsRef = useRef<(HTMLDivElement | null)[]>([])
 
-  const getOffset = useCallback(() => {
-    if (!containerRef.current) return { left: 0, top: 0 }
-    const rect = containerRef.current.getBoundingClientRect()
-    return { left: rect.left, top: rect.top }
-  }, [])
-
   useEffect(() => {
-    const container = containerRef.current
-    if (!container?.parentElement) return
-
-    const parent = container.parentElement
-
     const handleMove = (e: MouseEvent | TouchEvent) => {
-      const { left, top } = getOffset()
       const x = "clientX" in e ? e.clientX : e.touches[0].clientX
       const y = "clientY" in e ? e.clientY : e.touches[0].clientY
 
       blobsRef.current.forEach((el, i) => {
         if (!el) return
         gsap.to(el, {
-          x: x - left,
-          y: y - top,
+          x,
+          y,
           duration: i === 0 ? fastDuration : slowDuration,
           ease: i === 0 ? fastEase : slowEase,
         })
       })
     }
 
-    const handleResize = () => getOffset()
-
-    parent.addEventListener("mousemove", handleMove)
-    parent.addEventListener("touchmove", handleMove, { passive: true })
-    window.addEventListener("resize", handleResize)
+    window.addEventListener("mousemove", handleMove)
+    window.addEventListener("touchmove", handleMove, { passive: true })
 
     return () => {
-      parent.removeEventListener("mousemove", handleMove)
-      parent.removeEventListener("touchmove", handleMove)
-      window.removeEventListener("resize", handleResize)
+      window.removeEventListener("mousemove", handleMove)
+      window.removeEventListener("touchmove", handleMove)
     }
-  }, [getOffset, fastDuration, slowDuration, fastEase, slowEase])
+  }, [fastDuration, slowDuration, fastEase, slowEase])
 
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none absolute inset-0 overflow-hidden"
+      className="pointer-events-none fixed inset-0"
       style={{ zIndex }}
       aria-hidden="true"
     >
