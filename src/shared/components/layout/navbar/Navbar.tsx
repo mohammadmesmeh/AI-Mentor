@@ -1,38 +1,47 @@
 "use client"
 
+import { useEffect } from "react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
 import { cn } from "@/lib/utils"
 import { Logo } from "./Logo"
 import { MobileMenuButton } from "./MobileMenuButton"
-import  {NavLinks}  from "./NavLinks"
+import { NavLinks } from "./NavLinks"
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
 ]
 
-
-
 function Navbar() {
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
 
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [mobileOpen])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border light:bg-background/30 backdrop-blur-lg">
       <Container className="flex h-14 items-center justify-between">
-       <Logo />
+        <Logo />
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => (
             <NavLinks key={link.href} link={link} />
           ))}
-          <Button variant="primary" size="sm" >
+          <Button variant="primary" size="sm">
             Get Started
           </Button>
         </nav>
 
-       <MobileMenuButton isOpen={mobileOpen} toggle={toggle} />
+        <MobileMenuButton isOpen={mobileOpen} toggle={toggle} />
       </Container>
 
       <div
@@ -41,12 +50,12 @@ function Navbar() {
         aria-label="Mobile navigation"
         className={cn(
           "overflow-hidden transition-all duration-300 ease-out md:hidden",
-          mobileOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
+          mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         )}
       >
         <Container className="flex flex-col gap-3 pb-4 pt-2">
           {navLinks.map((link) => (
-            <NavLinks key={link.href} link={link} onClick={close} />
+            <NavLinks key={link.href} link={link} onClick={close} mobile />
           ))}
           <Button
             variant="primary"
