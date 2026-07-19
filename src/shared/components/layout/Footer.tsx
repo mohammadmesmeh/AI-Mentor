@@ -1,8 +1,10 @@
 import { Container } from "@/shared/components/ui/Container"
 import { Logo } from "./navbar/Logo"
+import { useTranslations } from "next-intl"
 
 function Footer() {
   const currentYear = new Date().getFullYear()
+  const t = useTranslations("footer")
 
   return (
     <footer className="border-t border-border bg-background/30 backdrop-blur-lg">
@@ -12,8 +14,7 @@ function Footer() {
           <Logo />
 
           <p className="max-w-sm text-xs text-muted-foreground">
-            Guiding your growth with intelligent AI solutions designed to
-            inspire, learn, and achieve more.
+            {t("description")}
           </p>
         </div>
 
@@ -21,11 +22,11 @@ function Footer() {
         <div className="flex flex-col items-center gap-2 text-xs text-muted-foreground md:items-end">
 
           <p>
-            © {currentYear} AI Mentor. All rights reserved.
+            © {currentYear} {t("copyright")}
           </p>
 
           <p>
-            Powered by AI & innovation.
+            {t("tagline")}
           </p>
 
         </div>

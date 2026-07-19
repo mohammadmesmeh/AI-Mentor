@@ -24,6 +24,11 @@
     },
     "subheading": "AI Mentor gives you the tools and guidance to learn faster and build better skills."
   },
+  "footer": {
+    "copyright": "All rights reserved.",
+    "description": "Guiding your growth with intelligent AI solutions designed to inspire, learn, and achieve more.",
+    "tagline": "Powered by AI & innovation."
+  },
   "hero": {
     "cta": "Start Learning",
     "description": "Stop getting lost among endless learning resources. AI Mentor helps you build a personalized learning path, turn complex skills into actionable steps, and track your progress until you achieve your goals with confidence.",
@@ -31,5 +36,9 @@
   },
   "home": {
     "welcome ": "hello I am AI Mentor"
+  },
+  "nav": {
+    "about": "About",
+    "home": "Home"
   }
 }
