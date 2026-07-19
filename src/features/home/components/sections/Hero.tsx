@@ -19,7 +19,7 @@ export function Hero() {
                         {t("description")}
                     </p>
                     <div className="mt-10">
-                        <SpecularButton theme="light">
+                        <SpecularButton>
 
                             {t("cta")}
                         </SpecularButton>

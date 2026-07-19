@@ -19,7 +19,7 @@ export function CTA() {
             {t("description")}
           </p>
           <div className="mt-8">
-            <SpecularButton theme="light" size="lg">
+            <SpecularButton size="lg">
               {t("button")}
             </SpecularButton>
           </div>

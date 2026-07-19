@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, type CSSProperties, type ReactNode, type MouseEventHandler } from "react"
 import { Renderer, Program, Mesh, Triangle, Color } from "ogl"
+import { useTheme } from "@/shared/components/providers/ThemeProvider"
 
 type ButtonSize = "sm" | "md" | "lg"
 type ButtonTheme = "dark" | "light"
@@ -9,8 +10,8 @@ type ButtonTheme = "dark" | "light"
 export interface SpecularButtonProps {
   children?: ReactNode
   size?: ButtonSize
-  // theme: بيتحكم بأي مجموعة ألوان من THEME_COLORS تنستخدم افتراضيًا.
-  // "dark" هو نفس افتراضي globals.css (Dark-first)، فبنطابقه هون كمان.
+  // theme: بيتحكم بأي مجموعة ألوان من THEME_COLORS تنستخدم. إذا ما انمرّر
+  // بياخد القيمة من ThemeProvider تلقائيًا.
   theme?: ButtonTheme
   radius?: number
   // أي واحد من الأربعة تحت لو مرّرته صراحة بيتغلّب على قيمة الـ theme —
@@ -59,17 +60,17 @@ interface ThemePalette {
 
 /*
   القيم هون منقولة حرفيًا من globals.css (مش var() لأن baseColor/lineColor
-  بيترسموا جوا WebGL shader ما بيفهم CSS variables مباشرة). كل قيمة
+  بيترسموا جوا WebGL shader ما بفهم CSS variables مباشرة). كل قيمة
   معلّق جنبها اسم المتغيّر المصدر بالملف.
 
   primary-500/600 و accent-400 و shadow-ai-glow ثابتين أصلًا بين
   Light/Dark بالملف — الفرق الوحيد الفعلي هو textColor، المبني على
-  --text-inverse اللي قيمته معكوسة فعلًا بين الوضعين.
+  --text-primary عشان النص يضل مرئي دايماً سواء WebGL اشتغل أو لا.
 */
 const THEME_COLORS: Record<ButtonTheme, ThemePalette> = {
   dark: {
     tint: "#1ea28c",       // --color-primary-500
-    textColor: "#0a0b0e",  // --text-inverse (داخل :root/.dark)
+    textColor: "#f3f4f6",  // --text-primary (داكن: فاتح → مرئي على الخلفية الداكنة)
     baseColor: "#158272",  // --color-primary-600
     lineColor: "#3fcb9f",  // --color-accent-400
     boxShadow:
@@ -80,7 +81,7 @@ const THEME_COLORS: Record<ButtonTheme, ThemePalette> = {
   },
   light: {
     tint: "#1ea28c",       // --color-primary-500 (ثابت بين الثيمين)
-    textColor: "#fcfcfd",  // --text-inverse (داخل .light)
+    textColor: "#14161a",  // --text-primary (فاتح: غامق → مرئي على الخلفية الفاتحة)
     baseColor: "#158272",  // --color-primary-600 (ثابت بين الثيمين)
     lineColor: "#3fcb9f",  // --color-accent-400 (ثابت بين الثيمين)
     boxShadow:
@@ -160,7 +161,7 @@ void main() {
 function SpecularButton({
   children = "Get Started",
   size = "lg",
-  theme = "dark",
+  theme,
   radius = 18,
   tint,
   tintOpacity = 0,
@@ -185,10 +186,12 @@ function SpecularButton({
   const fxRef = useRef<HTMLSpanElement>(null)
   const propsRef = useRef<ShaderProps>({} as ShaderProps)
 
+  const { theme: appTheme } = useTheme()
+
   // palette: مصدر القيم الافتراضية حسب theme. أي prop لون مرّرته صراحة
   // بيتغلّب على قيمة الـ palette — "??" بيرجع لقيمة الـ theme بس لو
   // الـ prop undefined.
-  const palette = THEME_COLORS[theme]
+  const palette = THEME_COLORS[theme ?? appTheme]
   const resolvedTint = tint ?? palette.tint
   const resolvedTextColor = textColor ?? palette.textColor
   const resolvedBaseColor = baseColor ?? palette.baseColor
