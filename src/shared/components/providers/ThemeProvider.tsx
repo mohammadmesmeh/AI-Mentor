@@ -20,6 +20,12 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 const STORAGE_KEY = "ai-mentor-theme"
+const COOKIE_KEY = "ai-mentor-theme"
+
+function setCookie(name: string, value: string, days: number) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`
+}
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "dark"
@@ -30,13 +36,9 @@ function getInitialTheme(): Theme {
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement
-  if (theme === "light") {
-    root.classList.add("light")
-    root.style.colorScheme = "light"
-  } else {
-    root.classList.remove("light")
-    root.style.colorScheme = "dark"
-  }
+  root.classList.remove("dark", "light")
+  root.classList.add(theme)
+  root.style.colorScheme = theme
 }
 
 function ThemeProvider({ children }: { children: ReactNode }) {
@@ -47,6 +49,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     const initial = getInitialTheme()
     setThemeState(initial)
     applyTheme(initial)
+    setCookie(COOKIE_KEY, initial, 365)
     setMounted(true)
   }, [])
 
@@ -54,6 +57,7 @@ function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(next)
     applyTheme(next)
     localStorage.setItem(STORAGE_KEY, next)
+    setCookie(COOKIE_KEY, next, 365)
   }, [])
 
   const toggleTheme = useCallback(() => {
