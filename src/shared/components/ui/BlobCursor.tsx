@@ -71,6 +71,11 @@ function BlobCursor({
   const blobsRef = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
+    blobsRef.current.forEach((el) => {
+      if (!el) return
+      gsap.set(el, { xPercent: -50, yPercent: -50 })
+    })
+
     const handleMove = (e: MouseEvent | TouchEvent) => {
       const x = "clientX" in e ? e.clientX : e.touches[0].clientX
       const y = "clientY" in e ? e.clientY : e.touches[0].clientY
@@ -121,7 +126,7 @@ function BlobCursor({
             ref={(el) => {
               blobsRef.current[i] = el
             }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 will-change-transform"
+            className="absolute will-change-transform"
             style={{
               width: sizes[i] ?? sizes[sizes.length - 1] ?? 60,
               height: sizes[i] ?? sizes[sizes.length - 1] ?? 60,
