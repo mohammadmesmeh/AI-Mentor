@@ -10,15 +10,16 @@ import { MobileMenuButton } from "./MobileMenuButton"
 import { NavLinks } from "./NavLinks"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
-
-const navLinks = [
-  { href: "/", label: "home" },
-  { href: "/about", label: "about" },
-]
+import { useTranslations } from "next-intl"
 
 function Navbar() {
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
-
+  const t = useTranslations("nav")
+  const tCommon = useTranslations("hero")
+  const navLinks = [
+    { href: "/", label: t("home") },
+    { href: "/about", label: t("about") },
+  ]
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden"
@@ -50,7 +51,7 @@ function Navbar() {
           <ThemeToggle />
 
           <Button variant="primary" size="sm">
-            Get Started
+            {tCommon("cta")}
           </Button>
         </nav>
 
@@ -95,7 +96,7 @@ function Navbar() {
             className="mt-2 w-full"
             onClick={close}
           >
-            Get Started
+            {tCommon("cta")}
           </Button>
 
         </Container>
