@@ -373,37 +373,22 @@ export const NavLinks = ({
         </span>
 
         {/*
-          Active indicator: a slim gradient underline that glides between
-          links via a shared layoutId, instead of fading in place — reads
-          as a single moving element rather than one popping in per link.
+          Underline indicator. For the active link it stays visible;
+          for inactive links it grows from the center on hover/press.
+          Gated to [@media(hover:hover)] so touch devices never show
+          a "stuck" hover state.
         */}
-        {isActive && (
-          <motion.span
-            layoutId="nav-underline"
-            transition={{ type: "spring", stiffness: 380, damping: 30 }}
-            className="absolute inset-x-3 -bottom-1 h-[2px] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"
-          />
-        )}
-
-        {/*
-          Hover-only underline for inactive links. Grows from the center
-          out. Gated to [@media(hover:hover)] so touch devices never show
-          a "stuck" hover state; group-active gives touch its own press
-          feedback instead.
-        */}
-        {!isActive && (
-          <span
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-x-3 -bottom-1 h-[2px] origin-center scale-x-0 rounded-full",
-              "bg-gradient-to-r from-primary/30 via-primary to-primary/30",
-              "transition-transform duration-300",
-              "[@media(hover:hover)]:group-hover:scale-x-100",
-              "group-active:scale-x-100"
-            )}
-            style={{ transitionTimingFunction: "var(--ease-out-soft)" }}
-          />
-        )}
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute inset-x-3 -bottom-1 h-[2px] origin-center rounded-full transition-transform duration-300",
+            "bg-gradient-to-r from-primary/30 via-primary to-primary/30",
+            isActive
+              ? "scale-x-100"
+              : "scale-x-0 [@media(hover:hover)]:group-hover:scale-x-100 group-active:scale-x-100"
+          )}
+          style={{ transitionTimingFunction: "var(--ease-out-soft)" }}
+        />
       </Link>
     </motion.span>
   )
