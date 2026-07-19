@@ -69,26 +69,32 @@ function BlobCursor({
 }: BlobCursorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const blobsRef = useRef<(HTMLDivElement | null)[]>([])
+  const xToRef = useRef<((v: number) => void)[]>([])
+  const yToRef = useRef<((v: number) => void)[]>([])
 
   useEffect(() => {
-    blobsRef.current.forEach((el) => {
-      if (!el) return
-      gsap.set(el, { xPercent: -50, yPercent: -50 })
+    xToRef.current = blobsRef.current.map((el, i) => {
+      if (!el) return () => {}
+      return gsap.quickTo(el, "x", {
+        duration: i === 0 ? fastDuration : slowDuration,
+        ease: i === 0 ? fastEase : slowEase,
+      })
+    })
+
+    yToRef.current = blobsRef.current.map((el, i) => {
+      if (!el) return () => {}
+      return gsap.quickTo(el, "y", {
+        duration: i === 0 ? fastDuration : slowDuration,
+        ease: i === 0 ? fastEase : slowEase,
+      })
     })
 
     const handleMove = (e: MouseEvent | TouchEvent) => {
       const x = "clientX" in e ? e.clientX : e.touches[0].clientX
       const y = "clientY" in e ? e.clientY : e.touches[0].clientY
 
-      blobsRef.current.forEach((el, i) => {
-        if (!el) return
-        gsap.to(el, {
-          x,
-          y,
-          duration: i === 0 ? fastDuration : slowDuration,
-          ease: i === 0 ? fastEase : slowEase,
-        })
-      })
+      xToRef.current.forEach((fn) => fn(x))
+      yToRef.current.forEach((fn) => fn(y))
     }
 
     window.addEventListener("mousemove", handleMove)
@@ -128,6 +134,8 @@ function BlobCursor({
             }}
             className="absolute will-change-transform"
             style={{
+              top: 0,
+              left: 0,
               width: sizes[i] ?? sizes[sizes.length - 1] ?? 60,
               height: sizes[i] ?? sizes[sizes.length - 1] ?? 60,
               borderRadius: blobType === "circle" ? "50%" : 0,
