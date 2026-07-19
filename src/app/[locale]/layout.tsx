@@ -6,6 +6,7 @@ import {  hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import { getMessages, setRequestLocale } from "next-intl/server";
+import Script from "next/script";
 import Providers from "@/shared/components/providers/providers";
 import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 import { Navbar } from "@/shared/components/layout/navbar/Navbar";
@@ -52,10 +53,9 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+          <Script id="theme-init" strategy="beforeInteractive">
+            {`
               (function() {
                 try {
                   var theme = localStorage.getItem('ai-mentor-theme');
@@ -67,11 +67,8 @@ export default async function RootLayout({
                   }
                 } catch(e) {}
               })();
-            `,
-          }}
-        />
-      </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+            `}
+          </Script>
           <ThemeProvider>
             <Providers messages={messages} locale={locale}>
               <AiCursor />
