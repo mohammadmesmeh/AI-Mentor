@@ -9,10 +9,11 @@ import { Logo } from "./Logo"
 import { MobileMenuButton } from "./MobileMenuButton"
 import { NavLinks } from "./NavLinks"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
+import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
+  { href: "/", label: "home" },
+  { href: "/about", label: "about" },
 ]
 
 function Navbar() {
@@ -24,27 +25,43 @@ function Navbar() {
     } else {
       document.body.style.overflow = ""
     }
+
     return () => {
       document.body.style.overflow = ""
     }
   }, [mobileOpen])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border light:bg-background/30 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/30 backdrop-blur-lg">
       <Container className="flex h-14 items-center justify-between">
+
         <Logo />
+
         <nav className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => (
-            <NavLinks key={link.href} link={link} />
+          {navLinks.map((nav) => (
+            <NavLinks
+              key={nav.href}
+              link={nav}
+            />
           ))}
+
           <LanguageSwitcher />
+
+          <ThemeToggle />
+
           <Button variant="primary" size="sm">
             Get Started
           </Button>
         </nav>
 
-        <MobileMenuButton isOpen={mobileOpen} toggle={toggle} />
+
+        <MobileMenuButton
+          isOpen={mobileOpen}
+          toggle={toggle}
+        />
+
       </Container>
+
 
       <div
         id="mobile-menu"
@@ -52,14 +69,27 @@ function Navbar() {
         aria-label="Mobile navigation"
         className={cn(
           "overflow-hidden transition-all duration-300 ease-out md:hidden",
-          mobileOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          mobileOpen
+            ? "max-h-96 opacity-100"
+            : "max-h-0 opacity-0"
         )}
       >
+
         <Container className="flex flex-col gap-3 pb-4 pt-2">
+
           {navLinks.map((link) => (
-            <NavLinks key={link.href} link={link} onClick={close} mobile />
+            <NavLinks
+              key={link.href}
+              link={link}
+              onClick={close}
+              mobile
+            />
           ))}
+
           <LanguageSwitcher mobile />
+
+          <ThemeToggle mobile />
+
           <Button
             variant="primary"
             className="mt-2 w-full"
@@ -67,8 +97,11 @@ function Navbar() {
           >
             Get Started
           </Button>
+
         </Container>
+
       </div>
+
     </header>
   )
 }

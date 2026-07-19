@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import { getMessages, setRequestLocale } from "next-intl/server";
 import Providers from "@/shared/components/providers/providers";
+import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 import { Navbar } from "@/shared/components/layout/navbar/Navbar";
 import { Footer } from "@/shared/components/layout/Footer";
 import { AiCursor} from "@/shared/components/ui/AiCursor";
@@ -49,16 +50,38 @@ export default async function RootLayout({
       lang={locale}
       dir={locale === "ar" ? "rtl" : "ltr"}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('ai-mentor-theme');
+                  if (theme === 'light') {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.style.colorScheme = 'light';
+                  } else {
+                    document.documentElement.style.colorScheme = 'dark';
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-          <Providers messages={messages} locale={locale}>
-            <AiCursor />
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </Providers>
+          <ThemeProvider>
+            <Providers messages={messages} locale={locale}>
+              <AiCursor />
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </Providers>
+          </ThemeProvider>
       </body>
     </html>
   );

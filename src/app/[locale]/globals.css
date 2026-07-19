@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
 
 /* ملاحظة تطبيقية (خارج نطاق هالملف):
    الهوية هون Dark-first فعليًا — التوكنز نفسها Dark بشكل افتراضي حتى
