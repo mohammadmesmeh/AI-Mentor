@@ -74,34 +74,34 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <AppLoader displayTime={2000}>
-          <Script id="theme-init" strategy="beforeInteractive">
-            {`
-              (function() {
-                try {
-                  var root = document.documentElement;
-                  var stored = localStorage.getItem('ai-mentor-theme');
-                  if (stored === 'light' || stored === 'dark') {
-                    root.classList.remove('dark', 'light');
-                    root.classList.add(stored);
-                    root.style.colorScheme = stored;
-                    document.cookie = 'ai-mentor-theme=' + encodeURIComponent(stored) + '; path=/; max-age=31536000; SameSite=Lax';
-                  }
-                } catch(e) {}
-              })();
-            `}
-          </Script>
-          <ThemeProvider>
-            <Providers messages={messages} locale={locale}>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                var root = document.documentElement;
+                var stored = localStorage.getItem('ai-mentor-theme');
+                if (stored === 'light' || stored === 'dark') {
+                  root.classList.remove('dark', 'light');
+                  root.classList.add(stored);
+                  root.style.colorScheme = stored;
+                  document.cookie = 'ai-mentor-theme=' + encodeURIComponent(stored) + '; path=/; max-age=31536000; SameSite=Lax';
+                }
+              } catch(e) {}
+            })();
+          `}
+        </Script>
+        <ThemeProvider>
+          <Providers messages={messages} locale={locale}>
+            <AppLoader displayTime={2000}>
               <AiCursor />
               <Navbar />
               <main className="flex-1">
                 {children}
               </main>
               <Footer />
-            </Providers>
-          </ThemeProvider>
-        </AppLoader>
+            </AppLoader>
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

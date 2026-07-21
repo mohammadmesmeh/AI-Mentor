@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, type ReactNode } from "react"
+import { useTranslations } from "next-intl"
 import { LoadingScreen } from "@/shared/components/ui/LoadingScreen"
 
 interface AppLoaderProps {
@@ -9,6 +10,7 @@ interface AppLoaderProps {
 }
 
 function AppLoader({ children, displayTime = 2000 }: AppLoaderProps) {
+  const t = useTranslations("loading")
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -21,7 +23,7 @@ function AppLoader({ children, displayTime = 2000 }: AppLoaderProps) {
 
   return (
     <div style={{ position: "relative" }}>
-      <LoadingScreen isLoading={isLoading} />
+      <LoadingScreen isLoading={isLoading} text={t("text")} />
       <div
         aria-hidden={isLoading}
         style={{

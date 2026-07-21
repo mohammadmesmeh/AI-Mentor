@@ -10,12 +10,14 @@ interface LoadingScreenProps {
   isLoading?: boolean
   minDisplayTime?: number
   className?: string
+  text?: string
 }
 
 function LoadingScreen({
   isLoading = true,
   minDisplayTime = 1200,
   className,
+  text = "Loading",
 }: LoadingScreenProps) {
   const isVisible = isLoading
 
@@ -101,7 +103,7 @@ function LoadingScreen({
               transition={{ duration: 0.4, delay: 0.8 }}
                className="font-ui mt-4 text-body-sm text-[var(--text-muted)]"
             >
-              Loading
+              {text}
               <AnimatedDot delay={0} />
               <AnimatedDot delay={0.2} />
               <AnimatedDot delay={0.4} />

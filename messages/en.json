@@ -37,6 +37,9 @@
   "home": {
     "welcome ": "hello I am AI Mentor"
   },
+  "loading": {
+    "text": "Loading"
+  },
   "nav": {
     "about": "About",
     "home": "Home"
