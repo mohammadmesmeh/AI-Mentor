@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Sans_Arabic, Rubik, Nunito } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import {  hasLocale } from 'next-intl';
@@ -10,19 +10,34 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import Script from "next/script";
 import Providers from "@/shared/components/providers/providers";
 import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
+import { AppLoader } from "@/shared/components/providers/AppLoader";
 import { Navbar } from "@/shared/components/layout/navbar/Navbar";
 import { Footer } from "@/shared/components/layout/Footer";
 import { AiCursor} from "@/shared/components/ui/AiCursor";
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+})
 
-});
+const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+})
+
+const rubik = Rubik({
+  variable: "--font-rubik",
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+})
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+})
 
 export const metadata: Metadata = {
   title: "AI Mentor",
@@ -55,10 +70,11 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={locale === "ar" ? "rtl" : "ltr"}
-      className={`${theme} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${theme} ${spaceGrotesk.variable} ${ibmPlexSansArabic.variable} ${rubik.variable} ${nunito.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <AppLoader displayTime={2000}>
           <Script id="theme-init" strategy="beforeInteractive">
             {`
               (function() {
@@ -85,6 +101,7 @@ export default async function RootLayout({
               <Footer />
             </Providers>
           </ThemeProvider>
+        </AppLoader>
       </body>
     </html>
   );
