@@ -14,6 +14,13 @@
    - next-themes: <ThemeProvider attribute="class" defaultTheme="dark">
    الـ .light class (تحت) هو الخيار الصريح لما اليوزر يبدّل يدويًا. */
 
+/* Hide default cursor on pointer-fine devices only */
+@media (pointer: fine) {
+  html, body, a, button, [data-cursor-hover] {
+    cursor: none;
+  }
+}
+
 /* ==========================================================================
    AI MENTOR — DESIGN SYSTEM
    Tailwind CSS v4 (CSS-first, no tailwind.config.*)
@@ -403,6 +410,18 @@
   --glass-border: rgb(255 255 255 / 8%);
   --scrollbar-thumb: var(--color-secondary-700);
   --scrollbar-track: transparent;
+
+  /* Custom cursor — theme-aware tokens */
+  --cursor-color:               var(--color-primary-500);
+  --cursor-glow:                0 0 12px 2px rgb(30 162 140 / 0.35);
+  --cursor-glow-color:          rgb(30 162 140 / 0.25);
+  --cursor-dot-size:            4px;
+  --cursor-ring-size:           28px;
+  --cursor-ring-hover-size:     44px;
+  --cursor-ring-pointer-size:   22px;
+  --cursor-ring-opacity:        0.45;
+  --cursor-ring-hover-opacity:  0.6;
+  --cursor-ring-pointer-opacity: 0.7;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -458,6 +477,11 @@
   --glass-border: rgb(255 255 255 / 40%);
   --scrollbar-thumb: var(--color-secondary-300);
   --scrollbar-track: transparent;
+
+  /* Custom cursor — light mode overrides */
+  --cursor-glow:              0 0 12px 2px rgb(30 162 140 / 0.2);
+  --cursor-glow-color:        rgb(30 162 140 / 0.15);
+  --cursor-ring-hover-opacity: 0.5;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

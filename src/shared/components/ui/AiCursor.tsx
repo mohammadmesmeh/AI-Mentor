@@ -1,132 +1,200 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import gsap from "gsap"
+import { useEffect, useRef, useState } from "react"
+import { motion, useMotionValue, useSpring, AnimatePresence } from "framer-motion"
 
-export interface AiCursorProps {
-  /** حجم النقطة المركزية (px) */
-  dotSize?: number
-  /** حجم الحلقة في الوضع العادي (px) */
-  ringSize?: number
-  /** حجم الحلقة عند المرور فوق عنصر تفاعلي (px) */
-  ringHoverSize?: number
-  /** لون النقطة */
-  dotColor?: string
-  /** لون حدود الحلقة */
-  ringColor?: string
-  /** توهج خفيف حول النقطة، بيدي إحساس "ذكاء اصطناعي" ناعم */
-  glowColor?: string
-  /** سرعة تتبع النقطة (كل ما كانت أقل، كانت ألصق بالماوس) */
-  dotDuration?: number
-  /** سرعة تتبع الحلقة (تتأخر شوي عن النقطة، تعطي إحساس "المرونة") */
-  ringDuration?: number
-  zIndex?: number
-  /**
-   * selector للعناصر التفاعلية (أزرار، روابط...) اللي بدها تكبّر الحلقة
-   * وتخفي النقطة عند المرور فوقها. مثال: "a, button, [data-cursor-hover]"
-   */
-  interactiveSelector?: string
+type HoverState = "normal" | "text" | "clickable"
+
+const TEXT_TAGS = new Set([
+  "P", "H1", "H2", "H3", "H4", "H5", "H6",
+  "SPAN", "LI", "LABEL", "CODE", "BLOCKQUOTE",
+  "INPUT", "TEXTAREA", "SELECT",
+])
+
+const CLICKABLE_TAGS = new Set(["A", "BUTTON"])
+
+function getHoverState(target: EventTarget | null): HoverState {
+  if (!(target instanceof HTMLElement)) return "normal"
+
+  if (CLICKABLE_TAGS.has(target.tagName)) return "clickable"
+  if (target.closest?.("a, button, [data-cursor-hover]")) return "clickable"
+
+  if (TEXT_TAGS.has(target.tagName)) return "text"
+  if (target.closest?.("p, h1, h2, h3, h4, h5, h6, span, li, label, code, blockquote, input, textarea, select, [data-cursor-text]"))
+    return "text"
+
+  return "normal"
 }
 
-/**
- * مؤشر صغير وأنيق: نقطة مركزية صلبة + حلقة رفيعة تتبعها بمرونة،
- * مع توهج خفيف جدًا. مصمم ليكون هادئ وواثق، يناسب واجهات AI
- * بدل مؤشرات الفقاعات الكبيرة الملفتة.
- *
- * ملاحظة: لإخفاء مؤشر النظام الافتراضي، ضيف في CSS العام:
- *   html, body, a, button { cursor: none; }
- * (يفضّل تفعيلها فقط على الشاشات اللي فيها ماوس عبر media query:
- *   @media (pointer: fine) { ... })
- */
-function AiCursor({
-  dotSize = 6,
-  ringSize = 26,
-  ringHoverSize = 42,
-  dotColor = "var(--color-primary-500)",
-  ringColor = "var(--color-primary-500)",
-  glowColor = "rgba(30, 162, 140, 0.45)",
-  dotDuration = 0.12,
-  ringDuration = 0.35,
-  zIndex = 9999,
-  interactiveSelector = "a, button, [data-cursor-hover]",
-}: AiCursorProps) {
-  const dotRef = useRef<HTMLDivElement>(null)
-  const ringRef = useRef<HTMLDivElement>(null)
-  const isHoveringRef = useRef(false)
+function getCSSVar(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
+}
+
+interface CursorVars {
+  dotSize: number
+  ringSize: number
+  ringHoverSize: number
+  ringPointerSize: number
+  ringOpacity: number
+  ringHoverOpacity: number
+  ringPointerOpacity: number
+}
+
+function AiCursor() {
+  const [hoverState, setHoverState] = useState<HoverState>("normal")
+  const [visible, setVisible] = useState(false)
+  const [vars, setVars] = useState<CursorVars>({
+    dotSize: 4,
+    ringSize: 28,
+    ringHoverSize: 44,
+    ringPointerSize: 22,
+    ringOpacity: 0.45,
+    ringHoverOpacity: 0.6,
+    ringPointerOpacity: 0.7,
+  })
+  const isTouchDevice = useRef(false)
+
+  const cursorX = useMotionValue(-200)
+  const cursorY = useMotionValue(-200)
+
+  const ringX = useSpring(cursorX, { damping: 22, stiffness: 280, mass: 0.35 })
+  const ringY = useSpring(cursorY, { damping: 22, stiffness: 280, mass: 0.35 })
+
+  const dotX = useSpring(cursorX, { damping: 30, stiffness: 500, mass: 0.15 })
+  const dotY = useSpring(cursorY, { damping: 30, stiffness: 500, mass: 0.15 })
 
   useEffect(() => {
-    const dot = dotRef.current
-    const ring = ringRef.current
-    if (!dot || !ring) return
+    isTouchDevice.current = window.matchMedia("(pointer: coarse)").matches
+    if (isTouchDevice.current) return
 
-    // نبدأ من مركز الشاشة لتفادي "قفزة" من الزاوية عند أول تحميل
-    gsap.set([dot, ring], {
-      xPercent: -50,
-      yPercent: -50,
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
+    setVars({
+      dotSize: parseInt(getCSSVar("--cursor-dot-size", "4")) || 4,
+      ringSize: parseInt(getCSSVar("--cursor-ring-size", "28")) || 28,
+      ringHoverSize: parseInt(getCSSVar("--cursor-ring-hover-size", "44")) || 44,
+      ringPointerSize: parseInt(getCSSVar("--cursor-ring-pointer-size", "22")) || 22,
+      ringOpacity: parseFloat(getCSSVar("--cursor-ring-opacity", "0.45")) || 0.45,
+      ringHoverOpacity: parseFloat(getCSSVar("--cursor-ring-hover-opacity", "0.6")) || 0.6,
+      ringPointerOpacity: parseFloat(getCSSVar("--cursor-ring-pointer-opacity", "0.7")) || 0.7,
     })
+
+    setVisible(true)
+  }, [])
+
+  useEffect(() => {
+    if (!visible) return
 
     const handleMove = (e: MouseEvent) => {
-      gsap.to(dot, { x: e.clientX, y: e.clientY, duration: dotDuration, ease: "power3.out" })
-      gsap.to(ring, { x: e.clientX, y: e.clientY, duration: ringDuration, ease: "power2.out" })
+      cursorX.set(e.clientX)
+      cursorY.set(e.clientY)
     }
 
-    const handleEnter = () => {
-      if (isHoveringRef.current) return
-      isHoveringRef.current = true
-      gsap.to(ring, { width: ringHoverSize, height: ringHoverSize, opacity: 0.5, duration: 0.25, ease: "power2.out" })
-      gsap.to(dot, { scale: 0, duration: 0.2, ease: "power2.out" })
+    const handleOver = (e: MouseEvent) => {
+      setHoverState(getHoverState(e.target))
     }
 
-    const handleLeave = () => {
-      isHoveringRef.current = false
-      gsap.to(ring, { width: ringSize, height: ringSize, opacity: 1, duration: 0.25, ease: "power2.out" })
-      gsap.to(dot, { scale: 1, duration: 0.2, ease: "power2.out" })
-    }
-
-    window.addEventListener("mousemove", handleMove)
-
-    const targets = Array.from(document.querySelectorAll<HTMLElement>(interactiveSelector))
-    targets.forEach((el) => {
-      el.addEventListener("mouseenter", handleEnter)
-      el.addEventListener("mouseleave", handleLeave)
-    })
+    window.addEventListener("mousemove", handleMove, { passive: true })
+    window.addEventListener("mouseover", handleOver, { passive: true })
 
     return () => {
       window.removeEventListener("mousemove", handleMove)
-      targets.forEach((el) => {
-        el.removeEventListener("mouseenter", handleEnter)
-        el.removeEventListener("mouseleave", handleLeave)
-      })
+      window.removeEventListener("mouseover", handleOver)
     }
-  }, [dotDuration, ringDuration, ringSize, ringHoverSize, interactiveSelector])
+  }, [visible, cursorX, cursorY])
+
+  const isText = hoverState === "text"
+  const isClickable = hoverState === "clickable"
+
+  if (!visible) return null
+
+  const easing = [0.16, 1, 0.3, 1] as const
+
+  const ringWidth = isText ? vars.ringHoverSize : isClickable ? vars.ringPointerSize : vars.ringSize
+  const ringOpacity = isText ? vars.ringHoverOpacity : isClickable ? vars.ringPointerOpacity : vars.ringOpacity
+  const dotScale = isText ? 0 : isClickable ? 1.25 : 1
+  const dotOpacity = isText ? 0 : 1
 
   return (
-    <div className="pointer-events-none fixed inset-0 hidden md:block" style={{ zIndex }} aria-hidden="true">
-      {/* الحلقة الخارجية */}
-      <div
-        ref={ringRef}
-        className="absolute left-0 top-0 rounded-full will-change-transform"
+    <>
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[9999] rounded-full border will-change-transform"
+        aria-hidden="true"
         style={{
-          width: ringSize,
-          height: ringSize,
-          border: `1.5px solid ${ringColor}`,
-          transition: "width 0.25s, height 0.25s",
+          x: ringX,
+          y: ringY,
+          translateX: "-50%",
+          translateY: "-50%",
+          borderColor: "var(--cursor-color)",
+          borderWidth: "1.5px",
+        }}
+        animate={{
+          width: ringWidth,
+          height: ringWidth,
+          opacity: ringOpacity,
+          backgroundColor: isClickable ? "var(--cursor-color)" : "transparent",
+        }}
+        transition={{
+          width: { duration: 0.35, ease: easing },
+          height: { duration: 0.35, ease: easing },
+          opacity: { duration: 0.25 },
+          backgroundColor: { duration: 0.2 },
         }}
       />
-      {/* النقطة المركزية مع توهج خفيف */}
-      <div
-        ref={dotRef}
-        className="absolute left-0 top-0 rounded-full will-change-transform"
+
+      <motion.div
+        className="pointer-events-none fixed left-0 top-0 z-[9999] rounded-full will-change-transform"
+        aria-hidden="true"
         style={{
-          width: dotSize,
-          height: dotSize,
-          backgroundColor: dotColor,
-          boxShadow: `0 0 12px 2px ${glowColor}`,
+          x: dotX,
+          y: dotY,
+          translateX: "-50%",
+          translateY: "-50%",
+          width: vars.dotSize,
+          height: vars.dotSize,
+          backgroundColor: "var(--cursor-color)",
+        }}
+        animate={{
+          scale: dotScale,
+          opacity: dotOpacity,
+          boxShadow: isClickable
+            ? "var(--cursor-glow), 0 0 0 4px var(--cursor-glow-color)"
+            : "var(--cursor-glow)",
+        }}
+        transition={{
+          scale: { duration: 0.2, ease: easing },
+          opacity: { duration: 0.15 },
+          boxShadow: { duration: 0.25 },
         }}
       />
-    </div>
+
+      <AnimatePresence>
+        {isText && (
+          <motion.div
+            key="text-accent"
+            className="pointer-events-none fixed left-0 top-0 z-[9999] will-change-transform"
+            aria-hidden="true"
+            style={{
+              x: ringX,
+              y: ringY,
+              translateX: "-50%",
+              translateY: "-50%",
+            }}
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.2, ease: easing }}
+          >
+            <div
+              className="h-5 w-0.5 rounded-full"
+              style={{
+                backgroundColor: "var(--cursor-color)",
+                boxShadow: "0 0 10px var(--cursor-color)",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
