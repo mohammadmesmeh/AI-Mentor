@@ -13,7 +13,7 @@ function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
         type="button"
         onClick={toggleTheme}
         className={cn(
-          "flex items-center gap-2 self-start rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+          "font-ui flex items-center gap-2 self-start rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
           "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
       >
@@ -33,7 +33,7 @@ function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
       onClick={toggleTheme}
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className={cn(
-        "flex size-8 items-center justify-center rounded-full transition-all duration-300",
+        "font-ui flex size-8 items-center justify-center rounded-full transition-all duration-300",
         "border border-border/50 bg-background/50 backdrop-blur-sm",
         "text-muted-foreground hover:text-foreground hover:border-primary/30",
         "active:scale-90"

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Link } from "@/i18n/navigation"
 
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center cursor-pointer justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors duration-200  outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+  "font-ui inline-flex shrink-0 items-center cursor-pointer justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors duration-200  outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {

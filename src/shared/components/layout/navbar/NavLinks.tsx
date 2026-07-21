@@ -305,12 +305,12 @@ import { motion } from "framer-motion"
 
 const navLinkStyles = {
   desktop: {
-    base: "rounded-full px-4 py-1.5 text-sm font-medium",
+    base: "font-ui rounded-full px-4 py-1.5 text-sm font-medium",
     active: "text-foreground font-semibold",
     inactive: "text-muted-foreground",
   },
   mobile: {
-    base: "rounded-md px-3 py-2 text-sm font-medium",
+    base: "font-ui rounded-md px-3 py-2 text-sm font-medium",
     active: "text-foreground font-semibold",
     inactive: "text-muted-foreground",
   },
