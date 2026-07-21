@@ -8,6 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card"
 import { Shine } from "@/shared/components/animations/Shine"
+import { TextReveal } from "@/shared/components/animations/TextReveal"
 
 interface FeatureCardProps {
   icon: ReactNode
@@ -38,14 +39,14 @@ function FeatureCard({
             </span>
           </div>
 
-          <CardTitle className="text-lg">
+          <TextReveal as="h3" className="text-lg font-semibold leading-none tracking-tight">
             {title}
-          </CardTitle>
+          </TextReveal>
           </div>
 
-          <CardDescription className="mt-2">
+          <TextReveal as="p" className="mt-2 text-sm text-muted-foreground" delay={0.05}>
             {description}
-          </CardDescription>
+          </TextReveal>
         </CardHeader>
       </Card>
     </Shine>

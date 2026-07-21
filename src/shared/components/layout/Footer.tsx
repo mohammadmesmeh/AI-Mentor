@@ -1,5 +1,8 @@
+"use client"
+
 import { Container } from "@/shared/components/ui/Container"
 import { Logo } from "./navbar/Logo"
+import { TextReveal } from "@/shared/components/animations/TextReveal"
 import { useTranslations } from "next-intl"
 
 function Footer() {
@@ -13,9 +16,9 @@ function Footer() {
         <div className="flex flex-col gap-2">
           <Logo />
 
-          <p className="max-w-sm text-xs text-muted-foreground">
+          <TextReveal as="p" className="max-w-sm text-xs text-muted-foreground">
             {t("description")}
-          </p>
+          </TextReveal>
         </div>
 
 
@@ -25,9 +28,9 @@ function Footer() {
             © {currentYear} {t("copyright")}
           </p>
 
-          <p>
+          <TextReveal as="p" delay={0.05}>
             {t("tagline")}
-          </p>
+          </TextReveal>
 
         </div>
 
