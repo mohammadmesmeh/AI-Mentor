@@ -530,6 +530,52 @@
 [dir="rtl"] {
   --font-default: var(--font-arabic);
   --font-ui:      var(--font-rubik);
+
+  /* --- Arabic typography: line-height scale ---
+     IBM Plex Sans Arabic has a taller x-height and denser vertical
+     rhythm than Space Grotesk. These overrides keep Arabic text
+     as readable as the LTR equivalent without changing fonts. */
+  --text-display-2xl--line-height: 1.15;
+  --text-display-xl--line-height:  1.2;
+  --text-display-lg--line-height:  1.25;
+
+  --text-heading-xl--line-height:  1.35;
+  --text-heading-lg--line-height:  1.4;
+  --text-heading-md--line-height:  1.45;
+  --text-heading-sm--line-height:  1.5;
+
+  --text-body-lg--line-height:     1.75;
+  --text-body-md--line-height:     1.75;
+  --text-body-sm--line-height:     1.65;
+
+  --text-caption--line-height:     1.5;
+  --text-overline--line-height:    1.4;
+
+  --text-code--line-height:        1.7;
+}
+
+/* Arabic letter-spacing: remove negative tracking for cursive Arabic script */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Arabic heading bottom margins for vertical rhythm */
+[dir="rtl"] h1 { margin-bottom: 0.5em; }
+[dir="rtl"] h2 { margin-bottom: 0.45em; }
+[dir="rtl"] h3 { margin-bottom: 0.4em; }
+[dir="rtl"] h4 { margin-bottom: 0.35em; }
+
+/* Arabic paragraph & list readability */
+[dir="rtl"] p,
+[dir="rtl"] li {
+  line-height: 1.8;
+}
+
+[dir="rtl"] p {
+  margin-bottom: 1em;
 }
 
 /* ==========================================================================
