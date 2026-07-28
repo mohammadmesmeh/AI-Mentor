@@ -11,18 +11,18 @@ export function Hero() {
     const t = useTranslations("hero");
  
     return (
-        <section className="relative overflow-hidden py-16 md:py-28" aria-labelledby="hero-heading">
+        <section className="relative overflow-hidden py-10 md:py-16" aria-labelledby="hero-heading">
             <div
                 className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-br from-primary-500/10 via-accent-500/5 to-transparent blur-[120px] opacity-60"
                 aria-hidden="true"
             />
             <Container>
-                <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex flex-col items-center text-center lg:items-start lg:text-start max-w-xl">
-                        <TextReveal as="h1" id="hero-heading" className="gradient-text text-3xl font-bold tracking-tight leading-tight sm:text-4xl md:text-5xl lg:text-6xl mb-4" delay={0.1}>
+                        <TextReveal as="h1" id="hero-heading" className="gradient-text text-2xl font-bold tracking-tight leading-tight sm:text-3xl md:text-4xl lg:text-5xl mb-3" delay={0.1}>
                             {t("title")}
                         </TextReveal>
-                        <TextReveal as="p" className="max-w-2xl text-lg text-muted-foreground leading-relaxed sm:text-xl" delay={0.2}>
+                        <TextReveal as="p" className="max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg" delay={0.2}>
                             {t("description")}
                         </TextReveal>
                         <TextReveal as="div" className="mt-8" delay={0.3}>
