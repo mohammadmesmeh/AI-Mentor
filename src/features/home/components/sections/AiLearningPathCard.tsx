@@ -16,8 +16,9 @@ interface AiLearningPathCardProps {
   goal?: string
   currentStage?: number
   totalStages?: number
+  completedTasks?: string[]
   currentTask?: string
-  nextStep?: string
+  upcomingTasks?: string[]
 }
 
 const containerVariants = {
@@ -50,8 +51,9 @@ function AiLearningPathCard({
   goal = "Become a Backend Engineer",
   currentStage = 3,
   totalStages = 6,
+  completedTasks = ["Choose a learning path", "Set up dev environment"],
   currentTask = "Build a REST API",
-  nextStep = "Databases & Persistence",
+  upcomingTasks = ["Databases & Persistence", "Authentication & Security"],
 }: AiLearningPathCardProps) {
   const progressPercent = (currentStage / totalStages) * 100
 
@@ -86,14 +88,14 @@ function AiLearningPathCard({
             <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-br from-primary-500/[0.08] via-transparent to-accent-500/[0.08]" />
           </div>
 
-          <CardContent className="relative z-10 space-y-6 p-6 sm:p-8">
+          <CardContent className="relative z-10 p-6 sm:p-8">
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
             >
-              <motion.div variants={itemVariants} className="mb-3">
+              <motion.div variants={itemVariants} className="mb-4">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-primary-500/20 to-accent-500/20 px-3 py-1 text-caption font-medium text-primary-300 ring-1 ring-white/[0.08]">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-soft-pulse rounded-full bg-primary-400 opacity-75" />
@@ -113,7 +115,7 @@ function AiLearningPathCard({
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <div className="border-t border-white/[0.06] pt-5">
+                <div className="mt-5 border-t border-white/[0.06] pt-5">
                   <p className="mb-1.5 text-caption font-medium tracking-wide text-white/50 uppercase">
                     Goal
                   </p>
@@ -124,52 +126,56 @@ function AiLearningPathCard({
               </motion.div>
 
               <motion.div variants={itemVariants}>
-                <div className="border-t border-white/[0.06] pt-5">
+                <div className="mt-5 space-y-3">
+                  {completedTasks.map((task) => (
+                    <div key={task} className="flex items-center gap-3">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-500/20">
+                        <svg className="h-3 w-3 text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                      <p className="text-body-sm text-white/50 line-through">
+                        {task}
+                      </p>
+                    </div>
+                  ))}
+
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-5 w-5 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full animate-soft-pulse rounded-full bg-primary-500 opacity-30" />
+                      <span className="relative inline-flex h-5 w-5 items-center justify-center rounded-full border-2 border-primary-400 bg-primary-500/10">
+                        <span className="h-2 w-2 rounded-full bg-primary-300" />
+                      </span>
+                    </span>
+                    <p className="text-body-md font-semibold text-white">
+                      {currentTask}
+                    </p>
+                  </div>
+
+                  {upcomingTasks.map((task) => (
+                    <div key={task} className="flex items-center gap-3">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.03]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/[0.18]" />
+                      </div>
+                      <p className="text-body-sm text-white/40">
+                        {task}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <div className="mt-5 border-t border-white/[0.06] pt-5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <p className="text-caption font-medium tracking-wide text-white/50 uppercase">
                       Progress
                     </p>
                     <p className="text-caption font-medium text-white/40">
-                      Stage {currentStage} of {totalStages} &middot; <AnimatedNumber value={progressPercent} suffix="%" delay={0.5} />
+                      <AnimatedNumber value={progressPercent} suffix="%" delay={0.5} />
                     </p>
                   </div>
                   <AnimatedProgressBar value={progressPercent} ariaLabel="Learning path progress" ariaValuenow={currentStage} ariaValuemin={0} ariaValuemax={totalStages} />
-                </div>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <div className="border-t border-white/[0.06] pt-5">
-                  <p className="mb-2 text-caption font-medium tracking-wide text-white/50 uppercase">
-                    Current Task
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <span className="relative flex h-3 w-3">
-                      <span className="absolute inline-flex h-full w-full animate-soft-pulse rounded-full bg-primary-400 opacity-75" />
-                      <span className="relative inline-flex h-3 w-3 rounded-full bg-primary-300" />
-                    </span>
-                    <p className="text-body-md font-semibold text-white/90">
-                      {currentTask}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <div className="border-t border-white/[0.06] pt-5">
-                  <p className="mb-1.5 text-caption font-medium tracking-wide text-white/50 uppercase">
-                    Next
-                  </p>
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-500/15">
-                      <svg className="h-3.5 w-3.5 text-accent-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                      </svg>
-                    </div>
-                    <p className="font-display text-heading-sm font-semibold tracking-tight text-white/90">
-                      {nextStep}
-                    </p>
-                  </div>
                 </div>
               </motion.div>
             </motion.div>
