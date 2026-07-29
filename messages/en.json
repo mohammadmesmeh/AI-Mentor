@@ -30,9 +30,9 @@
     "tagline": "Powered by AI & innovation."
   },
   "hero": {
-    "cta": "Start Learning",
-    "description": "Stop getting lost among endless learning resources. AI Mentor helps you build a personalized learning path, turn complex skills into actionable steps, and track your progress until you achieve your goals with confidence.",
-    "title": "Transform your learning goals into a clear journey with your personal AI mentor"
+    "cta": "Build your roadmap ",
+    "description": "AI Mentor breaks your goal into a structured roadmap, hands you one task at a time, and stays with you as a mentor — not a search bar, not another course library.",
+    "title": "From goals to growth — your personal AI mentor builds your learning path."
   },
   "home": {
     "welcome ": "hello I am AI Mentor"
@@ -42,6 +42,7 @@
   },
   "nav": {
     "about": "About",
+    "cta": "Start Your Journey",
     "home": "Home"
   }
 }
