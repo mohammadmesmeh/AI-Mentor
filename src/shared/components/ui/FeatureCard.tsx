@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils"
 import {
   Card,
   CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card"
 import { Shine } from "@/shared/components/animations/Shine"
-import { TextReveal } from "@/shared/components/animations/TextReveal"
+import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
+import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { IconBounce } from "@/shared/components/animations/IconBounce"
 
 interface FeatureCardProps {
   icon: ReactNode
@@ -31,22 +31,22 @@ function FeatureCard({
           className
         )}
       >
-        <CardHeader className="flex-1 justify-between">
+        <CardHeader className="flex-1">
           <div>
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/20" aria-hidden="true">
-            <span className="transition-transform duration-300 group-hover:scale-110" aria-hidden="true">
-              {icon}
-            </span>
+              <IconBounce>
+                {icon}
+              </IconBounce>
           </div>
 
-          <TextReveal as="h3" className="text-lg font-semibold leading-none tracking-tight">
+          <HeadingReveal as="h3" className="text-lg font-semibold leading-none tracking-tight">
             {title}
-          </TextReveal>
+          </HeadingReveal>
           </div>
 
-          <TextReveal as="p" className="mt-2 text-sm text-muted-foreground" delay={0.05}>
+          <FadeInView as="p" className="mt-auto text-sm text-muted-foreground" delay={0.05}>
             {description}
-          </TextReveal>
+          </FadeInView>
         </CardHeader>
       </Card>
     </Shine>
