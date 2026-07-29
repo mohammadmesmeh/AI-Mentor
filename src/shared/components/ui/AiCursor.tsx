@@ -14,12 +14,12 @@ const TEXT_TAGS = new Set([
 const CLICKABLE_TAGS = new Set(["A", "BUTTON"])
 
 function getHoverState(target: EventTarget | null): HoverState {
-  if (!(target instanceof HTMLElement)) return "normal"
+  if (!(target instanceof Element)) return "normal"
 
-  if (CLICKABLE_TAGS.has(target.tagName)) return "clickable"
+  if (target instanceof HTMLElement && CLICKABLE_TAGS.has(target.tagName)) return "clickable"
   if (target.closest?.("a, button, [data-cursor-hover]")) return "clickable"
 
-  if (TEXT_TAGS.has(target.tagName)) return "text"
+  if (target instanceof HTMLElement && TEXT_TAGS.has(target.tagName)) return "text"
   if (target.closest?.("p, h1, h2, h3, h4, h5, h6, span, li, label, code, blockquote, input, textarea, select, [data-cursor-text]"))
     return "text"
 
@@ -43,7 +43,8 @@ interface CursorVars {
 
 function AiCursor() {
   const [hoverState, setHoverState] = useState<HoverState>("normal")
-  const [visible, setVisible] = useState(false)
+  const [state, setState] = useState<"loading" | "touch" | "ready">("loading")
+  const [inWindow, setInWindow] = useState(true)
   const [vars, setVars] = useState<CursorVars>({
     dotSize: 4,
     ringSize: 28,
@@ -53,7 +54,7 @@ function AiCursor() {
     ringHoverOpacity: 0.6,
     ringPointerOpacity: 0.7,
   })
-  const isTouchDevice = useRef(false)
+  const prevHoverState = useRef<HoverState>("normal")
 
   const cursorX = useMotionValue(-200)
   const cursorY = useMotionValue(-200)
@@ -65,8 +66,11 @@ function AiCursor() {
   const dotY = useSpring(cursorY, { damping: 30, stiffness: 500, mass: 0.15 })
 
   useEffect(() => {
-    isTouchDevice.current = window.matchMedia("(pointer: coarse)").matches
-    if (isTouchDevice.current) return
+    const isTouch = window.matchMedia("(pointer: coarse)").matches
+    if (isTouch) {
+      setState("touch")
+      return
+    }
 
     setVars({
       dotSize: parseInt(getCSSVar("--cursor-dot-size", "4")) || 4,
@@ -78,11 +82,11 @@ function AiCursor() {
       ringPointerOpacity: parseFloat(getCSSVar("--cursor-ring-pointer-opacity", "0.7")) || 0.7,
     })
 
-    setVisible(true)
+    setState("ready")
   }, [])
 
   useEffect(() => {
-    if (!visible) return
+    if (state !== "ready") return
 
     const handleMove = (e: MouseEvent) => {
       cursorX.set(e.clientX)
@@ -90,22 +94,33 @@ function AiCursor() {
     }
 
     const handleOver = (e: MouseEvent) => {
-      setHoverState(getHoverState(e.target))
+      const next = getHoverState(e.target)
+      if (next !== prevHoverState.current) {
+        prevHoverState.current = next
+        setHoverState(next)
+      }
     }
+
+    const handleLeave = () => setInWindow(false)
+    const handleEnter = () => setInWindow(true)
 
     window.addEventListener("mousemove", handleMove, { passive: true })
     window.addEventListener("mouseover", handleOver, { passive: true })
+    document.addEventListener("mouseleave", handleLeave)
+    document.addEventListener("mouseenter", handleEnter)
 
     return () => {
       window.removeEventListener("mousemove", handleMove)
       window.removeEventListener("mouseover", handleOver)
+      document.removeEventListener("mouseleave", handleLeave)
+      document.removeEventListener("mouseenter", handleEnter)
     }
-  }, [visible, cursorX, cursorY])
+  }, [state, cursorX, cursorY])
+
+  if (state !== "ready") return null
 
   const isText = hoverState === "text"
   const isClickable = hoverState === "clickable"
-
-  if (!visible) return null
 
   const easing = [0.16, 1, 0.3, 1] as const
 
@@ -115,7 +130,10 @@ function AiCursor() {
   const dotOpacity = isText ? 0 : 1
 
   return (
-    <>
+    <motion.div
+      aria-hidden="true"
+      className="pointer-events-none fixed left-0 top-0 z-[9999]"
+    >
       <motion.div
         className="pointer-events-none fixed left-0 top-0 z-[9999] rounded-full border will-change-transform"
         aria-hidden="true"
@@ -130,7 +148,7 @@ function AiCursor() {
         animate={{
           width: ringWidth,
           height: ringWidth,
-          opacity: ringOpacity,
+          opacity: inWindow ? ringOpacity : 0,
           backgroundColor: isClickable ? "var(--cursor-color)" : "transparent",
         }}
         transition={{
@@ -155,7 +173,7 @@ function AiCursor() {
         }}
         animate={{
           scale: dotScale,
-          opacity: dotOpacity,
+          opacity: inWindow ? dotOpacity : 0,
           boxShadow: isClickable
             ? "var(--cursor-glow), 0 0 0 4px var(--cursor-glow-color)"
             : "var(--cursor-glow)",
@@ -168,7 +186,7 @@ function AiCursor() {
       />
 
       <AnimatePresence>
-        {isText && (
+        {isText && inWindow && (
           <motion.div
             key="text-accent"
             className="pointer-events-none fixed left-0 top-0 z-[9999] will-change-transform"
@@ -194,7 +212,7 @@ function AiCursor() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </motion.div>
   )
 }
 
