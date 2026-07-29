@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
@@ -11,15 +13,25 @@ import { NavLinks } from "./NavLinks"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 import { useTranslations } from "next-intl"
+import { useRouter } from "@/i18n/navigation"
+import { logout } from "@/redux/slices/authSlice"
+import type { RootState, AppDispatch } from "@/redux/store"
 
 function Navbar() {
+  const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter()
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
   const t = useTranslations("nav")
-  const tCommon = useTranslations("hero")
+  const tCommon = useTranslations("nav")
   const navLinks = [
     { href: "/", label: t("home") },
-    { href: "/about", label: t("about") },
   ]
+
+  const handleLogout = () => {
+    dispatch(logout())
+    router.push("/")
+  }
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden"
@@ -50,9 +62,16 @@ function Navbar() {
 
           <ThemeToggle />
 
-          <Button variant="primary" size="sm">
-            {tCommon("cta")}
-          </Button>
+          {isAuthenticated ? (
+            <Button variant="secondary" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          ) : (
+            <Button variant="primary" size="sm" href="/auth">
+              {tCommon("cta")}
+            </Button>
+          )}
         </nav>
 
 
@@ -91,13 +110,25 @@ function Navbar() {
 
           <ThemeToggle mobile />
 
-          <Button
-            variant="primary"
-            className="mt-2 w-full"
-            onClick={close}
-          >
-            {tCommon("cta")}
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              variant="secondary"
+              className="mt-2 w-full"
+              onClick={() => { close(); handleLogout() }}
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              className="mt-2 w-full"
+              href="/auth"
+              onClick={close}
+            >
+              {tCommon("cta")}
+            </Button>
+          )}
 
         </Container>
 
