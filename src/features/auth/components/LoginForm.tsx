@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { Button } from "@/shared/components/ui/Button"
 import { login } from "@/redux/slices/authSlice"
 import { loginSchema } from "../validation/loginSchema"
@@ -19,7 +18,6 @@ interface LoginFormProps {
 function LoginForm({ onSuccess }: LoginFormProps) {
   const t = useTranslations("auth")
   const v = useTranslations("validation")
-  const locale = useLocale()
   const dispatch = useDispatch<AppDispatch>()
   const { isLoading } = useSelector((state: RootState) => state.auth)
   const { error } = useSelector((state: RootState) => state.auth)
@@ -28,12 +26,9 @@ function LoginForm({ onSuccess }: LoginFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-    trigger,
   } = useForm<LoginFormValues>({
     resolver: yupResolver(loginSchema(v)),
   })
-
-  useEffect(() => { trigger() }, [locale, trigger])
 
   const onSubmit = async (data: LoginFormValues) => {
     const result = await dispatch(login({ email: data.email, password: data.password }))
