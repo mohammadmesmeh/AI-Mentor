@@ -27,7 +27,7 @@ function OptionCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative w-full rounded-xl border bg-card p-5 text-left shadow-sm transition-all duration-200 cursor-pointer",
+        "relative w-full rounded-xl border bg-card p-5 text-start shadow-sm transition-all duration-200 cursor-pointer",
         "hover:border-primary/30 hover:shadow-md",
         selected ? "border-primary/50 ring-1 ring-primary/20" : "border-border",
         className,

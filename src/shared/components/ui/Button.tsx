@@ -1,11 +1,11 @@
 import { cva, type VariantProps } from "class-variance-authority"
-import { motion } from "framer-motion"
+import { motion, type MotionProps } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { Link } from "@/i18n/navigation"
 
 const buttonVariants = cva(
-  "font-ui inline-flex shrink-0 items-center cursor-pointer justify-center gap-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors duration-200  outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
+  "font-ui inline-flex shrink-0 items-center cursor-pointer justify-center gap-2 rounded-lg text-sm font-medium text-center leading-tight transition-colors duration-200 outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -15,9 +15,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02]",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 px-3 text-xs",
-        lg: "h-10 px-6",
+        default: "min-h-9 px-4 py-2",
+        sm: "min-h-8 px-3 py-1.5 text-xs",
+        lg: "min-h-10 px-6 py-2.5",
       },
     },
     defaultVariants: {
@@ -27,7 +27,9 @@ const buttonVariants = cva(
   }
 )
 
-interface ButtonProps extends VariantProps<typeof buttonVariants> {
+interface ButtonProps
+  extends VariantProps<typeof buttonVariants>,
+    Omit<React.ComponentPropsWithoutRef<"button">, "onClick" | keyof MotionProps> {
   children: React.ReactNode
   onClick?: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>
   href?: string
@@ -41,9 +43,10 @@ const Button = ({
   variant,
   size,
   children,
-  onClick,
   href,
   className,
+  onClick,
+  ...props
 }: ButtonProps) => {
   if (href) {
     return (
@@ -65,6 +68,7 @@ const Button = ({
 
   return (
     <motion.button
+      {...props}
       onClick={onClick}
       className={cn(buttonVariants({ variant, size, className }))}
       whileTap={tapConfig}

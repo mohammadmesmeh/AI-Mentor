@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { InputField } from "./components/InputField"
 import { StepNavigation } from "./components/StepNavigation"
 
@@ -11,11 +12,12 @@ interface StepOneLearningGoalProps {
 }
 
 function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalProps) {
+  const t = useTranslations("onboarding")
   const [error, setError] = useState("")
 
   const handleContinue = () => {
     if (!value.trim()) {
-      setError("Please enter a learning goal to continue.")
+      setError(t("stepOneError"))
       return
     }
     setError("")
@@ -26,10 +28,10 @@ function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalPro
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-heading-md font-semibold text-foreground">
-          What do you want to learn?
+          {t("stepOneTitle")}
         </h1>
         <p className="text-muted-foreground">
-          Be as specific as you can. It shapes your entire roadmap.
+          {t("stepOneDescription")}
         </p>
       </div>
       <InputField
@@ -38,7 +40,7 @@ function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalPro
           onChange(v)
           if (error) setError("")
         }}
-        placeholder="I want to learn backend engineering with Node.js"
+        placeholder={t("stepOnePlaceholder")}
         multiline
         rows={4}
         error={error}

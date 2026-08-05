@@ -30,6 +30,9 @@ function Card3D({
   const rotateX = useSpring(0, { damping: 20, stiffness: 250 })
   const rotateY = useSpring(0, { damping: 20, stiffness: 250 })
 
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const rect = ref.current?.getBoundingClientRect()

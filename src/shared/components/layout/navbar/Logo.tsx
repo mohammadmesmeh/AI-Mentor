@@ -1,12 +1,14 @@
 import { Link } from "@/i18n/navigation";
 import { Brain } from "lucide-react";
+import { useT } from "@/shared/hooks/useT";
 
 const Logo = () => {
+    const t = useT("nav")
     return (
         <Link
             href="/"
-            aria-label="AI Mentor"
-            title="AI Mentor"
+            aria-label={t("brand", "AI Mentor")}
+            title={t("brand", "AI Mentor")}
             rel="noopener noreferrer"
             target="_self"
             className="group flex items-center gap-2 text-xl font-bold text-primary"
@@ -19,7 +21,7 @@ const Logo = () => {
                 </span>
 
                 <span className="transition-colors duration-300 group-hover:text-primary-600">
-                    AI Mentor
+                    {t("brand", "AI Mentor")}
                 </span>
             </span>
         </Link>

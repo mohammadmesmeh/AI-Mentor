@@ -1,15 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
-
-const preferences = [
-  { value: "hands-on", title: "Hands-on projects" },
-  { value: "video", title: "Video walkthroughs" },
-  { value: "reading", title: "Readings and notes" },
-  { value: "quizzes", title: "Quizzes & drills" },
-] as const
 
 interface StepThreeLearningPreferencesProps {
   value: string[]
@@ -24,7 +18,15 @@ function StepThreeLearningPreferences({
   onNext,
   onBack,
 }: StepThreeLearningPreferencesProps) {
+  const t = useTranslations("onboarding")
   const [error, setError] = useState("")
+
+  const preferences = [
+    { value: "hands-on", title: t("handsOn") },
+    { value: "video", title: t("video") },
+    { value: "reading", title: t("reading") },
+    { value: "quizzes", title: t("quizzes") },
+  ] as const
 
   const togglePreference = (pref: string) => {
     if (value.includes(pref)) {
@@ -37,7 +39,7 @@ function StepThreeLearningPreferences({
 
   const handleContinue = () => {
     if (value.length === 0) {
-      setError("Please select at least one learning preference.")
+      setError(t("stepThreeError"))
       return
     }
     setError("")
@@ -48,9 +50,9 @@ function StepThreeLearningPreferences({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-heading-md font-semibold text-foreground">
-          How do you like to learn?
+          {t("stepThreeTitle")}
         </h1>
-        <p className="text-muted-foreground">Pick as many as apply.</p>
+        <p className="text-muted-foreground">{t("stepThreeDescription")}</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {preferences.map((pref) => (

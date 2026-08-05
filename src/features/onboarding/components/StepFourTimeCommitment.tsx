@@ -1,17 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
 import { InputField } from "./components/InputField"
-
-const timeOptions = [
-  { value: "15-30", title: "15\u201330 minutes daily" },
-  { value: "30-60", title: "30\u201360 minutes daily" },
-  { value: "1-2", title: "1\u20132 hours daily" },
-  { value: "weekends", title: "Weekends mostly" },
-  { value: "custom", title: "Custom schedule" },
-] as const
 
 interface StepFourTimeCommitmentProps {
   value: string
@@ -30,15 +23,24 @@ function StepFourTimeCommitment({
   onNext,
   onBack,
 }: StepFourTimeCommitmentProps) {
+  const t = useTranslations("onboarding")
   const [error, setError] = useState("")
+
+  const timeOptions = [
+    { value: "15-30", title: t("time15to30") },
+    { value: "30-60", title: t("time30to60") },
+    { value: "1-2", title: t("time1to2") },
+    { value: "weekends", title: t("timeWeekends") },
+    { value: "custom", title: t("timeCustom") },
+  ] as const
 
   const handleContinue = () => {
     if (!value) {
-      setError("Please select your time commitment.")
+      setError(t("stepFourError"))
       return
     }
     if (value === "custom" && !customDescription.trim()) {
-      setError("Please describe your custom schedule.")
+      setError(t("stepFourCustomError"))
       return
     }
     setError("")
@@ -49,7 +51,7 @@ function StepFourTimeCommitment({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-heading-md font-semibold text-foreground">
-          How much time can you give this?
+          {t("stepFourTitle")}
         </h1>
       </div>
       <div className="space-y-3">
@@ -68,7 +70,7 @@ function StepFourTimeCommitment({
                 <InputField
                   value={customDescription}
                   onChange={onCustomChange}
-                  placeholder="e.g., 2 hours on Mon, Wed, Fri evenings"
+                  placeholder={t("timeCustomPlaceholder")}
                 />
               </div>
             )}

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import { useLocale } from "next-intl"
 import { AnimatePresence, motion } from "framer-motion"
 import { useRouter } from "@/i18n/navigation"
 import {
@@ -23,6 +24,7 @@ import { RoadmapGeneration } from "../RoadmapGeneration"
 function OnboardingPage() {
   const dispatch = useDispatch()
   const router = useRouter()
+  const locale = useLocale()
   const onboarding = useSelector((state: RootState) => state.onboarding)
   const { currentStep, isGenerating, isComplete } = onboarding
 
@@ -52,12 +54,12 @@ function OnboardingPage() {
     dispatch(setIsGenerating(true))
     setTimeout(() => {
       const roadmap = [
-        "Introduction & Setup",
-        "Core Fundamentals",
-        "Building Your First Project",
-        "Advanced Concepts",
-        "Real-World Applications",
-        "Review & Next Steps",
+        "introSetup",
+        "coreFundamentals",
+        "firstProject",
+        "advancedConcepts",
+        "realWorldApplications",
+        "reviewNextSteps",
       ]
       dispatch(setRoadmap(roadmap))
       dispatch(completeOnboarding())
@@ -126,9 +128,9 @@ function OnboardingPage() {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ opacity: 0, x: 24 }}
+          initial={{ opacity: 0, x: locale === "ar" ? -24 : 24 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -24 }}
+          exit={{ opacity: 0, x: locale === "ar" ? 24 : -24 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           {steps[currentStep]}

@@ -1,5 +1,6 @@
 "use client"
 
+import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
@@ -9,10 +10,11 @@ interface ProgressIndicatorProps {
 }
 
 function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) {
+  const t = useT("onboarding")
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="text-sm text-muted-foreground">
-        Step {currentStep} of {totalSteps}
+        {t("step", `Step ${currentStep} of ${totalSteps}`, { current: currentStep, total: totalSteps })}
       </span>
       <div className="flex items-center gap-2">
         {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (

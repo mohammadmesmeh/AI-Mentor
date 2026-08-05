@@ -1,5 +1,6 @@
 "use client"
 
+import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 
 interface StepNavigationProps {
@@ -13,16 +14,19 @@ interface StepNavigationProps {
 function StepNavigation({
   onBack,
   onContinue,
-  continueLabel = "Continue",
+  continueLabel,
   canContinue = true,
   isLoading = false,
 }: StepNavigationProps) {
+  const t = useT("onboarding")
+  const label = continueLabel ?? t("continue", "Continue")
+
   return (
     <div className="flex items-center justify-between pt-8">
       <div>
         {onBack && (
           <Button variant="secondary" onClick={onBack}>
-            Back
+            {t("back", "Back")}
           </Button>
         )}
       </div>
@@ -31,7 +35,7 @@ function StepNavigation({
         onClick={onContinue}
         disabled={!canContinue || isLoading}
       >
-        {isLoading ? "Loading..." : continueLabel}
+        {isLoading ? t("loading", "Loading...") : label}
       </Button>
     </div>
   )

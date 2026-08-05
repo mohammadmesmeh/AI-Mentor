@@ -1,29 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
-
-const skillLevels = [
-  {
-    value: "beginner",
-    title: "Beginner",
-    description:
-      "New to this topic. Need fundamentals and guidance from the start.",
-  },
-  {
-    value: "some-experience",
-    title: "Some Experience",
-    description:
-      "Understand some basics and want structured improvement.",
-  },
-  {
-    value: "intermediate",
-    title: "Intermediate",
-    description:
-      "Have practical experience and want to improve advanced skills.",
-  },
-] as const
 
 interface StepTwoSkillLevelProps {
   value: string | null
@@ -38,11 +18,30 @@ function StepTwoSkillLevel({
   onNext,
   onBack,
 }: StepTwoSkillLevelProps) {
+  const t = useTranslations("onboarding")
   const [error, setError] = useState("")
+
+  const skillLevels = [
+    {
+      value: "beginner",
+      title: t("beginner"),
+      description: t("beginnerDesc"),
+    },
+    {
+      value: "some-experience",
+      title: t("someExperience"),
+      description: t("someExperienceDesc"),
+    },
+    {
+      value: "intermediate",
+      title: t("intermediate"),
+      description: t("intermediateDesc"),
+    },
+  ] as const
 
   const handleContinue = () => {
     if (!value) {
-      setError("Please select your skill level to continue.")
+      setError(t("stepTwoError"))
       return
     }
     setError("")
@@ -53,11 +52,10 @@ function StepTwoSkillLevel({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-heading-md font-semibold text-foreground">
-          Where are you starting from?
+          {t("stepTwoTitle")}
         </h1>
         <p className="text-muted-foreground">
-          This helps AI Mentor personalize the roadmap to your current
-          experience.
+          {t("stepTwoDescription")}
         </p>
       </div>
       <div className="space-y-3">

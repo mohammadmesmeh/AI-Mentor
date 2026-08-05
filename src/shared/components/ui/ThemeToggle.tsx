@@ -2,10 +2,12 @@
 
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/shared/components/providers/ThemeProvider"
+import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
 function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
   const { theme, toggleTheme } = useTheme()
+  const t = useT("theme")
 
   if (mobile) {
     return (
@@ -22,7 +24,7 @@ function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
         ) : (
           <Moon className="size-4" />
         )}
-        <span>{theme === "dark" ? "Light" : "Dark"}</span>
+        <span>{theme === "dark" ? t("light", "Light") : t("dark", "Dark")}</span>
       </button>
     )
   }
@@ -31,7 +33,7 @@ function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={theme === "dark" ? t("switchToLight", "Switch to light mode") : t("switchToDark", "Switch to dark mode")}
       className={cn(
         "font-ui flex size-8 items-center justify-center rounded-full transition-all duration-300",
         "border border-border/50 bg-background/50 backdrop-blur-sm",

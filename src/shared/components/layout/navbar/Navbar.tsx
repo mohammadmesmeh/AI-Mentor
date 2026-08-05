@@ -12,7 +12,7 @@ import { MobileMenuButton } from "./MobileMenuButton"
 import { NavLinks } from "./NavLinks"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
-import { useTranslations } from "next-intl"
+import { useT } from "@/shared/hooks/useT"
 import { useRouter } from "@/i18n/navigation"
 import { logout } from "@/redux/slices/authSlice"
 import type { RootState, AppDispatch } from "@/redux/store"
@@ -22,10 +22,9 @@ function Navbar() {
   const router = useRouter()
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
-  const t = useTranslations("nav")
-  const tCommon = useTranslations("nav")
+  const t = useT("nav")
   const navLinks = [
-    { href: "/", label: t("home") },
+    { href: "/", label: t("home", "Home") },
   ]
 
   const handleLogout = () => {
@@ -65,11 +64,11 @@ function Navbar() {
           {isAuthenticated ? (
             <Button variant="secondary" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
-              Logout
+              {t("logout", "Logout")}
             </Button>
           ) : (
             <Button variant="primary" size="sm" href="/auth">
-              {tCommon("cta")}
+              {t("cta", "Start Your Journey")}
             </Button>
           )}
         </nav>
@@ -86,7 +85,7 @@ function Navbar() {
       <div
         id="mobile-menu"
         role="region"
-        aria-label="Mobile navigation"
+        aria-label={t("mobileNavigation", "Mobile navigation")}
         className={cn(
           "overflow-hidden transition-all duration-300 ease-out md:hidden",
           mobileOpen
@@ -117,7 +116,7 @@ function Navbar() {
               onClick={() => { close(); handleLogout() }}
             >
               <LogOut className="h-4 w-4" />
-              Logout
+              {t("logout", "Logout")}
             </Button>
           ) : (
             <Button
@@ -126,7 +125,7 @@ function Navbar() {
               href="/auth"
               onClick={close}
             >
-              {tCommon("cta")}
+              {t("cta", "Start Your Journey")}
             </Button>
           )}
 

@@ -1,31 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { InputField } from "./components/InputField"
 import { StepNavigation } from "./components/StepNavigation"
 import { Card, CardContent } from "@/components/ui/card"
 import type { OnboardingState } from "@/redux/slices/onboardingSlice"
-
-const skillLevelLabels: Record<string, string> = {
-  beginner: "Beginner",
-  "some-experience": "Some Experience",
-  intermediate: "Intermediate",
-}
-
-const preferenceLabels: Record<string, string> = {
-  "hands-on": "Hands-on projects",
-  video: "Video walkthroughs",
-  reading: "Readings and notes",
-  quizzes: "Quizzes & drills",
-}
-
-const timeLabels: Record<string, string> = {
-  "15-30": "15\u201330 minutes daily",
-  "30-60": "30\u201360 minutes daily",
-  "1-2": "1\u20132 hours daily",
-  weekends: "Weekends mostly",
-  custom: "Custom schedule",
-}
 
 interface StepFiveSuccessGoalProps {
   value: string
@@ -49,11 +29,33 @@ function StepFiveSuccessGoal({
   onBack,
   allData,
 }: StepFiveSuccessGoalProps) {
+  const t = useTranslations("onboarding")
   const [error, setError] = useState("")
+
+  const skillLevelLabels: Record<string, string> = {
+    beginner: t("beginner"),
+    "some-experience": t("someExperience"),
+    intermediate: t("intermediate"),
+  }
+
+  const preferenceLabels: Record<string, string> = {
+    "hands-on": t("handsOn"),
+    video: t("video"),
+    reading: t("reading"),
+    quizzes: t("quizzes"),
+  }
+
+  const timeLabels: Record<string, string> = {
+    "15-30": t("time15to30"),
+    "30-60": t("time30to60"),
+    "1-2": t("time1to2"),
+    weekends: t("timeWeekends"),
+    custom: t("timeCustom"),
+  }
 
   const handleGenerate = () => {
     if (!value.trim()) {
-      setError("Please describe what success looks like to you.")
+      setError(t("stepFiveError"))
       return
     }
     setError("")
@@ -64,10 +66,10 @@ function StepFiveSuccessGoal({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-heading-md font-semibold text-foreground">
-          What does success look like?
+          {t("stepFiveTitle")}
         </h1>
         <p className="text-muted-foreground">
-          This becomes the finish line your roadmap builds towards.
+          {t("stepFiveDescription")}
         </p>
       </div>
 
@@ -77,7 +79,7 @@ function StepFiveSuccessGoal({
           onChange(v)
           if (error) setError("")
         }}
-        placeholder="I want to build production-ready backend systems and become a backend developer."
+        placeholder={t("stepFivePlaceholder")}
         multiline
         rows={4}
         error={error}
@@ -86,34 +88,34 @@ function StepFiveSuccessGoal({
       <Card className="border-primary/20 bg-primary/[0.02]">
         <CardContent className="p-5">
           <p className="mb-3 text-sm font-medium text-primary">
-            Your mentor summarized this as:
+            {t("stepFiveSummary")}
           </p>
           <ul className="space-y-1.5">
             <li className="text-sm text-foreground">
-              <span className="text-muted-foreground">Goal: </span>
-              {allData.learningGoal || "Not specified"}
+              <span className="text-muted-foreground">{t("goal")}</span>
+              {allData.learningGoal || t("notSpecified")}
             </li>
             <li className="text-sm text-foreground">
-              <span className="text-muted-foreground">Level: </span>
+              <span className="text-muted-foreground">{t("level")}</span>
               {allData.skillLevel
                 ? skillLevelLabels[allData.skillLevel] || allData.skillLevel
-                : "Not specified"}
+                : t("notSpecified")}
             </li>
             <li className="text-sm text-foreground">
-              <span className="text-muted-foreground">Time: </span>
+              <span className="text-muted-foreground">{t("time")}</span>
               {allData.timeCommitment === "custom"
-                ? allData.timeCustomDescription || "Custom schedule"
+                ? allData.timeCustomDescription || t("timeCustom")
                 : timeLabels[allData.timeCommitment] ||
                   allData.timeCommitment ||
-                  "Not specified"}
+                  t("notSpecified")}
             </li>
             <li className="text-sm text-foreground">
-              <span className="text-muted-foreground">Style: </span>
+              <span className="text-muted-foreground">{t("style")}</span>
               {allData.learningPreferences.length > 0
                 ? allData.learningPreferences
                     .map((p) => preferenceLabels[p] || p)
                     .join(", ")
-                : "Not specified"}
+                : t("notSpecified")}
             </li>
           </ul>
         </CardContent>
@@ -122,7 +124,7 @@ function StepFiveSuccessGoal({
       <StepNavigation
         onBack={onBack}
         onContinue={handleGenerate}
-        continueLabel="Generate My Learning Roadmap"
+        continueLabel={t("generateRoadmap")}
         canContinue={!!value.trim()}
       />
     </div>

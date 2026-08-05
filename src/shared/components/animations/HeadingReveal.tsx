@@ -37,14 +37,14 @@ function HeadingReveal({
   const words = children.split(" ")
 
   return (
-    <div ref={ref} className="overflow-hidden">
+    <div ref={ref} className="reveal-mask overflow-hidden">
       <Tag
         id={id}
         className={cn("inline-flex flex-wrap gap-x-[0.25em]", className)}
         aria-label={children}
       >
         {words.map((word, i) => (
-          <span key={`${word}-${i}`} className="relative inline-block overflow-hidden">
+          <span key={`${word}-${i}`} className="reveal-mask relative inline-block overflow-hidden">
             <motion.span
               className="inline-block"
               initial={{ y: "100%", rotateX: -60 }}

@@ -349,7 +349,7 @@
   --font-sans: var(--font-default);
   --font-body: var(--font-default);
   --font-display: var(--font-default);
-  --font-ui: var(--font-nunito);
+  --font-ui: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -396,7 +396,7 @@
 :root,
 .dark {
   --font-default:    var(--font-space);
-  --font-ui:         var(--font-nunito);
+  --font-ui:         var(--font-inter);
   --bg-base:          #0a0b0e;
   --surface:          #111318;
   --surface-card:     #16181d;
@@ -465,7 +465,7 @@
    (toggle)، عكس الوضع القديم اللي كان :root نفسه هو الفاتح. */
 .light {
   --font-default:    var(--font-space);
-  --font-ui:         var(--font-nunito);
+  --font-ui:         var(--font-inter);
   --bg-base:          #fcfcfd;
   --surface:          #f5f6f8;
   --surface-card:     #ffffff;
@@ -534,15 +534,17 @@
   /* --- Arabic typography: line-height scale ---
      IBM Plex Sans Arabic has a taller x-height and denser vertical
      rhythm than Space Grotesk. These overrides keep Arabic text
-     as readable as the LTR equivalent without changing fonts. */
-  --text-display-2xl--line-height: 1.15;
-  --text-display-xl--line-height:  1.2;
-  --text-display-lg--line-height:  1.25;
+     as readable as the LTR equivalent without changing fonts, and keep
+     every line box above the font's vertical extent (≥1.4em) so glyph
+     ascenders/descenders are never clipped. */
+  --text-display-2xl--line-height: 1.25;
+  --text-display-xl--line-height:  1.25;
+  --text-display-lg--line-height:  1.3;
 
-  --text-heading-xl--line-height:  1.35;
-  --text-heading-lg--line-height:  1.4;
-  --text-heading-md--line-height:  1.45;
-  --text-heading-sm--line-height:  1.5;
+  --text-heading-xl--line-height:  1.4;
+  --text-heading-lg--line-height:  1.45;
+  --text-heading-md--line-height:  1.5;
+  --text-heading-sm--line-height:  1.55;
 
   --text-body-lg--line-height:     1.75;
   --text-body-md--line-height:     1.75;
@@ -576,6 +578,153 @@
 
 [dir="rtl"] p {
   margin-bottom: 1em;
+}
+
+/* Arabic semantic-type refinements — the cursive script needs looser word
+   spacing and balanced heading lines to stay readable; line heights already
+   adapt via the token overrides above, and letter-spacing stays at normal
+   (never negative tracking for Arabic). */
+[dir="rtl"] .text-heading,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  letter-spacing: var(--tracking-normal);
+  text-wrap: balance;
+}
+
+[dir="rtl"] .text-label,
+[dir="rtl"] .text-button {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Arabic vertical room for diacritic dots (نقاط). IBM Plex Sans Arabic's
+   content area is 1.5em (asc 1085 / desc −415) with a ~1.73em rendered box,
+   and Rubik's used box is ~1.53em — both outgrow the 1.5–1.65 line heights,
+   so top/bottom dots on ب ت ث ن ي ق ذ ض ظ were clipped inside tight line
+   boxes. Only RTL is loosened; LTR fonts are unchanged. */
+[dir="rtl"] .text-heading { line-height: 1.75; }
+[dir="rtl"] .text-label   { line-height: 1.7; }
+[dir="rtl"] .text-button  { line-height: 1.75; }
+
+/* .text-label bakes uppercase in internally — neutralize it for Arabic,
+   where text has no letter case */
+[dir="rtl"] .text-label {
+  text-transform: none;
+}
+
+[dir="rtl"] .text-body,
+[dir="rtl"] .text-button,
+[dir="rtl"] p,
+[dir="rtl"] li {
+  word-spacing: 0.06em;
+}
+
+[dir="rtl"] p {
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+   RTL utility neutralization
+   The shared components use Latin-biased helpers (negative tracking,
+   uppercase, px line-heights). For Arabic we neutralize them at the CSS
+   level so the token-based, dir-aware typography above always wins — the
+   same markup, no separate Arabic components, and card/button heights stay
+   visually close to English.
+   --------------------------------------------------------------------------- */
+
+/* Letter-spacing: disable all tracking — Arabic is a connected script, so
+   any letter-spacing (positive or negative) hurts its density and legibility. */
+[dir="rtl"] .tracking-tightest,
+[dir="rtl"] .tracking-tighter,
+[dir="rtl"] .tracking-tight,
+[dir="rtl"] .tracking-wide,
+[dir="rtl"] .tracking-wider,
+[dir="rtl"] .tracking-widest {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* No uppercase transformations for a script without letter case */
+[dir="rtl"] .uppercase,
+[dir="rtl"] .capitalize {
+  text-transform: none;
+}
+
+/* Replace fixed line-height utilities with generous unitless ratios that
+   scale with the element's font-size (IBM Plex Sans Arabic / Rubik have a
+   taller x-height than Space Grotesk / Inter, so 1.25–1.375 feels cramped
+   and can clip tall glyphs inside overflow-hidden masks). */
+[dir="rtl"] .leading-none { line-height: 1.5; }
+[dir="rtl"] .leading-tight { line-height: 1.5; }
+[dir="rtl"] .leading-snug { line-height: 1.6; }
+[dir="rtl"] .leading-normal { line-height: 1.6; }
+[dir="rtl"] .leading-relaxed { line-height: 1.75; }
+[dir="rtl"] .leading-loose { line-height: 2; }
+[dir="rtl"] .leading-5 { line-height: 1.5; }
+[dir="rtl"] .leading-6 { line-height: 1.6; }
+[dir="rtl"] .leading-7 { line-height: 1.75; }
+[dir="rtl"] .leading-8 { line-height: 1.75; }
+[dir="rtl"] .leading-9 { line-height: 1.9; }
+[dir="rtl"] .leading-10 { line-height: 1.9; }
+
+/* HeadingReveal masks: the per-word reveal uses overflow-hidden clips, and
+   IBM Plex Sans Arabic / Rubik extend far beyond the em box (their vertical
+   metrics are much larger than Latin fonts), so a tight line box inside the
+   mask cuts Arabic ascenders/descenders. Growing the mask with padding and
+   cancelling it with negative margin gives glyphs room while keeping the
+   layout height byte-for-byte identical — English is untouched because this
+   rule is RTL-scoped. */
+[dir="rtl"] .reveal-mask {
+  padding-block: 0.18em;
+  margin-block: -0.18em;
+}
+
+/* Word spacing is the right spacing knob for Arabic — applied to every
+   interactive/type surface so buttons and labels don't look denser than
+   their English counterparts. */
+[dir="rtl"] .btn,
+[dir="rtl"] .badge-base,
+[dir="rtl"] .input,
+[dir="rtl"] .nav-link,
+[dir="rtl"] .text-heading,
+[dir="rtl"] .text-body,
+[dir="rtl"] .text-label,
+[dir="rtl"] .text-button {
+  word-spacing: 0.06em;
+}
+
+/* English semantic-type refinements — Space Grotesk / Inter read best with
+   slightly tighter tracking on display sizes and balanced heading lines;
+   long-form copy wraps prettily to avoid orphaned words. */
+[dir="ltr"] .text-heading,
+[dir="ltr"] h1,
+[dir="ltr"] h2,
+[dir="ltr"] h3,
+[dir="ltr"] h4 {
+  letter-spacing: var(--tracking-tighter);
+  text-wrap: balance;
+}
+
+[dir="ltr"] .text-label {
+  letter-spacing: var(--tracking-wide);
+}
+
+[dir="ltr"] .text-button {
+  letter-spacing: var(--tracking-normal);
+}
+
+[dir="ltr"] .text-body,
+[dir="ltr"] p,
+[dir="ltr"] li {
+  text-wrap: pretty;
+}
+
+/* English keeps its native word spacing — nothing added */
+[dir="ltr"] .text-heading,
+[dir="ltr"] .text-body,
+[dir="ltr"] .text-label,
+[dir="ltr"] .text-button {
+  word-spacing: normal;
 }
 
 /* ==========================================================================
@@ -654,6 +803,61 @@
    and reused everywhere rather than duplicated per-component.
    ========================================================================== */
 
+/* ---------- Semantic type utilities ----------
+   Language-aware, single-class typography. Each utility resolves the
+   locale-adaptive tokens from §2/§3, so the same class reads correctly in
+   Arabic ([dir="rtl"]) and English ([dir="ltr"]) with no per-component
+   overrides. Fonts: English uses Space Grotesk (display/body) and Inter
+   (UI); Arabic uses IBM Plex Sans Arabic (display/body) and Rubik (UI) —
+   switched automatically via --font-default / --font-ui. */
+
+/* Headings — balanced line wrapping; tracking loosens for Arabic in the
+   [dir="rtl"] rules above */
+@utility text-heading {
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-md);
+  line-height: var(--text-heading-md--line-height);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+/* Long-form body copy — comfortable measure, pretty wrapping, secondary
+   tone so headings stay the dominant voice */
+@utility text-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-secondary);
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+
+/* Small labels / eyebrows — uppercase, tracked-out, muted. A no-op for
+   Arabic, which has no letter case (kept at tracking-normal there). */
+@utility text-label {
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Button text — UI font (Inter in LTR, Rubik in RTL), medium weight */
+@utility text-button {
+  font-family: var(--font-ui);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-primary);
+}
+
 /* Frosted glass surface — used for floating nav, command palette */
 @utility glass-card {
   background: var(--glass-bg);
@@ -690,8 +894,10 @@
   );
   background-clip: text;
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   color: transparent;
 }
+
 
 /* AI-active glow ring — attaches to inputs/cards while the assistant is "thinking" */
 @utility ai-glow {
@@ -851,11 +1057,21 @@
   }
 }
 
-/* Nunito — friendly, rounded English font for AI highlights, marketing
-   sections, and soft UI callouts. Opt-in only via `font-nunito` class.
-   Does not affect any default font cascade. */
-@utility font-nunito {
-  font-family: var(--font-nunito);
+/* Opt-in font utilities for the faces loaded in src/app/layout.tsx.
+   `font-inter` replaces the former `font-nunito` utility (Nunito is no
+   longer loaded). Explicit per-language overrides; do not affect the
+   default font cascade. */
+@utility font-inter {
+  font-family: var(--font-inter);
+}
+@utility font-space-grotesk {
+  font-family: var(--font-space);
+}
+@utility font-arabic {
+  font-family: var(--font-arabic);
+}
+@utility font-rubik {
+  font-family: var(--font-rubik);
 }
 
 /* Base chat bubble — promoted to @utility so the user/assistant variants
@@ -874,7 +1090,7 @@
    which is valid since both are real utilities. */
 @utility roadmap-card {
   @apply card;
-  border-left: 3px solid var(--color-primary-500);
+  border-inline-start: 3px solid var(--color-primary-500);
 }
 
 /* ==========================================================================

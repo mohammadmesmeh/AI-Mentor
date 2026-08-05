@@ -1,9 +1,11 @@
 "use client"
 
+import { useT } from "@/shared/hooks/useT"
 import { motion } from "framer-motion"
 import { Brain } from "lucide-react"
 
 function RoadmapGeneration() {
+  const t = useT("onboarding")
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-5">
       <motion.div
@@ -16,10 +18,10 @@ function RoadmapGeneration() {
 
       <div className="space-y-2 text-center">
         <h1 className="text-heading-md font-semibold text-foreground">
-          Building Your Map
+          {t("generatingTitle", "Creating Your Learning Roadmap")}
         </h1>
         <p className="text-muted-foreground">
-          Your AI Mentor is creating your personalized learning roadmap.
+          {t("generatingDescription", "Our AI is building a personalized learning path just for you. This should only take a moment...")}
         </p>
       </div>
 
