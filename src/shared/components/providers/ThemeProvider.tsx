@@ -42,16 +42,12 @@ function applyTheme(theme: Theme) {
 }
 
 function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark")
-  const [mounted, setMounted] = useState(false)
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme)
 
   useEffect(() => {
-    const initial = getInitialTheme()
-    setThemeState(initial)
-    applyTheme(initial)
-    setCookie(COOKIE_KEY, initial, 365)
-    setMounted(true)
-  }, [])
+    applyTheme(theme)
+    setCookie(COOKIE_KEY, theme, 365)
+  }, [theme])
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next)
