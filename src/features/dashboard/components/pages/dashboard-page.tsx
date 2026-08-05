@@ -29,7 +29,7 @@ function DashboardPage() {
           <p className="mb-6 text-muted-foreground">
             {t("noRoadmapDescription", "You don't have a learning roadmap yet. Start by telling us about your goals!")}
           </p>
-          <Button href="/auth" variant="primary">
+          <Button href="/onboarding" variant="primary">
             {t("startOnboarding", "Start Onboarding")}
           </Button>
         </div>
