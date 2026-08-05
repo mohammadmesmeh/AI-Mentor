@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useDispatch, useSelector } from "react-redux"
+import { useLocale, useTranslations } from "next-intl"
 import { Button } from "@/shared/components/ui/Button"
 import { register as registerThunk } from "@/redux/slices/authSlice"
 import { registerSchema } from "../validation/registerSchema"
@@ -15,6 +17,9 @@ interface RegisterFormProps {
 }
 
 function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const t = useTranslations("auth")
+  const v = useTranslations("validation")
+  const locale = useLocale()
   const dispatch = useDispatch<AppDispatch>()
   const { isLoading } = useSelector((state: RootState) => state.auth)
   const { error } = useSelector((state: RootState) => state.auth)
@@ -23,9 +28,12 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    trigger,
   } = useForm<RegisterFormValues>({
-    resolver: yupResolver(registerSchema),
+    resolver: yupResolver(registerSchema(v)),
   })
+
+  useEffect(() => { trigger() }, [locale, trigger])
 
   const onSubmit = async (data: RegisterFormValues) => {
     const result = await dispatch(registerThunk({ name: data.name, email: data.email, password: data.password }))
@@ -34,56 +42,56 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <FormField label="Name" error={errors.name?.message}>
+      <FormField label={t("name")} error={errors.name?.message}>
         <input
           type="text"
           {...register("name")}
-          placeholder="Your name"
+          placeholder={t("namePlaceholder")}
           className="input"
           autoComplete="name"
         />
       </FormField>
 
-      <FormField label="Email" error={errors.email?.message}>
+      <FormField label={t("email")} error={errors.email?.message}>
         <input
           type="email"
           {...register("email")}
-          placeholder="you@example.com"
+          placeholder={t("emailPlaceholder")}
           className="input"
           autoComplete="email"
         />
       </FormField>
 
-      <FormField label="Password" error={errors.password?.message}>
+      <FormField label={t("password")} error={errors.password?.message}>
         <input
           type="password"
           {...register("password")}
-          placeholder="At least 6 characters"
+          placeholder={t("passwordPlaceholderShort")}
           className="input"
           autoComplete="new-password"
         />
       </FormField>
 
-      <FormField label="Confirm Password" error={errors.confirmPassword?.message}>
+      <FormField label={t("confirmPassword")} error={errors.confirmPassword?.message}>
         <input
           type="password"
           {...register("confirmPassword")}
-          placeholder="Repeat your password"
+          placeholder={t("confirmPasswordPlaceholder")}
           className="input"
           autoComplete="new-password"
         />
       </FormField>
 
-      {error && <p className="text-sm text-danger-500">{error}</p>}
+      {error && <p className="text-sm text-danger-500">{t(`errors.${error}`)}</p>}
 
       <Button variant="primary" className="w-full" disabled={isLoading}>
         {isLoading ? (
           <span className="flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            Registering...
+            {t("registering")}
           </span>
         ) : (
-          "Register"
+          t("register")
         )}
       </Button>
     </form>

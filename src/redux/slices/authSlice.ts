@@ -33,9 +33,9 @@ export const login = createAsyncThunk(
   async (payload: { email: string; password: string }, { rejectWithValue }) => {
     await new Promise((r) => setTimeout(r, 1000))
     const raw = localStorage.getItem("ai-mentor-auth")
-    if (!raw) return rejectWithValue("No account found. Please register first.")
+    if (!raw) return rejectWithValue("noAccountRegisterFirst")
     const user = JSON.parse(raw)
-    if (user.email !== payload.email) return rejectWithValue("No account found with this email.")
+    if (user.email !== payload.email) return rejectWithValue("noAccountWithEmail")
     return user as { email: string; name: string }
   }
 )
@@ -47,7 +47,7 @@ export const register = createAsyncThunk(
     const raw = localStorage.getItem("ai-mentor-auth")
     if (raw) {
       const existing = JSON.parse(raw)
-      if (existing.email === payload.email) return rejectWithValue("An account with this email already exists.")
+      if (existing.email === payload.email) return rejectWithValue("accountExists")
     }
     const user = { email: payload.email, name: payload.name }
     localStorage.setItem("ai-mentor-auth", JSON.stringify(user))

@@ -8,10 +8,10 @@ interface FormFieldProps {
 
 function FormField({ label, error, children }: FormFieldProps) {
   return (
-    <div className="space-y-2 text-left">
-      <label className="text-sm font-medium text-foreground p-3 ">{label}</label>
+    <div className="space-y-2 text-start">
+      <label className="text-sm font-medium text-foreground">{label}</label>
       {children}
-      {error && <p className="text-sm text-danger-500 px-3">{error}</p>}
+      {error && <p className="text-sm text-danger-500">{error}</p>}
     </div>
   )
 }

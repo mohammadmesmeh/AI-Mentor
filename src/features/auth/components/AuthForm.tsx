@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useDispatch } from "react-redux"
+import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import { clearError } from "@/redux/slices/authSlice"
 import { LoginForm } from "./LoginForm"
@@ -9,6 +10,7 @@ import { RegisterForm } from "./RegisterForm"
 import type { AppDispatch } from "@/redux/store"
 
 function AuthForm() {
+  const t = useTranslations("auth")
   const dispatch = useDispatch<AppDispatch>()
   const [mode, setMode] = useState<"login" | "register">("login")
   const isLogin = mode === "login"
@@ -29,7 +31,7 @@ function AuthForm() {
             isLogin ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          Login
+          {t("login")}
         </button>
         <button
           type="button"
@@ -39,7 +41,7 @@ function AuthForm() {
             !isLogin ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          Register
+          {t("register")}
         </button>
       </div>
 

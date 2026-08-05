@@ -1,20 +1,23 @@
-import { object, string, ref } from "yup";
+import { object, string, ref } from "yup"
 
-export const registerSchema = object({
-  name: string()
-    .trim()
-    .required("Name is required"),
+type Translate = (key: string) => string
 
-  email: string()
-    .trim()
-    .email("Invalid email address")
-    .required("Email is required"),
+export const registerSchema = (t: Translate) =>
+  object({
+    name: string()
+      .trim()
+      .required(t("nameRequired")),
 
-  password: string()
-    .min(6, "Password must be at least 6 characters")
-    .required("Password is required"),
+    email: string()
+      .trim()
+      .email(t("invalidEmail"))
+      .required(t("emailRequired")),
 
-  confirmPassword: string()
-    .oneOf([ref("password")], "Passwords do not match")
-    .required("Please confirm your password"),
-});
+    password: string()
+      .min(6, t("passwordMin"))
+      .required(t("passwordRequired")),
+
+    confirmPassword: string()
+      .oneOf([ref("password")], t("passwordsDoNotMatch"))
+      .required(t("confirmPasswordRequired")),
+  })

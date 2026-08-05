@@ -39,7 +39,7 @@ function FeatureCard({
               </IconBounce>
           </div>
 
-          <HeadingReveal as="h3" className="text-lg font-semibold leading-none tracking-tight">
+          <HeadingReveal as="h3" className="text-lg font-semibold">
             {title}
           </HeadingReveal>
           </div>

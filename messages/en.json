@@ -1,38 +1,114 @@
 {
+  "aiLearningPath": {
+    "ariaProgressLabel": "Progress in your learning path",
+    "badge": "AI-curated",
+    "defaultCompletedTask1": "Choose a learning path",
+    "defaultCompletedTask2": "Set up dev environment",
+    "defaultCurrentTask": "Build a REST API",
+    "defaultGoal": "Become a Backend Engineer",
+    "defaultUpcomingTask1": "Databases & Persistence",
+    "defaultUpcomingTask2": "Authentication & Security",
+    "goal": "Your Goal",
+    "progress": "Progress",
+    "title": "Your Learning Path"
+  },
+  "auth": {
+    "errors": {
+      "accountExists": "An account with this email already exists.",
+      "noAccountRegisterFirst": "No account found. Please register first.",
+      "noAccountWithEmail": "No account found with this email."
+    },
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "loggingIn": "Logging in...",
+    "login": "Log In",
+    "name": "Full Name",
+    "namePlaceholder": "Enter your full name",
+    "password": "Password",
+    "passwordPlaceholder": "Create a secure password",
+    "passwordPlaceholderShort": "Enter your password",
+    "register": "Create Account",
+    "registering": "Creating your account...",
+    "welcomeDescription": "Sign in to pick up right where you left off on your learning journey.",
+    "welcomeTitle": "Welcome Back"
+  },
   "cta": {
-    "button": "Start Learning",
-    "description": "Build your skills with a personalized AI mentor and reach your goals faster.",
-    "title": "Ready to start your learning journey?"
+    "button": "Start Learning Free",
+    "description": "Stop guessing what to learn next. Get a personalized roadmap built by AI and start making real progress today.",
+    "title": "Ready to Master Your Next Skill?"
+  },
+  "dashboard": {
+    "milestones": {
+      "advancedConcepts": "Advanced Concepts",
+      "coreFundamentals": "Core Fundamentals",
+      "firstProject": "Building Your First Project",
+      "introSetup": "Introduction & Setup",
+      "realWorldApplications": "Real-World Applications",
+      "reviewNextSteps": "Review & Next Steps"
+    },
+    "currentMilestone": "Current Milestone",
+    "inProgress": "In Progress",
+    "noRoadmapDescription": "You haven't created a learning roadmap yet. Answer a few quick questions and let AI build one for you.",
+    "startOnboarding": "Create My Roadmap",
+    "upcomingMilestone": "Up Next",
+    "welcomeTitle": "Welcome back",
+    "yourRoadmap": "Your Roadmap"
   },
   "features": {
     "aiAnswers": {
-      "description": "Get instant explanations and guidance from your personal AI mentor.",
-      "title": "AI-Powered Answers"
+      "description": "Ask questions anytime and get clear, contextual answers from your AI mentor — no more digging through forums.",
+      "title": "Instant AI Answers"
     },
-    "heading": "Discover powerful features designed to help you learn faster and smarter.",
+    "heading": "Everything You Need to Learn Faster",
     "personalizedPlans": {
-      "description": "Create a learning path designed around your goals, skills, and progress.",
+      "description": "Every roadmap is built around your goals, current level, and schedule — not a generic course outline.",
       "title": "Personalized Learning Plans"
     },
     "progressTracking": {
-      "description": "Monitor your improvement and stay motivated throughout your learning journey.",
-      "title": "Progress Tracking"
+      "description": "See exactly how far you've come and what's next, with milestones that keep you moving forward.",
+      "title": "Real-Time Progress Tracking"
     },
     "smartFeedback": {
-      "description": "Receive helpful feedback to improve your skills and overcome challenges.",
-      "title": "Smart Feedback"
+      "description": "Get actionable feedback that adapts to your pace, so you always know what to improve.",
+      "title": "Smart, Adaptive Feedback"
     },
-    "subheading": "AI Mentor gives you the tools and guidance to learn faster and build better skills."
+    "subheading": "AI Mentor combines personalized guidance, structured milestones, and on-demand support to help you learn smarter, not harder."
   },
   "footer": {
-    "copyright": "All rights reserved.",
-    "description": "Guiding your growth with intelligent AI solutions designed to inspire, learn, and achieve more.",
-    "tagline": "Powered by AI & innovation."
+    "copyright": "© AI Mentor. All rights reserved.",
+    "description": "Your personal AI mentor — turning ambitious goals into daily, achievable progress.",
+    "tagline": "Learn smarter. Grow faster."
   },
   "hero": {
-    "cta": "Build your roadmap ",
-    "description": "AI Mentor breaks your goal into a structured roadmap, hands you one task at a time, and stays with you as a mentor — not a search bar, not another course library.",
-    "title": "From goals to growth — your personal AI mentor builds your learning path."
+    "cta": "Get Your Free Learning Path",
+    "description": "AI Mentor builds a personalized, step-by-step learning roadmap around your goals — then guides you through every milestone, one task at a time.",
+    "title": "Your Personal AI Mentor for Mastering Any Skill"
+  },
+  "howItWork": {
+    "step1": {
+      "description": "Share what you want to learn, your current level, and the time you have available.",
+      "title": "Tell us your goal"
+    },
+    "step2": {
+      "description": "Your AI mentor builds staged milestones matched to your goals and desired outcome.",
+      "title": "Get a structured roadmap"
+    },
+    "step3": {
+      "description": "Follow clear instructions and curated resources without getting lost across multiple tabs.",
+      "title": "Do one task at a time"
+    },
+    "step4": {
+      "description": "Ask questions in context — your mentor already understands where you are.",
+      "title": "Check in with your mentor"
+    },
+    "subtitle": "Four steps from a vague goal to daily momentum.",
+    "title": "How It Works"
+  },
+  "metadata": {
+    "description": "AI Mentor is your personal AI mentor that builds your learning path from goals to growth.",
+    "title": "AI Mentor"
   },
   "home": {
     "welcome ": "hello I am AI Mentor"
@@ -41,8 +117,82 @@
     "text": "Loading"
   },
   "nav": {
+    "brand": "AI Mentor",
+    "closeMenu": "Close menu",
+    "logout": "Logout",
+    "mobileNavigation": "Mobile navigation",
+    "openMenu": "Open menu",
+    "cta": "Get Started",
     "about": "About",
-    "cta": "Start Your Journey",
     "home": "Home"
+  },
+  "notFound": {
+    "backHome": "Back to Home",
+    "description": "The page you're looking for might have been moved or deleted. Let's get you back on track.",
+    "label": "Page Not Found",
+    "title": "Oops! This page doesn't exist."
+  },
+  "onboarding": {
+    "back": "Back",
+    "beginner": "Beginner",
+    "beginnerDesc": "I'm new to this and want to start from the basics.",
+    "continue": "Continue",
+    "generateRoadmap": "Generate My Roadmap",
+    "generatingDescription": "Our AI is building a personalized learning path just for you. This should only take a moment...",
+    "generatingTitle": "Creating Your Learning Roadmap",
+    "goal": "Goal",
+    "handsOn": "Hands-on learning",
+    "intermediate": "Intermediate",
+    "intermediateDesc": "I have a good grasp and want to go deeper.",
+    "level": "Level",
+    "loading": "Loading...",
+    "notSpecified": "Not specified",
+    "quizzes": "Quizzes & exercises",
+    "reading": "Reading",
+    "someExperience": "Some experience",
+    "someExperienceDesc": "I know the basics and want to build on them.",
+    "step": "Step {current} of {total}",
+    "stepFiveDescription": "Tell us what you want to achieve and your AI mentor will build the right plan for you.",
+    "stepFiveError": "Please enter a success goal to continue.",
+    "stepFivePlaceholder": "e.g. I want to become a Full-Stack Developer within 6 months...",
+    "stepFiveSummary": "Your choices",
+    "stepFiveTitle": "What Does Success Look Like?",
+    "stepFourCustomError": "Please describe your custom time commitment.",
+    "stepFourError": "Please choose a time commitment to continue.",
+    "stepFourTitle": "How Much Time Can You Commit?",
+    "stepOneDescription": "Tell us the skill or subject you'd like to master, so we can shape the right path for you.",
+    "stepOneError": "Please enter what you'd like to learn to continue.",
+    "stepOnePlaceholder": "e.g. Web Development, Data Science, UI/UX Design...",
+    "stepOneTitle": "What Do You Want to Learn?",
+    "stepThreeDescription": "Pick the formats that match how you learn best. You can choose more than one.",
+    "stepThreeError": "Please choose at least one learning style to continue.",
+    "stepThreeTitle": "How Do You Prefer to Learn?",
+    "stepTwoDescription": "Pick your current skill level so we can meet you where you are.",
+    "stepTwoError": "Please choose a skill level to continue.",
+    "stepTwoTitle": "What's Your Current Level?",
+    "style": "Learning style",
+    "time": "Time",
+    "time1to2": "1-2 hours a day",
+    "time15to30": "15-30 minutes a day",
+    "time30to60": "30-60 minutes a day",
+    "timeCustom": "Custom time",
+    "timeCustomPlaceholder": "Describe your availability, e.g. one hour every evening",
+    "timeWeekends": "Weekends only",
+    "video": "Video"
+  },
+  "theme": {
+    "dark": "Dark",
+    "light": "Light",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
+  },
+  "validation": {
+    "confirmPasswordRequired": "Please confirm your password.",
+    "emailRequired": "Email is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "nameRequired": "Full name is required.",
+    "passwordMin": "Password must be at least 6 characters.",
+    "passwordRequired": "Password is required.",
+    "passwordsDoNotMatch": "Passwords do not match."
   }
 }

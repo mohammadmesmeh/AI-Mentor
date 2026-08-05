@@ -41,19 +41,39 @@ interface CursorVars {
   ringPointerOpacity: number
 }
 
+const DEFAULT_VARS: CursorVars = {
+  dotSize: 4,
+  ringSize: 28,
+  ringHoverSize: 44,
+  ringPointerSize: 22,
+  ringOpacity: 0.45,
+  ringHoverOpacity: 0.6,
+  ringPointerOpacity: 0.7,
+}
+
+function getInitialState(): "loading" | "touch" | "ready" {
+  if (typeof window === "undefined") return "loading"
+  return window.matchMedia("(pointer: coarse)").matches ? "touch" : "ready"
+}
+
+function getInitialVars(): CursorVars {
+  if (typeof document === "undefined") return DEFAULT_VARS
+  return {
+    dotSize: parseInt(getCSSVar("--cursor-dot-size", "4")) || 4,
+    ringSize: parseInt(getCSSVar("--cursor-ring-size", "28")) || 28,
+    ringHoverSize: parseInt(getCSSVar("--cursor-ring-hover-size", "44")) || 44,
+    ringPointerSize: parseInt(getCSSVar("--cursor-ring-pointer-size", "22")) || 22,
+    ringOpacity: parseFloat(getCSSVar("--cursor-ring-opacity", "0.45")) || 0.45,
+    ringHoverOpacity: parseFloat(getCSSVar("--cursor-ring-hover-opacity", "0.6")) || 0.6,
+    ringPointerOpacity: parseFloat(getCSSVar("--cursor-ring-pointer-opacity", "0.7")) || 0.7,
+  }
+}
+
 function AiCursor() {
   const [hoverState, setHoverState] = useState<HoverState>("normal")
-  const [state, setState] = useState<"loading" | "touch" | "ready">("loading")
+  const [state] = useState<"loading" | "touch" | "ready">(getInitialState)
   const [inWindow, setInWindow] = useState(true)
-  const [vars, setVars] = useState<CursorVars>({
-    dotSize: 4,
-    ringSize: 28,
-    ringHoverSize: 44,
-    ringPointerSize: 22,
-    ringOpacity: 0.45,
-    ringHoverOpacity: 0.6,
-    ringPointerOpacity: 0.7,
-  })
+  const [vars] = useState<CursorVars>(getInitialVars)
   const prevHoverState = useRef<HoverState>("normal")
 
   const cursorX = useMotionValue(-200)
@@ -64,26 +84,6 @@ function AiCursor() {
 
   const dotX = useSpring(cursorX, { damping: 30, stiffness: 500, mass: 0.15 })
   const dotY = useSpring(cursorY, { damping: 30, stiffness: 500, mass: 0.15 })
-
-  useEffect(() => {
-    const isTouch = window.matchMedia("(pointer: coarse)").matches
-    if (isTouch) {
-      setState("touch")
-      return
-    }
-
-    setVars({
-      dotSize: parseInt(getCSSVar("--cursor-dot-size", "4")) || 4,
-      ringSize: parseInt(getCSSVar("--cursor-ring-size", "28")) || 28,
-      ringHoverSize: parseInt(getCSSVar("--cursor-ring-hover-size", "44")) || 44,
-      ringPointerSize: parseInt(getCSSVar("--cursor-ring-pointer-size", "22")) || 22,
-      ringOpacity: parseFloat(getCSSVar("--cursor-ring-opacity", "0.45")) || 0.45,
-      ringHoverOpacity: parseFloat(getCSSVar("--cursor-ring-hover-opacity", "0.6")) || 0.6,
-      ringPointerOpacity: parseFloat(getCSSVar("--cursor-ring-pointer-opacity", "0.7")) || 0.7,
-    })
-
-    setState("ready")
-  }, [])
 
   useEffect(() => {
     if (state !== "ready") return
