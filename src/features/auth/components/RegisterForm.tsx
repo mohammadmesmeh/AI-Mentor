@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useDispatch, useSelector } from "react-redux"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { Button } from "@/shared/components/ui/Button"
 import { register as registerThunk } from "@/redux/slices/authSlice"
 import { registerSchema } from "../validation/registerSchema"
@@ -19,7 +18,6 @@ interface RegisterFormProps {
 function RegisterForm({ onSuccess }: RegisterFormProps) {
   const t = useTranslations("auth")
   const v = useTranslations("validation")
-  const locale = useLocale()
   const dispatch = useDispatch<AppDispatch>()
   const { isLoading } = useSelector((state: RootState) => state.auth)
   const { error } = useSelector((state: RootState) => state.auth)
@@ -28,12 +26,9 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-    trigger,
   } = useForm<RegisterFormValues>({
     resolver: yupResolver(registerSchema(v)),
   })
-
-  useEffect(() => { trigger() }, [locale, trigger])
 
   const onSubmit = async (data: RegisterFormValues) => {
     const result = await dispatch(registerThunk({ name: data.name, email: data.email, password: data.password }))
