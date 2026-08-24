@@ -9,9 +9,10 @@ import {
   goToStep,
   setOnboardingData,
   setIsGenerating,
-  setRoadmap,
   completeOnboarding,
+  saveOnboardingData,
 } from "@/redux/slices/onboardingSlice"
+import type { OnboardingData } from "@/redux/slices/onboardingSlice"
 import type { RootState } from "@/redux/store"
 import { OnboardingLayout } from "../OnboardingLayout"
 import { StepOneLearningGoal } from "../StepOneLearningGoal"
@@ -52,16 +53,17 @@ function OnboardingPage() {
 
   const handleGenerate = () => {
     dispatch(setIsGenerating(true))
+    // TODO: Replace with Gemini roadmap generation API
     setTimeout(() => {
-      const roadmap = [
-        "introSetup",
-        "coreFundamentals",
-        "firstProject",
-        "advancedConcepts",
-        "realWorldApplications",
-        "reviewNextSteps",
-      ]
-      dispatch(setRoadmap(roadmap))
+      const onboardingData: OnboardingData = {
+        learningGoal: onboarding.learningGoal,
+        skillLevel: onboarding.skillLevel ?? "",
+        learningPreferences: onboarding.learningPreferences,
+        timeCommitment: onboarding.timeCommitment,
+        timeCustomDescription: onboarding.timeCustomDescription,
+        successGoal: onboarding.successGoal,
+      }
+      dispatch(saveOnboardingData(onboardingData))
       dispatch(completeOnboarding())
     }, 3000)
   }
