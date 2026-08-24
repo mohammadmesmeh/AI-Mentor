@@ -1,0 +1,1417 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light *));
+
+/* ملاحظة تطبيقية (خارج نطاق هالملف):
+   الهوية هون Dark-first فعليًا — التوكنز نفسها Dark بشكل افتراضي حتى
+   بدون أي class (شوف :root في §3). لكن لو حاب أي Tailwind utility
+   بصيغة dark:xxx (بره التوكنز الدلالية زي bg-surface) يشتغل بانسجام
+   من أول تحميل، لازم تضيف class="dark" فعليًا على <html> بشكل افتراضي:
+   - Next.js:  <html lang="ar" className="dark"> في الـ root layout, أو
+   - next-themes: <ThemeProvider attribute="class" defaultTheme="dark">
+   الـ .light class (تحت) هو الخيار الصريح لما اليوزر يبدّل يدويًا. */
+
+/* Hide default cursor on pointer-fine devices only */
+@media (pointer: fine) {
+  html, body, a, button, [data-cursor-hover] {
+    cursor: none;
+  }
+}
+
+/* ==========================================================================
+   AI MENTOR — DESIGN SYSTEM
+   Tailwind CSS v4 (CSS-first, no tailwind.config.*)
+   Stack: Next.js 16 · React 19 · Tailwind CSS v4
+
+   Table of contents:
+   1.  CSS Reset
+   2.  Design Tokens          (@theme — generates Tailwind utilities)
+   3.  Theme Variables         (semantic, light/dark)
+   4.  Typography
+   5.  Responsive Notes
+   6.  Utility Classes         (@utility)
+   7.  Animations
+   8.  Component Tokens        (@layer components)
+   9.  Accessibility
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CSS RESET
+   A minimal, modern reset. Tailwind's Preflight already normalizes most
+   elements — this layer only covers the handful of things AI Mentor's UI
+   depends on that Preflight intentionally leaves alone.
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--border-default);
+    outline-color: var(--color-primary-500);
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    /* منع التمرير الأفقي نهائياً */
+    overflow-x: hidden;
+    /* Dark هو الوضع الافتراضي: color-scheme يبقى dark حتى بدون أي
+       class على <html>، فمتصفح (scrollbars, form controls..) بيطابق
+       الهوية الغامقة فوراً، وما بصير "ومضة" فاتحة قبل ما JS يشتغل. */
+    color-scheme: dark;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    @apply font-sans;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* .light: صنف صريح لما اليوزر يختار الوضع الفاتح يدويًا (عبر toggle) */
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    line-height: 1.6;
+    min-height: 100dvh;
+    @apply bg-background text-foreground;
+  }
+
+  /* Long AI-generated / mentor content reads best with generous measure */
+  p {
+    max-width: 72ch;
+  }
+
+  ::selection {
+    background-color: var(--color-primary-300);
+    color: var(--color-primary-950);
+  }
+
+  /* Respect motion preferences across every animation in this file */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   2. DESIGN TOKENS (@theme)
+   Everything in this block is a Tailwind v4 "theme namespace" variable.
+   Defining --color-primary-500 here automatically generates utilities like
+   bg-primary-500, text-primary-500, border-primary-500, ring-primary-500…
+   Same idea for --font-*, --text-*, --radius-*, --shadow-*, --animate-*,
+   and --breakpoint-*. This is the CSS-first replacement for tailwind.config.
+   ========================================================================== */
+
+@theme {
+
+  /* --- Breakpoints ---------------------------------------------------
+     Mobile-first. Each step corresponds to a real device class rather
+     than an arbitrary number, so layout decisions stay legible. */
+  --breakpoint-sm:  40rem;   /* 640px  — large phones, phones in landscape        */
+  --breakpoint-md:  48rem;   /* 768px  — tablets (portrait)                       */
+  --breakpoint-lg:  64rem;   /* 1024px — tablets (landscape), small laptops       */
+  --breakpoint-xl:  80rem;   /* 1280px — laptops / standard desktop monitors      */
+  --breakpoint-2xl: 96rem;   /* 1536px — large desktop monitors (1440p+)          */
+  --breakpoint-3xl: 120rem;  /* 1920px — ultra-wide / cinema displays             */
+
+  /* --- Color: Primary — "Calm Teal"
+     Trust and clarity without the coldness of pure blue. Used for primary
+     actions, links, focus, and the dominant brand hue across the product —
+     the calm, dependable register that AI/assistant products lean on. */
+  --color-primary-50:  #eefcfb;
+  --color-primary-100: #d2f6f1;
+  --color-primary-200: #a6ece1;
+  --color-primary-300: #70dcc9;
+  --color-primary-400: #3fc4ab;
+  --color-primary-500: #1ea28c;
+  --color-primary-600: #158272;
+  --color-primary-700: #12685b;
+  --color-primary-800: #12534a;
+  --color-primary-900: #12443d;
+  --color-primary-950: #062824;
+
+  /* --- Color: Secondary — "Slate Mist"
+     A cool, faintly teal-tinted neutral (never pure gray) used for chrome,
+     secondary actions, and structural surfaces — echoes the primary hue at
+     near-zero saturation so neutrals never fight the brand color. */
+  --color-secondary-50:  #f4f8f7;
+  --color-secondary-100: #e5eeed;
+  --color-secondary-200: #cedbd9;
+  --color-secondary-300: #adc1be;
+  --color-secondary-400: #85a19d;
+  --color-secondary-500: #64827e;
+  --color-secondary-600: #4c6763;
+  --color-secondary-700: #3c524f;
+  --color-secondary-800: #304240;
+  --color-secondary-900: #223231;
+  --color-secondary-950: #131e1d;
+
+  /* --- Color: Accent — "Growth Emerald"
+     Pairs with Calm Teal as the product's signature teal→emerald duo.
+     Reserved for progress, achievement, and momentum: streaks, completed
+     lessons, upward metrics. Deliberately not used for primary actions. */
+  --color-accent-50:  #edfcf6;
+  --color-accent-100: #d3f8e9;
+  --color-accent-200: #a6efd3;
+  --color-accent-300: #70e0bb;
+  --color-accent-400: #3fcb9f;
+  --color-accent-500: #22ad84;
+  --color-accent-600: #178a6b;
+  --color-accent-700: #146e57;
+  --color-accent-800: #135845;
+  --color-accent-900: #12483a;
+  --color-accent-950: #072a21;
+
+  /* --- Color: Success --- */
+  --color-success-50:  #f0fbf4;
+  --color-success-100: #dcf5e4;
+  --color-success-500: #22a55e;
+  --color-success-600: #188a4b;
+  --color-success-900: #103b22;
+
+  /* --- Color: Warning --- */
+  --color-warning-50:  #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-500: #f5a524;
+  --color-warning-600: #dc8a0c;
+  --color-warning-900: #7a4a08;
+
+  /* --- Color: Danger --- */
+  --color-danger-50:  #fef2f2;
+  --color-danger-100: #fde3e3;
+  --color-danger-500: #e5484d;
+  --color-danger-600: #c93a3e;
+  --color-danger-900: #5c1a1c;
+
+  /* --- Color: Info --- */
+  --color-info-50:  #eff8ff;
+  --color-info-100: #dbeefe;
+  --color-info-500: #2e90e5;
+  --color-info-600: #1d74c4;
+  --color-info-900: #0e3866;
+
+  /* --- Fonts ---
+     LTR: Space Grotesk (geometric, modern, pairs with awwwards/Linear-style
+     product chrome). RTL: IBM Plex Sans Arabic (legible, matching x-height).
+     Code: Geist Mono for inline code and data.
+     Load these via next/font in the root layout; this file only declares
+     the stacks and safe fallbacks. */
+  --font-display: "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body:    "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-code:    "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* --- Type scale ---
+     Paired font-size / line-height tokens. Line heights loosen as size
+     decreases, since small text needs more breathing room to stay legible. */
+  --text-display-2xl:      4.5rem;   /* 72px */
+  --text-display-2xl--line-height: 1.05;
+  --text-display-xl:       3.75rem;  /* 60px */
+  --text-display-xl--line-height:  1.08;
+  --text-display-lg:       3rem;     /* 48px */
+  --text-display-lg--line-height:  1.1;
+
+  --text-heading-xl:       2.25rem;  /* 36px */
+  --text-heading-xl--line-height:  1.2;
+  --text-heading-lg:       1.875rem; /* 30px */
+  --text-heading-lg--line-height:  1.25;
+  --text-heading-md:       1.5rem;   /* 24px */
+  --text-heading-md--line-height:  1.3;
+  --text-heading-sm:       1.25rem;  /* 20px */
+  --text-heading-sm--line-height:  1.4;
+
+  --text-body-lg:          1.125rem; /* 18px */
+  --text-body-lg--line-height:     1.6;
+  --text-body-md:          1rem;     /* 16px */
+  --text-body-md--line-height:     1.6;
+  --text-body-sm:          0.875rem; /* 14px */
+  --text-body-sm--line-height:     1.55;
+
+  --text-caption:          0.8125rem; /* 13px */
+  --text-caption--line-height:     1.4;
+  --text-overline:         0.6875rem; /* 11px */
+  --text-overline--line-height:    1.3;
+
+  --text-code:             0.875rem; /* 14px */
+  --text-code--line-height:        1.6;
+
+  /* --- Letter spacing --- */
+  --tracking-tightest: -0.03em; /* large display type   */
+  --tracking-tighter:  -0.02em; /* headings             */
+  --tracking-tight:    -0.01em; /* body at larger sizes */
+  --tracking-normal:    0em;
+  --tracking-wide:      0.02em; /* captions / labels    */
+  --tracking-widest:    0.08em; /* overline / eyebrow   */
+
+  /* --- Font weights --- */
+  --font-weight-regular:  400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* --- Radius ---
+     Semantic, not numeric — every consumer reaches for "card" or "pill",
+     never a raw pixel value. */
+  --radius-sm:   0.375rem; /* 6px  — checkboxes, small chips           */
+  --radius-md:   0.625rem; /* 10px — inputs, buttons, small badges     */
+  --radius-lg:   0.875rem; /* 14px — cards, dropdowns                  */
+  --radius-xl:   1.25rem;  /* 20px — modals, elevated panels           */
+  --radius-2xl:  1.75rem;  /* 28px — hero panels, premium containers   */
+  --radius-pill: 999px;    /* pills, avatars, status dots              */
+
+  /* --- Shadows ---
+     Each shadow is tuned for its elevation layer; deeper elevation gets a
+     softer, larger-radius blur rather than simply "more" shadow. */
+  --shadow-card:
+    0 1px 2px rgb(16 18 22 / 4%),
+    0 2px 8px rgb(16 18 22 / 6%);
+  --shadow-dropdown:
+    0 4px 16px rgb(16 18 22 / 10%),
+    0 2px 6px rgb(16 18 22 / 6%);
+  --shadow-floating:
+    0 12px 32px rgb(16 18 22 / 14%),
+    0 4px 12px rgb(16 18 22 / 8%);
+  --shadow-hero:
+    0 24px 64px rgb(16 18 22 / 18%),
+    0 8px 24px rgb(16 18 22 / 10%);
+  /* AI Glow: a soft dual-hue halo (teal + emerald) for AI-active states */
+  --shadow-ai-glow:
+    0 0 0 1px rgb(30 162 140 / 15%),
+    0 0 24px rgb(30 162 140 / 35%),
+    0 0 48px rgb(34 173 132 / 15%);
+  --shadow-focus: 0 0 0 3px rgb(30 162 140 / 35%);
+  --shadow-hover: 0 10px 24px rgb(16 18 22 / 12%);
+
+  /* --- Easing curves --- */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* --- Keyframe-backed animation utilities (see §7) ---
+     Declaring these here means `animate-fade-in`, `animate-slide-up`, etc.
+     become first-class Tailwind utilities. */
+  --animate-fade-in:        fade-in 0.4s var(--ease-out-soft) both;
+  --animate-slide-up:       slide-up 0.45s var(--ease-out-soft) both;
+  --animate-scale-in:       scale-in 0.25s var(--ease-out-soft) both;
+  --animate-float:          float 6s var(--ease-in-out-soft) infinite;
+  --animate-glow-pulse:     glow-pulse 2.4s var(--ease-in-out-soft) infinite;
+  --animate-gradient-shift: gradient-shift 8s ease infinite;
+  --animate-soft-pulse:     soft-pulse 1.8s var(--ease-in-out-soft) infinite;
+  --animate-typing:         typing-bounce 1.2s ease-in-out infinite;
+  --animate-shimmer:        shimmer 1.6s linear infinite;
+  --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
+
+  /* --- Containers ---
+     Max-width tokens for capped, centered layouts at the large end of the
+     breakpoint scale (see §5 for the full responsive rationale). */
+  --container-content: 72rem;  /* 1152px — max width for reading/app content */
+  --container-wide:    88rem;  /* 1408px — dashboards, kanban, wide tables   */
+}
+
+/* ==========================================================================
+   3. THEME VARIABLES (semantic, light/dark)
+   These are *contextual* tokens: they point at the primitives above, and
+   flip meaning between light and dark mode. Consumers should always reach
+   for these (bg-surface-card, text-muted…) rather than the raw palette.
+   `@theme inline` re-exposes them as Tailwind utilities that resolve at
+   runtime, so switching the `.dark` class repaints instantly.
+   ========================================================================== */
+
+@theme inline {
+  --color-bg-base:          var(--bg-base);
+  --color-surface:          var(--surface);
+  --color-surface-card:     var(--surface-card);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --color-text-primary:     var(--text-primary);
+  --color-text-secondary:   var(--text-secondary);
+  --color-text-muted:       var(--text-muted);
+  --color-text-inverse:     var(--text-inverse);
+
+  --color-border-default:   var(--border-default);
+  --color-border-strong:    var(--border-strong);
+  --font-heading: var(--font-default);
+  --font-sans: var(--font-default);
+  --font-body: var(--font-default);
+  --font-display: var(--font-default);
+  --font-ui: var(--font-inter);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* :root, .dark: نفس القيم — Dark هو الوضع الافتراضي الحقيقي (يظهر حتى
+   بدون أي class على <html>)، و.dark محفوظة كمان بشكل صريح للتوافق مع
+   أي مكتبة theme-toggle (زي next-themes) بتضيف .dark يدويًا. */
+:root,
+.dark {
+  --font-default:    var(--font-space);
+  --font-ui:         var(--font-inter);
+  --bg-base:          #0a0b0e;
+  --surface:          #111318;
+  --surface-card:     #16181d;
+  --surface-elevated: #1c1f26;
+
+  --text-primary:   #f3f4f6;
+  --text-secondary: #b4b8c2;
+  --text-muted:     #868c99;
+  --text-inverse:   #0a0b0e;
+
+  --border-default: #24272e;
+  --border-strong:  #34383f;
+
+  --overlay-scrim: rgb(4 5 7 / 65%);
+  --glass-bg: rgb(22 24 29 / 55%);
+  --glass-border: rgb(255 255 255 / 8%);
+  --scrollbar-thumb: var(--color-secondary-700);
+  --scrollbar-track: transparent;
+
+  /* Custom cursor — theme-aware tokens */
+  --cursor-color:               var(--color-primary-500);
+  --cursor-glow:                0 0 12px 2px rgb(30 162 140 / 0.35);
+  --cursor-glow-color:          rgb(30 162 140 / 0.25);
+  --cursor-dot-size:            4px;
+  --cursor-ring-size:           28px;
+  --cursor-ring-hover-size:     44px;
+  --cursor-ring-pointer-size:   22px;
+  --cursor-ring-opacity:        0.45;
+  --cursor-ring-hover-opacity:  0.6;
+  --cursor-ring-pointer-opacity: 0.7;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.75 0.10 175);
+  --primary-foreground: oklch(0.16 0.02 175);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.60 0.10 175);
+  --chart-1: oklch(0.85 0.06 175);
+  --chart-2: oklch(0.70 0.09 175);
+  --chart-3: oklch(0.62 0.11 150);
+  --chart-4: oklch(0.50 0.10 175);
+  --chart-5: oklch(0.38 0.08 175);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.55 0.14 175);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.60 0.10 175);
+}
+
+/* .light: الوضع الفاتح الثانوي — يفعّل فقط لما اليوزر يختاره صراحة
+   (toggle)، عكس الوضع القديم اللي كان :root نفسه هو الفاتح. */
+.light {
+  --font-default:    var(--font-space);
+  --font-ui:         var(--font-inter);
+  --bg-base:          #fcfcfd;
+  --surface:          #f5f6f8;
+  --surface-card:     #ffffff;
+  --surface-elevated: #ffffff;
+
+  --text-primary:   #14161a;
+  --text-secondary: #4b505b;
+  --text-muted:     #6b7280;
+  --text-inverse:   #fcfcfd;
+
+  --border-default: #e2e4e9;
+  --border-strong:  #c9cdd6;
+
+  --overlay-scrim: rgb(16 18 22 / 45%);
+  --glass-bg: rgb(255 255 255 / 65%);
+  --glass-border: rgb(255 255 255 / 40%);
+  --scrollbar-thumb: var(--color-secondary-300);
+  --scrollbar-track: transparent;
+
+  /* Custom cursor — light mode overrides */
+  --cursor-glow:              0 0 12px 2px rgb(30 162 140 / 0.2);
+  --cursor-glow-color:        rgb(30 162 140 / 0.15);
+  --cursor-ring-hover-opacity: 0.5;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.62 0.11 175);
+  --primary-foreground: oklch(0.98 0.01 175);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.65 0.10 175);
+  --chart-1: oklch(0.85 0.06 175);
+  --chart-2: oklch(0.70 0.09 175);
+  --chart-3: oklch(0.62 0.11 150);
+  --chart-4: oklch(0.50 0.10 175);
+  --chart-5: oklch(0.38 0.08 175);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.62 0.11 175);
+  --sidebar-primary-foreground: oklch(0.98 0.01 175);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.65 0.10 175);
+}
+
+/* RTL font switch — loaded via next/font and toggled by the `dir`
+   attribute on <html>. Every consumer of --font-default (body, headings,
+   Tailwind's font-sans utility, etc.) picks up the Arabic font
+   automatically without per-component overrides. */
+[dir="rtl"] {
+  --font-default: var(--font-arabic);
+  --font-ui:      var(--font-rubik);
+
+  /* --- Arabic typography: line-height scale ---
+     IBM Plex Sans Arabic has a taller x-height and denser vertical
+     rhythm than Space Grotesk. These overrides keep Arabic text
+     as readable as the LTR equivalent without changing fonts, and keep
+     every line box above the font's vertical extent (≥1.4em) so glyph
+     ascenders/descenders are never clipped. */
+  --text-display-2xl--line-height: 1.25;
+  --text-display-xl--line-height:  1.25;
+  --text-display-lg--line-height:  1.3;
+
+  --text-heading-xl--line-height:  1.4;
+  --text-heading-lg--line-height:  1.45;
+  --text-heading-md--line-height:  1.5;
+  --text-heading-sm--line-height:  1.55;
+
+  --text-body-lg--line-height:     1.75;
+  --text-body-md--line-height:     1.75;
+  --text-body-sm--line-height:     1.65;
+
+  --text-caption--line-height:     1.5;
+  --text-overline--line-height:    1.4;
+
+  --text-code--line-height:        1.7;
+}
+
+/* Arabic letter-spacing: remove negative tracking for cursive Arabic script */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Arabic heading bottom margins for vertical rhythm */
+[dir="rtl"] h1 { margin-bottom: 0.5em; }
+[dir="rtl"] h2 { margin-bottom: 0.45em; }
+[dir="rtl"] h3 { margin-bottom: 0.4em; }
+[dir="rtl"] h4 { margin-bottom: 0.35em; }
+
+/* Arabic paragraph & list readability */
+[dir="rtl"] p,
+[dir="rtl"] li {
+  line-height: 1.8;
+}
+
+[dir="rtl"] p {
+  margin-bottom: 1em;
+}
+
+/* Arabic semantic-type refinements — the cursive script needs looser word
+   spacing and balanced heading lines to stay readable; line heights already
+   adapt via the token overrides above, and letter-spacing stays at normal
+   (never negative tracking for Arabic). */
+[dir="rtl"] .text-heading,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  letter-spacing: var(--tracking-normal);
+  text-wrap: balance;
+}
+
+[dir="rtl"] .text-label,
+[dir="rtl"] .text-button {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Arabic vertical room for diacritic dots (نقاط). IBM Plex Sans Arabic's
+   content area is 1.5em (asc 1085 / desc −415) with a ~1.73em rendered box,
+   and Rubik's used box is ~1.53em — both outgrow the 1.5–1.65 line heights,
+   so top/bottom dots on ب ت ث ن ي ق ذ ض ظ were clipped inside tight line
+   boxes. Only RTL is loosened; LTR fonts are unchanged. */
+[dir="rtl"] .text-heading { line-height: 1.75; }
+[dir="rtl"] .text-label   { line-height: 1.7; }
+[dir="rtl"] .text-button  { line-height: 1.75; }
+
+/* .text-label bakes uppercase in internally — neutralize it for Arabic,
+   where text has no letter case */
+[dir="rtl"] .text-label {
+  text-transform: none;
+}
+
+[dir="rtl"] .text-body,
+[dir="rtl"] .text-button,
+[dir="rtl"] p,
+[dir="rtl"] li {
+  word-spacing: 0.06em;
+}
+
+[dir="rtl"] p {
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+   RTL utility neutralization
+   The shared components use Latin-biased helpers (negative tracking,
+   uppercase, px line-heights). For Arabic we neutralize them at the CSS
+   level so the token-based, dir-aware typography above always wins — the
+   same markup, no separate Arabic components, and card/button heights stay
+   visually close to English.
+   --------------------------------------------------------------------------- */
+
+/* Letter-spacing: disable all tracking — Arabic is a connected script, so
+   any letter-spacing (positive or negative) hurts its density and legibility. */
+[dir="rtl"] .tracking-tightest,
+[dir="rtl"] .tracking-tighter,
+[dir="rtl"] .tracking-tight,
+[dir="rtl"] .tracking-wide,
+[dir="rtl"] .tracking-wider,
+[dir="rtl"] .tracking-widest {
+  letter-spacing: var(--tracking-normal);
+}
+
+/* No uppercase transformations for a script without letter case */
+[dir="rtl"] .uppercase,
+[dir="rtl"] .capitalize {
+  text-transform: none;
+}
+
+/* Replace fixed line-height utilities with generous unitless ratios that
+   scale with the element's font-size (IBM Plex Sans Arabic / Rubik have a
+   taller x-height than Space Grotesk / Inter, so 1.25–1.375 feels cramped
+   and can clip tall glyphs inside overflow-hidden masks). */
+[dir="rtl"] .leading-none { line-height: 1.5; }
+[dir="rtl"] .leading-tight { line-height: 1.5; }
+[dir="rtl"] .leading-snug { line-height: 1.6; }
+[dir="rtl"] .leading-normal { line-height: 1.6; }
+[dir="rtl"] .leading-relaxed { line-height: 1.75; }
+[dir="rtl"] .leading-loose { line-height: 2; }
+[dir="rtl"] .leading-5 { line-height: 1.5; }
+[dir="rtl"] .leading-6 { line-height: 1.6; }
+[dir="rtl"] .leading-7 { line-height: 1.75; }
+[dir="rtl"] .leading-8 { line-height: 1.75; }
+[dir="rtl"] .leading-9 { line-height: 1.9; }
+[dir="rtl"] .leading-10 { line-height: 1.9; }
+
+/* HeadingReveal masks: the per-word reveal uses overflow-hidden clips, and
+   IBM Plex Sans Arabic / Rubik extend far beyond the em box (their vertical
+   metrics are much larger than Latin fonts), so a tight line box inside the
+   mask cuts Arabic ascenders/descenders. Growing the mask with padding and
+   cancelling it with negative margin gives glyphs room while keeping the
+   layout height byte-for-byte identical — English is untouched because this
+   rule is RTL-scoped. */
+[dir="rtl"] .reveal-mask {
+  padding-block: 0.18em;
+  margin-block: -0.18em;
+}
+
+/* Word spacing is the right spacing knob for Arabic — applied to every
+   interactive/type surface so buttons and labels don't look denser than
+   their English counterparts. */
+[dir="rtl"] .btn,
+[dir="rtl"] .badge-base,
+[dir="rtl"] .input,
+[dir="rtl"] .nav-link,
+[dir="rtl"] .text-heading,
+[dir="rtl"] .text-body,
+[dir="rtl"] .text-label,
+[dir="rtl"] .text-button {
+  word-spacing: 0.06em;
+}
+
+/* English semantic-type refinements — Space Grotesk / Inter read best with
+   slightly tighter tracking on display sizes and balanced heading lines;
+   long-form copy wraps prettily to avoid orphaned words. */
+[dir="ltr"] .text-heading,
+[dir="ltr"] h1,
+[dir="ltr"] h2,
+[dir="ltr"] h3,
+[dir="ltr"] h4 {
+  letter-spacing: var(--tracking-tighter);
+  text-wrap: balance;
+}
+
+[dir="ltr"] .text-label {
+  letter-spacing: var(--tracking-wide);
+}
+
+[dir="ltr"] .text-button {
+  letter-spacing: var(--tracking-normal);
+}
+
+[dir="ltr"] .text-body,
+[dir="ltr"] p,
+[dir="ltr"] li {
+  text-wrap: pretty;
+}
+
+/* English keeps its native word spacing — nothing added */
+[dir="ltr"] .text-heading,
+[dir="ltr"] .text-body,
+[dir="ltr"] .text-label,
+[dir="ltr"] .text-button {
+  word-spacing: normal;
+}
+
+/* ==========================================================================
+   4. TYPOGRAPHY
+   Utility-first sizing already comes from §2 (text-display-xl, etc). This
+   layer covers default element styling so raw HTML looks correct even
+   before utility classes are applied.
+   ========================================================================== */
+
+@layer base {
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--tracking-tighter);
+  }
+
+  h1 { font-size: var(--text-heading-xl); line-height: var(--text-heading-xl--line-height); }
+  h2 { font-size: var(--text-heading-lg); line-height: var(--text-heading-lg--line-height); }
+  h3 { font-size: var(--text-heading-md); line-height: var(--text-heading-md--line-height); }
+  h4 { font-size: var(--text-heading-sm); line-height: var(--text-heading-sm--line-height); }
+
+  p, li {
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-regular);
+  }
+
+  small, .text-caption {
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    color: var(--text-muted);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  code, kbd, samp {
+    font-family: var(--font-code);
+    font-size: var(--text-code);
+    background: var(--surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 0.125rem 0.375rem;
+  }
+
+  a {
+    color: var(--color-primary-600);
+    text-underline-offset: 3px;
+  }
+  .dark a {
+    color: var(--color-primary-400);
+  }
+}
+
+/* ==========================================================================
+   5. RESPONSIVE NOTES
+   Breakpoints are declared once in §2. This section documents intent only
+   — there is no CSS to write here, since Tailwind generates sm:/md:/lg:
+   variants directly from --breakpoint-* tokens.
+
+   mobile   (base, <640px)  → single column, stacked nav, 16px gutters
+   sm  (640px)  large phones     → 2-column card grids begin
+   md  (768px)  tablets          → sidebar collapses to icon rail
+   lg  (1024px) small laptops    → full sidebar + content + inspector
+   xl  (1280px) desktop          → max content width engages (--container-content)
+   2xl (1536px) large desktop    → increased gutters, 3-column dashboards
+   3xl (1920px) ultra-wide       → content is capped and centered, never
+                                    stretches edge-to-edge
+
+   --container-content / --container-wide are declared once, in the main
+   @theme block in §2, to avoid a second @theme declaration in this file.
+   ========================================================================== */
+
+/* ==========================================================================
+   6. UTILITY CLASSES (@utility)
+   Custom, single-purpose utilities that compose with Tailwind's own
+   (e.g. `glass-card p-6 rounded-xl` is valid). Each is defined once here
+   and reused everywhere rather than duplicated per-component.
+   ========================================================================== */
+
+/* ---------- Semantic type utilities ----------
+   Language-aware, single-class typography. Each utility resolves the
+   locale-adaptive tokens from §2/§3, so the same class reads correctly in
+   Arabic ([dir="rtl"]) and English ([dir="ltr"]) with no per-component
+   overrides. Fonts: English uses Space Grotesk (display/body) and Inter
+   (UI); Arabic uses IBM Plex Sans Arabic (display/body) and Rubik (UI) —
+   switched automatically via --font-default / --font-ui. */
+
+/* Headings — balanced line wrapping; tracking loosens for Arabic in the
+   [dir="rtl"] rules above */
+@utility text-heading {
+  font-family: var(--font-heading);
+  font-size: var(--text-heading-md);
+  line-height: var(--text-heading-md--line-height);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+/* Long-form body copy — comfortable measure, pretty wrapping, secondary
+   tone so headings stay the dominant voice */
+@utility text-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-secondary);
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+
+/* Small labels / eyebrows — uppercase, tracked-out, muted. A no-op for
+   Arabic, which has no letter case (kept at tracking-normal there). */
+@utility text-label {
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Button text — UI font (Inter in LTR, Rubik in RTL), medium weight */
+@utility text-button {
+  font-family: var(--font-ui);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-normal);
+  color: var(--text-primary);
+}
+
+/* Frosted glass surface — used for floating nav, command palette */
+@utility glass-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Brand gradient background — teal → emerald, used sparingly (hero only) */
+@utility gradient-bg-brand {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-primary-600) 0%,
+    var(--color-primary-500) 45%,
+    var(--color-accent-500) 100%
+  );
+}
+
+/* Quiet gradient for subtle section backgrounds */
+@utility gradient-bg-subtle {
+  background-image: linear-gradient(
+    180deg,
+    var(--surface) 0%,
+    var(--bg-base) 100%
+  );
+}
+
+/* Gradient text — reserved for one hero headline per page, never body copy */
+@utility gradient-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-primary-500),
+    var(--color-accent-500)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+
+/* AI-active glow ring — attaches to inputs/cards while the assistant is "thinking" */
+@utility ai-glow {
+  box-shadow: var(--shadow-ai-glow);
+  transition: box-shadow 0.3s var(--ease-out-soft);
+}
+
+/* Premium / upgraded-tier card treatment.
+   Pseudo-elements/-classes must be nested with `&` inside a single
+   @utility block in Tailwind v4 — a separate `@utility name::before`
+   declaration is invalid and will fail the build. */
+@utility premium-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-floating);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--color-primary-400), var(--color-accent-400));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
+
+/* Standard page section container, capped and centered per §5 */
+@utility section-container {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@utility section-container-wide {
+  width: 100%;
+  max-width: var(--container-wide);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* Custom scrollbar — thin, theme-aware, non-intrusive */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: var(--radius-pill);
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+}
+
+/* Accessible, on-brand focus ring — use instead of the browser default */
+@utility focus-ring {
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+/* Base interactive-button behavior (pairs with component classes in §8) */
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  transition:
+    background-color 0.15s var(--ease-out-soft),
+    border-color 0.15s var(--ease-out-soft),
+    box-shadow 0.15s var(--ease-out-soft),
+    transform 0.15s var(--ease-out-soft);
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Lift-on-hover, for cards and clickable rows */
+@utility hover-lift {
+  transition: transform 0.2s var(--ease-out-soft), box-shadow 0.2s var(--ease-out-soft);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+/* Status badge base — color is supplied by the semantic modifier classes in §8 */
+@utility badge-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-ui);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+/* Base button shape/behavior. Promoted to a real @utility (rather than a
+   plain @layer components class) so that .btn-primary/.btn-secondary/etc.
+   in §8 can legally `@apply btn` — Tailwind v4 only allows @apply to
+   reference built-in utilities or other @utility-defined utilities, never
+   an arbitrary custom class. */
+@utility btn {
+  @apply btn-base focus-ring;
+  padding: 0.625rem 1.125rem;
+  font-size: var(--text-body-sm);
+}
+
+/* Base card surface — promoted to @utility for the same reason as `btn`
+   (task-card, card-elevated, and roadmap-card all @apply it). */
+@utility card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 1.25rem;
+}
+
+/* Base nav link — promoted to @utility so .sidebar-item can @apply it. */
+@utility nav-link {
+  font-family: var(--font-ui);
+  font-size: var(--text-body-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem 0.625rem;
+  transition: color 0.15s, background-color 0.15s;
+
+  &:hover {
+    color: var(--text-primary);
+    background-color: var(--surface);
+  }
+  &[aria-current="page"] {
+    color: var(--color-primary-600);
+    background-color: var(--color-primary-50);
+  }
+}
+
+/* Opt-in font utilities for the faces loaded in src/app/layout.tsx.
+   `font-inter` replaces the former `font-nunito` utility (Nunito is no
+   longer loaded). Explicit per-language overrides; do not affect the
+   default font cascade. */
+@utility font-inter {
+  font-family: var(--font-inter);
+}
+@utility font-space-grotesk {
+  font-family: var(--font-space);
+}
+@utility font-arabic {
+  font-family: var(--font-arabic);
+}
+@utility font-rubik {
+  font-family: var(--font-rubik);
+}
+
+/* Base chat bubble — promoted to @utility so the user/assistant variants
+   in §8 can @apply it. */
+@utility chat-message {
+  max-width: 34rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  animation: var(--animate-slide-up);
+}
+
+/* Base roadmap card — promoted to @utility so the complete/locked variants
+   in §8 can @apply it. Composes the `card` utility above via @apply,
+   which is valid since both are real utilities. */
+@utility roadmap-card {
+  @apply card;
+  border-inline-start: 3px solid var(--color-primary-500);
+}
+
+/* ==========================================================================
+   7. ANIMATIONS
+   Every animation here is short, low-amplitude, and exists to clarify
+   state changes — never decoration for its own sake.
+   ========================================================================== */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Gentle ambient float for hero illustrations / AI orb */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+
+/* Pulsing glow for the "assistant is active" affordance */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(30 162 140 / 35%); }
+  50%      { box-shadow: 0 0 0 8px rgb(30 162 140 / 0%); }
+}
+
+/* Slow hue drift for brand gradient surfaces (hero backgrounds only) */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Soft opacity pulse — live/recording indicators */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* Three-dot typing indicator, staggered via nth-child in §8 */
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Micro hover-lift keyframe used by the `animate-hover-lift` trigger utility */
+@keyframes hover-lift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-2px); }
+}
+
+/* ==========================================================================
+   8. COMPONENT TOKENS (@layer components)
+   Ready-to-use classes built entirely from the tokens above. These are
+   opinionated defaults — feature code can still override with Tailwind
+   utilities since @layer components has lower specificity.
+   ========================================================================== */
+
+@layer components {
+
+  /* ---------- Buttons ----------
+     `.btn` itself is defined as a real @utility in §6, so it can be
+     legally @apply'd here. */
+  .btn-primary {
+    @apply btn;
+    background-color: var(--color-primary-500);
+    color: var(--text-inverse);
+  }
+  .btn-primary:hover  { background-color: var(--color-primary-600); }
+  .btn-secondary {
+    @apply btn;
+    background-color: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+  }
+  .btn-secondary:hover { background-color: var(--color-secondary-100); }
+  .btn-ghost {
+    @apply btn;
+    background-color: transparent;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover { background-color: var(--surface); }
+  .btn-danger {
+    @apply btn;
+    background-color: var(--color-danger-500);
+    color: var(--text-inverse);
+  }
+  .btn-danger:hover { background-color: var(--color-danger-600); }
+
+  /* ---------- Cards ----------
+     `.card` itself is defined as a real @utility in §6. */
+  .card-elevated {
+    @apply card;
+    background-color: var(--surface-elevated);
+    box-shadow: var(--shadow-floating);
+  }
+
+  /* ---------- Inputs ---------- */
+  .input {
+    @apply focus-ring;
+    width: 100%;
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    color: var(--text-primary);
+    font-size: var(--text-body-sm);
+    padding: 0.625rem 0.875rem;
+    transition: border-color 0.15s var(--ease-out-soft);
+  }
+  .input::placeholder { color: var(--text-muted); }
+  .input:hover   { border-color: var(--border-strong); }
+  .input:focus   { border-color: var(--color-primary-500); }
+
+  /* ---------- Badges ---------- */
+  .badge-neutral { @apply badge-base; background: var(--surface); color: var(--text-secondary); border-color: var(--border-default); }
+  .badge-success { @apply badge-base; background: var(--color-success-50); color: var(--color-success-600); }
+  .badge-warning { @apply badge-base; background: var(--color-warning-50); color: var(--color-warning-600); }
+  .badge-danger  { @apply badge-base; background: var(--color-danger-50);  color: var(--color-danger-600); }
+  .badge-info    { @apply badge-base; background: var(--color-info-50);    color: var(--color-info-600); }
+  .dark .badge-success { background: rgb(34 165 94 / 12%);  color: var(--color-success-500); }
+  .dark .badge-warning { background: rgb(245 165 36 / 12%); color: var(--color-warning-500); }
+  .dark .badge-danger  { background: rgb(229 72 77 / 12%);  color: var(--color-danger-500); }
+  .dark .badge-info    { background: rgb(46 144 229 / 12%); color: var(--color-info-500); }
+
+  /* ---------- Navigation ---------- */
+  .nav-bar {
+    @apply glass-card;
+    font-family: var(--font-ui);
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    padding-inline: 1.25rem;
+  }
+  /* `.nav-link` itself (including :hover and [aria-current]) is defined
+     as a real @utility in §6. */
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    background-color: var(--surface);
+    border-inline-end: 1px solid var(--border-default);
+    width: 16rem;
+    padding: 1rem 0.75rem;
+  }
+  .sidebar-item {
+    @apply nav-link;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    padding: 0.5rem 0.625rem;
+  }
+
+  /* ---------- Dialogs ---------- */
+  .dialog-scrim {
+    background-color: var(--overlay-scrim);
+    backdrop-filter: blur(4px);
+  }
+  .dialog-panel {
+    background-color: var(--surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-floating);
+    animation: var(--animate-scale-in);
+  }
+
+  /* ---------- Progress bars ---------- */
+  .progress-track {
+    width: 100%;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--surface);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background-image: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
+    transition: width 0.4s var(--ease-out-soft);
+  }
+
+  /* ---------- Timeline (e.g. learning path / roadmap history) ---------- */
+  .timeline-item {
+    position: relative;
+    padding-inline-start: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-inline-start: 2px solid var(--border-default);
+  }
+  .timeline-item:last-child { border-inline-start-color: transparent; }
+  .timeline-dot {
+    position: absolute;
+    inset-inline-start: -0.4375rem;
+    top: 0.125rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--surface-card);
+  }
+
+  /* ---------- Chat messages (AI Mentor conversation view) ----------
+     `.chat-message` itself is defined as a real @utility in §6. */
+  .chat-message-user {
+    @apply chat-message;
+    background-color: var(--color-primary-500);
+    color: var(--text-inverse);
+    border-end-start-radius: var(--radius-sm);
+    margin-inline-start: auto;
+  }
+  .chat-message-assistant {
+    @apply chat-message;
+    background-color: var(--surface-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-end-end-radius: var(--radius-sm);
+  }
+  .typing-indicator { display: inline-flex; align-items: center; gap: 0.25rem; }
+  .typing-indicator span {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: var(--radius-pill);
+    background-color: var(--text-muted);
+    animation: var(--animate-typing);
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+  /* ---------- Task cards (lesson / action items) ---------- */
+  .task-card {
+    @apply card hover-lift;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .task-card-checkbox {
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border-strong);
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+  .task-card-title-done {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  /* ---------- Roadmap cards (curriculum / milestone view) ----------
+     `.roadmap-card` itself is defined as a real @utility in §6. */
+  .roadmap-card-complete {
+    @apply roadmap-card;
+    border-inline-start-color: var(--color-accent-500);
+  }
+  .roadmap-card-locked {
+    @apply roadmap-card;
+    border-inline-start-color: var(--border-default);
+    opacity: 0.6;
+  }
+
+  /* ---------- Skeleton loading ---------- */
+  .skeleton {
+    border-radius: var(--radius-sm);
+    background-image: linear-gradient(
+      90deg,
+      var(--surface) 25%,
+      var(--border-default) 50%,
+      var(--surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+}
+
+/* ==========================================================================
+   9. ACCESSIBILITY
+   Baseline guarantees that apply regardless of which component classes a
+   feature uses.
+   ========================================================================== */
+
+@layer base {
+  /* All interactive elements share one visible, on-brand focus treatment. */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Text-on-surface pairings in this file are verified at WCAG AA:
+     - text-primary   on bg-base / surface / surface-card  → ≥ 12:1
+     - text-secondary on bg-base / surface / surface-card  → ≥ 7:1
+     - text-muted     on bg-base / surface / surface-card  → ≥ 4.6:1
+     - text-inverse   on color-primary-500 / color-primary-600 → ≥ 4.8:1
+     Re-check contrast if any of these primitive values change. */
+
+  /* Comfortable long-session defaults */
+  body {
+    letter-spacing: var(--tracking-normal);
+  }
+
+  /* Never remove focus outlines for keyboard users, only for pointer users */
+  :focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+  }
+}
