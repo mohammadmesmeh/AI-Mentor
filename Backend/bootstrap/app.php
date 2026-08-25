@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api/v1',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
         $middleware->prepend(AssignRequestId::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -43,6 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 403 => 'forbidden',
                 404 => 'not_found',
                 422 => 'validation_failed',
+                429 => 'too_many_requests',
                 default => $status >= 500 ? 'internal_error' : 'request_failed',
             };
             $message = $status >= 500

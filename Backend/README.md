@@ -16,7 +16,9 @@ app/
 ├── Modules/
 │   ├── Identity/
 │   │   ├── Domain/Enums
-│   │   └── Infrastructure/Persistence/Models
+│   │   ├── Application/Actions
+│   │   ├── Infrastructure/Persistence/Models
+│   │   └── Presentation/Http/{Controllers,Requests,Resources}
 │   ├── LearningProfile/
 │   │   ├── Domain/Enums
 │   │   └── Infrastructure/Persistence/Models
@@ -79,11 +81,40 @@ All endpoints are versioned under `/api/v1`.
 
 ```http
 GET /api/v1/health
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+GET /api/v1/me
+GET /sanctum/csrf-cookie
 ```
 
 Responses use `data` or `error` plus `meta.request_id`. The same ULID request ID
 is returned in `X-Request-ID`. Production API errors do not expose stack traces
 or database details.
+
+### SPA authentication
+
+Authentication uses Sanctum's stateful browser flow and the `web` session
+guard. It never creates personal access tokens and never returns bearer tokens.
+Registration also creates the user's default preferences (`en`, `both`, `UTC`)
+in the same database transaction. Login is limited to active accounts and uses
+one generic validation error for unknown credentials, wrong passwords,
+suspended users, and deletion-requested users.
+
+The browser must send credentials on every request. Before registration, login,
+or logout, request `GET /sanctum/csrf-cookie`, then send the URL-decoded
+`XSRF-TOKEN` cookie as the `X-XSRF-TOKEN` header. Successful registration and
+login rotate the session identifier. Logout invalidates the session and rotates
+its CSRF token. Login is limited to five attempts per minute for each normalized
+email and IP pair; registration is limited to three attempts per minute per IP.
+
+Set `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS`, and
+`CORS_ALLOWED_ORIGINS` explicitly for each environment. CORS allows credentials
+and never uses a wildcard origin. Session cookies are HTTP-only. The local
+examples use `SameSite=Lax`, which is appropriate when the frontend and API are
+same-site (different ports are allowed). For a truly cross-site production SPA,
+use `SESSION_SAME_SITE=none`, `SESSION_SECURE_COOKIE=true`, and HTTPS; otherwise
+keep `Lax`. Production must always set `SESSION_SECURE_COOKIE=true`.
 
 ## Docker development environment
 
@@ -179,7 +210,7 @@ platform or a trusted reverse proxy; the container listens on unprivileged port
 
 ## Deferred to the next phase
 
-Authentication endpoints, roadmap generation and provider adapters, chat,
-resource discovery, task completion/progress, adaptation proposals, policies and
-ownership-scoped product endpoints, observability, deployment, and the admin
-surface are outside this foundation phase.
+Email verification and password reset, roadmap generation and provider
+adapters, chat, resource discovery, task completion/progress, adaptation
+proposals, ownership-scoped product endpoints, observability, deployment, and
+the admin surface are outside this phase.
