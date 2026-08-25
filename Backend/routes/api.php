@@ -11,6 +11,8 @@ use App\Modules\Identity\Presentation\Http\Controllers\UpdateUserPreferenceContr
 use App\Modules\LearningProfile\Presentation\Http\Controllers\GetLearningProfileController;
 use App\Modules\LearningProfile\Presentation\Http\Controllers\GetOnboardingStatusController;
 use App\Modules\LearningProfile\Presentation\Http\Controllers\UpsertLearningProfileController;
+use App\Modules\Roadmap\Presentation\Http\Controllers\CreateRoadmapGenerationRequestController;
+use App\Modules\Roadmap\Presentation\Http\Controllers\GetRoadmapGenerationRequestController;
 use App\Shared\Presentation\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +39,13 @@ Route::middleware('auth:sanctum')->prefix('me')->name('api.v1.me.')->group(funct
     Route::put('/learning-profile', UpsertLearningProfileController::class)->name('learning-profile.upsert');
     Route::get('/onboarding-status', GetOnboardingStatusController::class)->name('onboarding-status.show');
 });
+
+Route::middleware('auth:sanctum')->prefix('roadmap-generation-requests')
+    ->name('api.v1.roadmap-generation-requests.')
+    ->group(function (): void {
+        Route::post('/', CreateRoadmapGenerationRequestController::class)
+            ->middleware('throttle:roadmap-generation.create')
+            ->name('store');
+        Route::get('/{generationRequest}', GetRoadmapGenerationRequestController::class)
+            ->name('show');
+    });

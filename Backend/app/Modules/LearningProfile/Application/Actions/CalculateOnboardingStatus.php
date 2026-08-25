@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\LearningProfile\Application\Actions;
 
+use App\Modules\Identity\Domain\Enums\ResourceLanguage;
 use App\Modules\Identity\Infrastructure\Persistence\Models\User;
 use App\Modules\LearningProfile\Domain\Enums\LearningMethod;
 use App\Modules\LearningProfile\Domain\Enums\SelfAssessedLevel;
@@ -18,20 +19,20 @@ final class CalculateOnboardingStatus
         'desired_outcome',
         'available_minutes_per_week',
         'preferred_learning_methods',
+        'resource_language',
     ];
 
     /** @return array{completed: bool, missing_fields: list<string>} */
     public function execute(User $user): array
     {
         $profile = $user->learningProfile()->first();
-
-        if ($profile === null) {
-            return ['completed' => false, 'missing_fields' => self::REQUIRED_FIELDS];
-        }
+        $preference = $user->preference()->first();
 
         $missingFields = array_values(array_filter(
             self::REQUIRED_FIELDS,
-            fn (string $field): bool => $this->isMissing($profile, $field),
+            fn (string $field): bool => $field === 'resource_language'
+                ? $preference === null || ! $preference->getAttribute('resource_language') instanceof ResourceLanguage
+                : $profile === null || $this->isMissing($profile, $field),
         ));
 
         return ['completed' => $missingFields === [], 'missing_fields' => $missingFields];

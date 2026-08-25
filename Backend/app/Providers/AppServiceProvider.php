@@ -29,5 +29,8 @@ final class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('identity.register', static fn (Request $request): Limit => Limit::perMinute(3)
             ->by((string) $request->ip()));
+
+        RateLimiter::for('roadmap-generation.create', static fn (Request $request): Limit => Limit::perMinute(3)
+            ->by((string) ($request->user('web')?->getAuthIdentifier() ?? $request->ip())));
     }
 }

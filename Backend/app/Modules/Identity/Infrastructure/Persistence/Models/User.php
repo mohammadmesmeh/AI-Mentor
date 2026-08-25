@@ -7,6 +7,7 @@ namespace App\Modules\Identity\Infrastructure\Persistence\Models;
 use App\Modules\Identity\Domain\Enums\UserStatus;
 use App\Modules\LearningProfile\Infrastructure\Persistence\Models\LearningProfile;
 use App\Modules\Roadmap\Infrastructure\Persistence\Models\Roadmap;
+use App\Modules\Roadmap\Infrastructure\Persistence\Models\RoadmapGenerationRequest;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -60,6 +61,12 @@ final class User extends Authenticatable
     public function roadmaps(): HasMany
     {
         return $this->hasMany(Roadmap::class);
+    }
+
+    /** @return HasMany<RoadmapGenerationRequest, $this> */
+    public function roadmapGenerationRequests(): HasMany
+    {
+        return $this->hasMany(RoadmapGenerationRequest::class);
     }
 
     protected static function newFactory(): UserFactory

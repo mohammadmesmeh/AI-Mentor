@@ -16,7 +16,7 @@ app/
 ├── Modules/
 │   ├── Identity/
 │   │   ├── Domain/Enums
-│   │   ├── Application/Actions
+│   │   ├── Application/{Actions,Data,Exceptions,Queries}
 │   │   ├── Infrastructure/Persistence/Models
 │   │   └── Presentation/Http/{Controllers,Requests,Resources}
 │   ├── LearningProfile/
@@ -92,6 +92,8 @@ PATCH /api/v1/me/preferences
 GET /api/v1/me/learning-profile
 PUT /api/v1/me/learning-profile
 GET /api/v1/me/onboarding-status
+POST /api/v1/roadmap-generation-requests
+GET /api/v1/roadmap-generation-requests/{generationRequest}
 GET /sanctum/csrf-cookie
 ```
 
@@ -197,10 +199,50 @@ an authoritative flag:
 }
 ```
 
-`GET /api/v1/me/onboarding-status` reports only missing required learning-profile
-fields. Valid default preferences do not block completion. The historical
+`GET /api/v1/me/onboarding-status` reports missing required learning-profile
+fields and `resource_language`. A valid default preference satisfies the latter;
+legacy users without a preferences row remain incomplete. The historical
 nullable `onboarding_completed_at` column is not exposed and is not used as the
 source of truth.
+
+### Roadmap generation request contract
+
+An authenticated user with complete onboarding can open the asynchronous
+generation lifecycle without starting generation in this phase:
+
+```http
+POST /api/v1/roadmap-generation-requests
+Idempotency-Key: generation-attempt-01
+```
+
+The body must be empty. `Idempotency-Key` is required, accepts 8–128 safe ASCII
+characters, is SHA-256 hashed before persistence, and is unique per user. A new
+request returns `202` in `queued` state. Replaying the same user/key returns the
+same immutable request and snapshot: active replays return `202`, while terminal
+replays return `200`. A different key while a request is `queued`, `running`, or
+`validating` returns `409 roadmap_generation_in_progress`. The terminal states
+are `succeeded`, `failed`, and `cancelled`.
+
+The creation endpoint is limited to three attempts per minute per authenticated
+user. It locks the user row during creation, and MySQL independently enforces
+both per-user idempotency and a single active request. Incomplete onboarding
+returns `409 onboarding_incomplete` with the canonical `missing_fields` list.
+
+The immutable schema-version-1 snapshot contains only the current learning
+profile fields and `preferences.resource_language`. It excludes UI locale,
+timezone, client input, and provider metadata. The status endpoint is strictly
+owner scoped; unknown and foreign identifiers both return `404
+roadmap_generation_request_not_found`. Public resources do not expose the
+snapshot, hashes, raw keys, provider payloads, validated output, or internal
+failure messages.
+
+```http
+GET /api/v1/roadmap-generation-requests/{generationRequest}
+```
+
+This contract only persists and retrieves lifecycle requests. It intentionally
+does not create a roadmap/version/stage/task, dispatch a job, call an AI
+provider, or issue a personal access token.
 
 ## Docker development environment
 
@@ -293,10 +335,11 @@ platform or a trusted reverse proxy; the container listens on unprivileged port
 - [ADR-001: Modular Monolith](docs/architecture/ADR-001-modular-monolith.md)
 - [ADR-002: ULID Identifiers](docs/architecture/ADR-002-ulid-identifiers.md)
 - [ADR-003: Single Active Roadmap](docs/architecture/ADR-003-single-active-roadmap.md)
+- [ADR-004: Roadmap Generation Request Concurrency](docs/architecture/ADR-004-roadmap-generation-request-concurrency.md)
 
 ## Deferred to the next phase
 
-Email verification and password reset, roadmap generation and provider
+Email verification and password reset, roadmap generation execution and provider
 adapters, chat, resource discovery, task completion/progress, adaptation
 proposals, ownership-scoped product endpoints, observability, deployment, and
 the admin surface are outside this phase.

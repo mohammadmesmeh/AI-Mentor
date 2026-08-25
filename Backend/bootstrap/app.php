@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Modules\Identity\Application\Exceptions\UserPreferenceNotFoundException;
 use App\Modules\LearningProfile\Application\Exceptions\LearningProfileNotFoundException;
+use App\Modules\Roadmap\Application\Exceptions\OnboardingIncompleteException;
+use App\Modules\Roadmap\Application\Exceptions\RoadmapGenerationInProgressException;
+use App\Modules\Roadmap\Application\Exceptions\RoadmapGenerationRequestNotFoundException;
 use App\Shared\Presentation\Http\Middleware\AssignRequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -44,6 +47,9 @@ return Application::configure(basePath: dirname(__DIR__))
             $code = match (true) {
                 $exception instanceof LearningProfileNotFoundException => 'learning_profile_not_found',
                 $exception instanceof UserPreferenceNotFoundException => 'user_preferences_not_found',
+                $exception instanceof OnboardingIncompleteException => 'onboarding_incomplete',
+                $exception instanceof RoadmapGenerationInProgressException => 'roadmap_generation_in_progress',
+                $exception instanceof RoadmapGenerationRequestNotFoundException => 'roadmap_generation_request_not_found',
                 default => match ($status) {
                     401 => 'unauthenticated',
                     403 => 'forbidden',
@@ -60,6 +66,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($exception instanceof ValidationException) {
                 $error['details'] = $exception->errors();
+            }
+
+            if ($exception instanceof OnboardingIncompleteException) {
+                $error['details'] = ['missing_fields' => $exception->missingFields];
+            }
+
+            if ($exception instanceof RoadmapGenerationInProgressException) {
+                $error['details'] = ['generation_request_id' => $exception->generationRequestId];
             }
 
             return response()->json([

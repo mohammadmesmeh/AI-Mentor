@@ -44,6 +44,7 @@ final class ModelRelationshipsTest extends TestCase
         self::assertTrue($user->preference->is($preference));
         self::assertTrue($user->learningProfile->is($profile));
         self::assertTrue($user->roadmaps->contains($roadmap));
+        self::assertTrue($user->roadmapGenerationRequests->contains($generationRequest));
         self::assertTrue($roadmap->refresh()->currentVersion->is($version));
         self::assertTrue($roadmap->generationRequests->contains($generationRequest));
         self::assertTrue($generationRequest->versions->contains($version));

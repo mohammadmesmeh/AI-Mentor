@@ -48,6 +48,7 @@ final class OnboardingStatusApiTest extends TestCase
     public function test_only_required_invalid_profile_fields_are_reported_missing(): void
     {
         $user = User::factory()->create();
+        UserPreference::factory()->for($user)->create();
         LearningProfile::factory()->for($user)->create([
             'desired_outcome' => null,
             'preferred_learning_methods' => null,
@@ -76,6 +77,7 @@ final class OnboardingStatusApiTest extends TestCase
     public function test_invalid_stored_learning_method_keeps_onboarding_incomplete(): void
     {
         $user = User::factory()->create();
+        UserPreference::factory()->for($user)->create();
         LearningProfile::factory()->for($user)->create([
             'preferred_learning_methods' => [LearningMethod::ReadingDocs->value, 'unknown_method'],
         ]);
