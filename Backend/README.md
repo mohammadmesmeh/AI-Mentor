@@ -85,42 +85,91 @@ Responses use `data` or `error` plus `meta.request_id`. The same ULID request ID
 is returned in `X-Request-ID`. Production API errors do not expose stack traces
 or database details.
 
-## Local setup
+## Docker development environment
 
-Requires PHP 8.3+ (PHP 8.4 is supported), Composer, MySQL 8, and Redis. When PHP
-is unavailable locally, Composer's Docker image can run the framework and the
-test suite with SQLite:
+Docker is the supported local runtime. It provides PHP 8.4 with NGINX and FPM in
+one unprivileged application image, MySQL 8.4, Redis 7.4, Horizon, and the
+Laravel scheduler. Only the application is published to the host at
+`http://localhost:8000`; MySQL and Redis remain on the private Docker network.
+Base image tags are also locked to reviewed digests for reproducible builds;
+dependency upgrades should update the tag and digest together.
+
+| Service | Lifecycle | Responsibility |
+| --- | --- | --- |
+| `setup` | one-shot | Installs locked Composer dependencies into `vendor_data`. |
+| `migrate` | one-shot | Runs pending migrations and the idempotent seeders. |
+| `app` | long-running | Serves the API through the image's NGINX and PHP-FPM. |
+| `horizon` | long-running | Processes Redis-backed queues. |
+| `scheduler` | long-running | Runs Laravel's scheduler worker. |
+| `mysql` | long-running | Persists application data in `mysql_data`. |
+| `redis` | long-running | Persists queue/cache data in `redis_data`. |
+
+From `Backend/`, create the local environment file and replace every placeholder
+password. Initialize the dependency volume, generate an application key, and
+copy the printed value into `APP_KEY` in `.env.docker` before starting the stack.
 
 ```bash
-cp .env.example .env
-docker volume create ai-mentor-vendor
-docker run --rm -v ai-mentor-vendor:/app/vendor -v "$PWD:/app" -w /app composer:2 composer install --ignore-platform-req=ext-pcntl
-docker run --rm -v ai-mentor-vendor:/app/vendor -v "$PWD:/app" -w /app composer:2 php artisan key:generate
-docker run --rm -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -v ai-mentor-vendor:/app/vendor -v "$PWD:/app" -w /app composer:2 php artisan migrate:fresh --seed
+cp .env.docker.example .env.docker
+docker compose run --rm --no-deps setup
+docker compose run --rm --no-deps setup php artisan key:generate --show
+docker compose up -d
+docker compose ps
+curl --fail http://localhost:8000/api/v1/health
 ```
 
-Horizon workers require the `pcntl` and `posix` extensions and must run on a
-Linux PHP worker image. The Horizon dashboard is intentionally denied outside
-the local environment until the administrative authorization model is added.
+`docker compose up -d` is safe to repeat. Compose waits for MySQL and Redis,
+installs dependencies, then migrates and seeds before starting the three runtime
+services. Source is bind-mounted for development while the named vendor volume
+prevents the host mount from hiding container-installed dependencies. Shared
+named volumes also keep `storage` and `bootstrap/cache` writable by the
+unprivileged application user across all Laravel processes.
 
-For the production-like database configuration, set the MySQL and Redis values
-from `.env.example`. Never commit `.env` or provider credentials.
+```bash
+docker compose logs -f app horizon scheduler
+docker compose exec app php artisan migrate:status
+docker compose exec app php artisan horizon:status
+docker compose exec app php artisan schedule:list
+docker compose down
+```
+
+`docker compose down` preserves named volumes. Use `docker compose down -v` only
+when intentionally deleting the local database, Redis data, and dependencies.
+The Horizon dashboard remains denied outside the local environment until an
+administrative authorization model is added.
 
 ## Quality gates
 
 ```bash
-composer validate
-php artisan migrate:fresh --seed
-php artisan test
-vendor/bin/pint --test
-vendor/bin/phpstan analyse
-php artisan route:list --path=api/v1
+docker compose exec app composer validate --strict
+docker compose exec app php artisan migrate:status
+docker compose exec app php artisan test
+docker compose exec app vendor/bin/pint --test
+docker compose exec app vendor/bin/phpstan analyse
+docker compose exec app php artisan route:list --path=api/v1
 ```
 
-The automated suite uses SQLite for fast feedback and explicitly tests database
-invariants. Run migrations against MySQL 8 before release because SQLite differs
-in constraint and DDL behavior. The MySQL-only self-dependency `CHECK` is added
-by the migration; the Domain rule protects every supported database.
+The suite can use SQLite for fast host-side feedback, while the documented
+container command retains the Compose MySQL connection and exercises MySQL-only
+constraints. The self-dependency `CHECK` is added by the migration; the Domain
+rule protects every supported database.
+
+## Production image
+
+The `production` target installs dependencies from `composer.lock` without dev
+packages, generates an authoritative autoloader, and runs as `www-data`. Runtime
+secrets are injected by the deployment platform; `.env` files, Git metadata,
+tests, local documentation, logs, and development tool configuration are
+excluded from the build context. Database migrations never run during image
+build.
+
+```bash
+docker build --target production -t ai-mentor-backend:production .
+```
+
+Run migrations as a separate release job before starting the production app,
+Horizon, and scheduler processes. TLS should terminate at the deployment
+platform or a trusted reverse proxy; the container listens on unprivileged port
+`8080`.
 
 ## Architecture decisions
 
