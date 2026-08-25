@@ -18,19 +18,18 @@ final class LearningProfile extends Model
     use HasFactory, HasUlids;
 
     protected $fillable = [
-        'user_id',
         'goal',
         'self_assessed_level',
         'desired_outcome',
         'available_minutes_per_week',
         'preferred_learning_methods',
-        'onboarding_completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'self_assessed_level' => SelfAssessedLevel::class,
+            'available_minutes_per_week' => 'integer',
             'preferred_learning_methods' => 'array',
             'onboarding_completed_at' => 'immutable_datetime',
         ];

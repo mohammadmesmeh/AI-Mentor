@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Modules\Identity\Application\Exceptions\UserPreferenceNotFoundException;
+use App\Modules\LearningProfile\Application\Exceptions\LearningProfileNotFoundException;
 use App\Shared\Presentation\Http\Middleware\AssignRequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -39,13 +41,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 $exception instanceof HttpExceptionInterface => $exception->getStatusCode(),
                 default => 500,
             };
-            $code = match ($status) {
-                401 => 'unauthenticated',
-                403 => 'forbidden',
-                404 => 'not_found',
-                422 => 'validation_failed',
-                429 => 'too_many_requests',
-                default => $status >= 500 ? 'internal_error' : 'request_failed',
+            $code = match (true) {
+                $exception instanceof LearningProfileNotFoundException => 'learning_profile_not_found',
+                $exception instanceof UserPreferenceNotFoundException => 'user_preferences_not_found',
+                default => match ($status) {
+                    401 => 'unauthenticated',
+                    403 => 'forbidden',
+                    404 => 'not_found',
+                    422 => 'validation_failed',
+                    429 => 'too_many_requests',
+                    default => $status >= 500 ? 'internal_error' : 'request_failed',
+                },
             };
             $message = $status >= 500
                 ? 'An unexpected error occurred.'

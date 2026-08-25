@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Modules\Identity\Presentation\Http\Controllers\GetUserPreferenceController;
 use App\Modules\Identity\Presentation\Http\Controllers\LoginController;
 use App\Modules\Identity\Presentation\Http\Controllers\LogoutController;
 use App\Modules\Identity\Presentation\Http\Controllers\MeController;
 use App\Modules\Identity\Presentation\Http\Controllers\RegisterController;
+use App\Modules\Identity\Presentation\Http\Controllers\UpdateUserPreferenceController;
+use App\Modules\LearningProfile\Presentation\Http\Controllers\GetLearningProfileController;
+use App\Modules\LearningProfile\Presentation\Http\Controllers\GetOnboardingStatusController;
+use App\Modules\LearningProfile\Presentation\Http\Controllers\UpsertLearningProfileController;
 use App\Shared\Presentation\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,3 +29,11 @@ Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
 });
 
 Route::middleware('auth:sanctum')->get('/me', MeController::class)->name('api.v1.me');
+
+Route::middleware('auth:sanctum')->prefix('me')->name('api.v1.me.')->group(function (): void {
+    Route::get('/preferences', GetUserPreferenceController::class)->name('preferences.show');
+    Route::patch('/preferences', UpdateUserPreferenceController::class)->name('preferences.update');
+    Route::get('/learning-profile', GetLearningProfileController::class)->name('learning-profile.show');
+    Route::put('/learning-profile', UpsertLearningProfileController::class)->name('learning-profile.upsert');
+    Route::get('/onboarding-status', GetOnboardingStatusController::class)->name('onboarding-status.show');
+});

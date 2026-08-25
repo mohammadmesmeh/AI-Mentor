@@ -21,7 +21,9 @@ app/
 │   │   └── Presentation/Http/{Controllers,Requests,Resources}
 │   ├── LearningProfile/
 │   │   ├── Domain/Enums
-│   │   └── Infrastructure/Persistence/Models
+│   │   ├── Application/{Actions,Exceptions,Queries}
+│   │   ├── Infrastructure/Persistence/Models
+│   │   └── Presentation/Http/{Controllers,Requests,Resources}
 │   ├── Roadmap/
 │   │   ├── Domain/{Enums,ActiveRoadmapSlot.php}
 │   │   ├── Application/Actions
@@ -85,6 +87,11 @@ POST /api/v1/auth/register
 POST /api/v1/auth/login
 POST /api/v1/auth/logout
 GET /api/v1/me
+GET /api/v1/me/preferences
+PATCH /api/v1/me/preferences
+GET /api/v1/me/learning-profile
+PUT /api/v1/me/learning-profile
+GET /api/v1/me/onboarding-status
 GET /sanctum/csrf-cookie
 ```
 
@@ -115,6 +122,85 @@ examples use `SameSite=Lax`, which is appropriate when the frontend and API are
 same-site (different ports are allowed). For a truly cross-site production SPA,
 use `SESSION_SAME_SITE=none`, `SESSION_SECURE_COOKIE=true`, and HTTPS; otherwise
 keep `Lax`. Production must always set `SESSION_SECURE_COOKIE=true`.
+
+### Preferences and learning-profile onboarding
+
+All `/api/v1/me/*` endpoints require the Sanctum browser session described
+above. Ownership always comes from the authenticated session: clients must not
+send `user_id`, IDs, timestamps, or completion fields. Preferences contain UI
+and localization settings; the learning profile contains the inputs that will
+later personalize a roadmap. This phase does not generate a roadmap, dispatch a
+job, or call an AI provider.
+
+Preferences support partial updates:
+
+```http
+GET /api/v1/me/preferences
+PATCH /api/v1/me/preferences
+Content-Type: application/json
+
+{
+  "ui_locale": "ar",
+  "resource_language": "both",
+  "timezone": "Asia/Hebron"
+}
+```
+
+`ui_locale` accepts `ar` or `en`; `resource_language` accepts `ar`, `en`, or
+`both`. `timezone` must be a real IANA timezone identifier such as `UTC`,
+`Asia/Hebron`, or `America/Toronto`. PATCH accepts any non-empty subset and
+preserves omitted values. Registrations create defaults (`en`, `both`, `UTC`).
+A legacy user without a preferences row receives `404
+user_preferences_not_found`; GET never repairs or writes data implicitly.
+
+The idempotent learning-profile request is:
+
+```http
+PUT /api/v1/me/learning-profile
+Content-Type: application/json
+
+{
+  "goal": "Learn Laravel architecture",
+  "self_assessed_level": "some_experience",
+  "desired_outcome": "Ship a maintainable backend service",
+  "available_minutes_per_week": 300,
+  "preferred_learning_methods": ["hands_on_projects", "reading_docs"]
+}
+```
+
+All five fields are required by onboarding. `goal` is limited to 1,000
+characters and `desired_outcome` to 2,000. `self_assessed_level` accepts
+`complete_beginner`, `some_experience`, or `intermediate`.
+`available_minutes_per_week` is the normalized persisted pace budget and must be
+an integer from 15 through 10,080. The distinct, non-empty learning-method array
+accepts `hands_on_projects`, `reading_docs`, `video_walkthroughs`, and
+`quizzes_drills`.
+
+The first valid PUT returns `201`; later identical or changed PUTs return `200`
+and retain the same profile and owner. GET returns `200` when the profile exists
+or `404 learning_profile_not_found` otherwise. Successful responses retain the
+standard `data` and `meta.request_id` envelope; validation failures return `422`,
+and missing authentication returns `401`. Existing incomplete rows may expose
+the schema-nullable `desired_outcome` or `preferred_learning_methods` as `null`;
+they remain incomplete until replaced by a valid PUT.
+
+Onboarding status is derived rather than accepted from the client or stored as
+an authoritative flag:
+
+```json
+{
+  "data": {
+    "completed": false,
+    "missing_fields": ["desired_outcome"]
+  },
+  "meta": {"request_id": "..."}
+}
+```
+
+`GET /api/v1/me/onboarding-status` reports only missing required learning-profile
+fields. Valid default preferences do not block completion. The historical
+nullable `onboarding_completed_at` column is not exposed and is not used as the
+source of truth.
 
 ## Docker development environment
 

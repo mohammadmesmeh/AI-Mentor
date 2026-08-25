@@ -17,7 +17,7 @@ final class UserPreference extends Model
     /** @use HasFactory<UserPreferenceFactory> */
     use HasFactory, HasUlids;
 
-    protected $fillable = ['user_id', 'ui_locale', 'resource_language', 'timezone'];
+    protected $fillable = ['ui_locale', 'resource_language', 'timezone'];
 
     protected function casts(): array
     {
