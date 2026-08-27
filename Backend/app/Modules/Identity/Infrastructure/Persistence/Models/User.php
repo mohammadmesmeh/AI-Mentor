@@ -15,12 +15,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
 final class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasUlids, Notifiable;
+    use HasFactory, HasUlids, Notifiable;
 
     protected $fillable = [
         'name',
@@ -67,6 +66,12 @@ final class User extends Authenticatable
     public function roadmapGenerationRequests(): HasMany
     {
         return $this->hasMany(RoadmapGenerationRequest::class);
+    }
+
+    /** @return HasMany<RefreshToken, $this> */
+    public function refreshTokens(): HasMany
+    {
+        return $this->hasMany(RefreshToken::class);
     }
 
     protected static function newFactory(): UserFactory

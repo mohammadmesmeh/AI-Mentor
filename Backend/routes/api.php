@@ -6,6 +6,7 @@ use App\Modules\Identity\Presentation\Http\Controllers\GetUserPreferenceControll
 use App\Modules\Identity\Presentation\Http\Controllers\LoginController;
 use App\Modules\Identity\Presentation\Http\Controllers\LogoutController;
 use App\Modules\Identity\Presentation\Http\Controllers\MeController;
+use App\Modules\Identity\Presentation\Http\Controllers\RefreshAuthenticationController;
 use App\Modules\Identity\Presentation\Http\Controllers\RegisterController;
 use App\Modules\Identity\Presentation\Http\Controllers\UpdateUserPreferenceController;
 use App\Modules\LearningProfile\Presentation\Http\Controllers\GetLearningProfileController;
@@ -26,13 +27,16 @@ Route::prefix('auth')->name('api.v1.auth.')->group(function (): void {
         ->middleware('throttle:identity.login')
         ->name('login');
     Route::post('/logout', LogoutController::class)
-        ->middleware('auth:sanctum')
+        ->middleware('auth:jwt')
         ->name('logout');
+    Route::post('/refresh', RefreshAuthenticationController::class)
+        ->middleware('throttle:identity.refresh')
+        ->name('refresh');
 });
 
-Route::middleware('auth:sanctum')->get('/me', MeController::class)->name('api.v1.me');
+Route::middleware('auth:jwt')->get('/me', MeController::class)->name('api.v1.me');
 
-Route::middleware('auth:sanctum')->prefix('me')->name('api.v1.me.')->group(function (): void {
+Route::middleware('auth:jwt')->prefix('me')->name('api.v1.me.')->group(function (): void {
     Route::get('/preferences', GetUserPreferenceController::class)->name('preferences.show');
     Route::patch('/preferences', UpdateUserPreferenceController::class)->name('preferences.update');
     Route::get('/learning-profile', GetLearningProfileController::class)->name('learning-profile.show');
@@ -40,7 +44,7 @@ Route::middleware('auth:sanctum')->prefix('me')->name('api.v1.me.')->group(funct
     Route::get('/onboarding-status', GetOnboardingStatusController::class)->name('onboarding-status.show');
 });
 
-Route::middleware('auth:sanctum')->prefix('roadmap-generation-requests')
+Route::middleware('auth:jwt')->prefix('roadmap-generation-requests')
     ->name('api.v1.roadmap-generation-requests.')
     ->group(function (): void {
         Route::post('/', CreateRoadmapGenerationRequestController::class)

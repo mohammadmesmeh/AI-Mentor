@@ -27,7 +27,7 @@ final class LearningProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user, 'web')->getJson('/api/v1/me/learning-profile')
+        $response = $this->withJwt($user)->getJson('/api/v1/me/learning-profile')
             ->assertNotFound()
             ->assertJsonPath('error.code', 'learning_profile_not_found')
             ->assertJsonStructure(['error' => ['code', 'message'], 'meta' => ['request_id']]);
@@ -43,7 +43,7 @@ final class LearningProfileApiTest extends TestCase
             'preferred_learning_methods' => null,
         ]);
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/learning-profile')
+        $this->withJwt($user)->getJson('/api/v1/me/learning-profile')
             ->assertOk()
             ->assertJsonPath('data.desired_outcome', null)
             ->assertJsonPath('data.preferred_learning_methods', null);
@@ -53,7 +53,7 @@ final class LearningProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user, 'web')->putJson('/api/v1/me/learning-profile', [
+        $response = $this->withJwt($user)->putJson('/api/v1/me/learning-profile', [
             ...$this->validPayload(),
             'goal' => '  Learn backend architecture  ',
             'desired_outcome' => '  Build a production API  ',
@@ -93,7 +93,7 @@ final class LearningProfileApiTest extends TestCase
         $profile = LearningProfile::factory()->for($user)->create();
         $payload = [...$this->validPayload(), 'goal' => 'Updated goal'];
 
-        $this->actingAs($user, 'web')->putJson('/api/v1/me/learning-profile', $payload)
+        $this->withJwt($user)->putJson('/api/v1/me/learning-profile', $payload)
             ->assertOk()
             ->assertJsonPath('data.id', $profile->id)
             ->assertJsonPath('data.goal', 'Updated goal');
@@ -112,7 +112,7 @@ final class LearningProfileApiTest extends TestCase
         $otherUser = User::factory()->create();
         $otherProfile = LearningProfile::factory()->for($otherUser)->create(['goal' => 'Other goal']);
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/learning-profile')
+        $this->withJwt($user)->getJson('/api/v1/me/learning-profile')
             ->assertNotFound()
             ->assertJsonPath('error.code', 'learning_profile_not_found');
 
@@ -127,7 +127,7 @@ final class LearningProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user, 'web')->putJson('/api/v1/me/learning-profile', [
+        $this->withJwt($user)->putJson('/api/v1/me/learning-profile', [
             'user_id' => User::factory()->create()->id,
             'id' => (string) Str::ulid(),
             'onboarding_completed_at' => now()->toISOString(),
@@ -156,7 +156,7 @@ final class LearningProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user, 'web')->putJson('/api/v1/me/learning-profile', [
+        $this->withJwt($user)->putJson('/api/v1/me/learning-profile', [
             ...$this->validPayload(),
             'self_assessed_level' => 'expert',
             'available_minutes_per_week' => -1,
@@ -184,7 +184,7 @@ final class LearningProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user, 'web')->putJson('/api/v1/me/learning-profile', [
+        $this->withJwt($user)->putJson('/api/v1/me/learning-profile', [
             ...$this->validPayload(),
             'goal' => str_repeat('a', 1001),
             'desired_outcome' => str_repeat('b', 2001),

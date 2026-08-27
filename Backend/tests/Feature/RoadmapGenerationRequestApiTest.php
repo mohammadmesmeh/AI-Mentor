@@ -32,18 +32,18 @@ final class RoadmapGenerationRequestApiTest extends TestCase
     {
         $user = $this->completeUser();
 
-        $this->actingAs($user, 'web')->postJson('/api/v1/roadmap-generation-requests')
+        $this->withJwt($user)->postJson('/api/v1/roadmap-generation-requests')
             ->assertUnprocessable()
             ->assertJsonPath('error.code', 'validation_failed')
             ->assertJsonPath('error.details.idempotency_key.0', 'The idempotency key field is required.');
 
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests',
             [],
             ['Idempotency-Key' => 'spaces are invalid'],
         )->assertUnprocessable()->assertJsonPath('error.details.idempotency_key.0', 'The idempotency key field format is invalid.');
 
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests',
             ['goal' => 'client snapshot injection'],
             $this->keyHeader(),
@@ -54,7 +54,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user, 'web')
+        $this->withJwt($user)
             ->postJson('/api/v1/roadmap-generation-requests', [], $this->keyHeader())
             ->assertConflict()
             ->assertJsonPath('error.code', 'onboarding_incomplete')
@@ -77,7 +77,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         $user = $this->completeUser();
         $key = 'generation-key-0001';
 
-        $response = $this->actingAs($user, 'web')->postJson(
+        $response = $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests',
             [],
             ['Idempotency-Key' => $key],
@@ -120,7 +120,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
     {
         $user = $this->completeUser();
         $headers = $this->keyHeader('stable-replay-key');
-        $first = $this->actingAs($user, 'web')
+        $first = $this->withJwt($user)
             ->postJson('/api/v1/roadmap-generation-requests', [], $headers)
             ->assertAccepted();
         $id = $first->json('data.id');
@@ -133,7 +133,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
             'preferred_learning_methods' => null,
         ]);
 
-        $this->actingAs($user, 'web')
+        $this->withJwt($user)
             ->postJson('/api/v1/roadmap-generation-requests', [], $headers)
             ->assertAccepted()
             ->assertHeader('Idempotency-Replayed', 'true')
@@ -154,7 +154,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
             'idempotency_key_hash' => hash('sha256', $key),
         ]);
 
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests', [], ['Idempotency-Key' => $key],
         )->assertOk()
             ->assertHeader('Idempotency-Replayed', 'true')
@@ -168,7 +168,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         $user = $this->completeUser();
         $active = RoadmapGenerationRequest::factory()->for($user)->create(['status' => $status]);
 
-        $this->actingAs($user, 'web')
+        $this->withJwt($user)
             ->postJson('/api/v1/roadmap-generation-requests', [], $this->keyHeader('different-new-key'))
             ->assertConflict()
             ->assertJsonPath('error.code', 'roadmap_generation_in_progress')
@@ -191,7 +191,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         $user = $this->completeUser();
         RoadmapGenerationRequest::factory()->for($user)->terminal($status)->create();
 
-        $this->actingAs($user, 'web')
+        $this->withJwt($user)
             ->postJson('/api/v1/roadmap-generation-requests', [], $this->keyHeader('next-generation-key'))
             ->assertAccepted()
             ->assertHeader('Idempotency-Replayed', 'false');
@@ -213,9 +213,9 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         $secondUser = $this->completeUser();
         $headers = $this->keyHeader('shared-across-users');
 
-        $firstId = $this->actingAs($firstUser, 'web')
+        $firstId = $this->withJwt($firstUser)
             ->postJson('/api/v1/roadmap-generation-requests', [], $headers)->json('data.id');
-        $secondId = $this->actingAs($secondUser, 'web')
+        $secondId = $this->withJwt($secondUser)
             ->postJson('/api/v1/roadmap-generation-requests', [], $headers)->json('data.id');
 
         self::assertNotSame($firstId, $secondId);
@@ -231,7 +231,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
             'failure_message' => 'sensitive failure detail',
         ]);
 
-        $response = $this->actingAs($owner, 'web')
+        $response = $this->withJwt($owner)
             ->getJson('/api/v1/roadmap-generation-requests/'.$generationRequest->id)
             ->assertOk()
             ->assertJsonPath('data.id', $generationRequest->id);
@@ -240,12 +240,12 @@ final class RoadmapGenerationRequestApiTest extends TestCase
             self::assertArrayNotHasKey($field, $response->json('data'));
         }
 
-        $this->actingAs($other, 'web')
+        $this->withJwt($other)
             ->getJson('/api/v1/roadmap-generation-requests/'.$generationRequest->id)
             ->assertNotFound()
             ->assertJsonPath('error.code', 'roadmap_generation_request_not_found');
 
-        $this->actingAs($owner, 'web')
+        $this->withJwt($owner)
             ->getJson('/api/v1/roadmap-generation-requests/'.Str::ulid())
             ->assertNotFound()
             ->assertJsonPath('error.code', 'roadmap_generation_request_not_found');
@@ -255,16 +255,16 @@ final class RoadmapGenerationRequestApiTest extends TestCase
     {
         $user = $this->completeUser();
 
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests', [], $this->keyHeader('rate-limit-key-1'),
         )->assertAccepted();
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests', [], $this->keyHeader('rate-limit-key-2'),
         )->assertConflict();
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests', [], $this->keyHeader('rate-limit-key-3'),
         )->assertConflict();
-        $this->actingAs($user, 'web')->postJson(
+        $this->withJwt($user)->postJson(
             '/api/v1/roadmap-generation-requests', [], $this->keyHeader('rate-limit-key-4'),
         )->assertTooManyRequests()->assertJsonPath('error.code', 'too_many_requests');
     }
@@ -301,16 +301,16 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         $request->update(['input_snapshot' => ['schema_version' => 2]]);
     }
 
-    public function test_routes_use_sanctum_and_only_post_uses_the_named_rate_limit(): void
+    public function test_routes_use_jwt_and_only_post_uses_the_named_rate_limit(): void
     {
         $store = Route::getRoutes()->getByName('api.v1.roadmap-generation-requests.store');
         $show = Route::getRoutes()->getByName('api.v1.roadmap-generation-requests.show');
 
         self::assertNotNull($store);
         self::assertNotNull($show);
-        self::assertContains('auth:sanctum', $store->gatherMiddleware());
+        self::assertContains('auth:jwt', $store->gatherMiddleware());
         self::assertContains('throttle:roadmap-generation.create', $store->gatherMiddleware());
-        self::assertContains('auth:sanctum', $show->gatherMiddleware());
+        self::assertContains('auth:jwt', $show->gatherMiddleware());
     }
 
     private function completeUser(): User

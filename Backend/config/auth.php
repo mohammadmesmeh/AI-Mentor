@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Modules\Identity\Infrastructure\Persistence\Models\User;
 
 return [
@@ -16,7 +18,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'jwt'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
@@ -26,20 +28,19 @@ return [
     |--------------------------------------------------------------------------
     |
     | Next, you may define every authentication guard for your application.
-    | Of course, a great default configuration has been defined for you
-    | which utilizes session storage plus the Eloquent user provider.
+    | The API uses a custom bearer JWT guard backed by the Eloquent provider.
     |
     | All authentication guards have a user provider, which defines how the
     | users are actually retrieved out of your database or other storage
     | system used by the application. Typically, Eloquent is utilized.
     |
-    | Supported: "session"
+    | The "jwt" driver is registered by AppServiceProvider.
     |
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
+        'jwt' => [
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
     ],

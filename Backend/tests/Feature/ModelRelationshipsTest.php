@@ -27,6 +27,8 @@ final class ModelRelationshipsTest extends TestCase
         $preference = UserPreference::factory()->for($user)->create();
         $profile = LearningProfile::factory()->for($user)->create();
         $roadmap = Roadmap::factory()->for($user)->create();
+        $this->issueTokenPair($user);
+        $refreshToken = $user->refreshTokens()->firstOrFail();
         $generationRequest = RoadmapGenerationRequest::query()->create([
             'user_id' => $user->id,
             'roadmap_id' => $roadmap->id,
@@ -45,6 +47,8 @@ final class ModelRelationshipsTest extends TestCase
         self::assertTrue($user->learningProfile->is($profile));
         self::assertTrue($user->roadmaps->contains($roadmap));
         self::assertTrue($user->roadmapGenerationRequests->contains($generationRequest));
+        self::assertTrue($user->refreshTokens->contains($refreshToken));
+        self::assertTrue($refreshToken->user->is($user));
         self::assertTrue($roadmap->refresh()->currentVersion->is($version));
         self::assertTrue($roadmap->generationRequests->contains($generationRequest));
         self::assertTrue($generationRequest->versions->contains($version));

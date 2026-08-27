@@ -49,7 +49,7 @@ final class HealthEndpointTest extends TestCase
 
     public function test_unauthenticated_api_requests_use_the_standard_response_structure(): void
     {
-        Route::middleware('auth:sanctum')->get(
+        Route::middleware('auth:jwt')->get(
             '/api/v1/_test/protected',
             static fn (): array => ['should_not' => 'execute'],
         );

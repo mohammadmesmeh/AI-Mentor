@@ -18,7 +18,7 @@ final class GetRoadmapGenerationRequestController
         string $generationRequest,
         FindOwnedGenerationRequest $findOwnedGenerationRequest,
     ): RoadmapGenerationRequestResource {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

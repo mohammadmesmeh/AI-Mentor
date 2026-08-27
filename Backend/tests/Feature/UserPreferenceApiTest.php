@@ -32,7 +32,7 @@ final class UserPreferenceApiTest extends TestCase
         ]);
         UserPreference::factory()->create(['timezone' => 'Europe/London']);
 
-        $response = $this->actingAs($user, 'web')->getJson('/api/v1/me/preferences')
+        $response = $this->withJwt($user)->getJson('/api/v1/me/preferences')
             ->assertOk()
             ->assertJsonPath('data.ui_locale', 'ar')
             ->assertJsonPath('data.resource_language', 'en')
@@ -50,7 +50,7 @@ final class UserPreferenceApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user, 'web')->getJson('/api/v1/me/preferences')
+        $response = $this->withJwt($user)->getJson('/api/v1/me/preferences')
             ->assertNotFound()
             ->assertJsonPath('error.code', 'user_preferences_not_found');
 
@@ -68,7 +68,7 @@ final class UserPreferenceApiTest extends TestCase
         ]);
         $otherPreference = UserPreference::factory()->create(['timezone' => 'Europe/London']);
 
-        $this->actingAs($user, 'web')->patchJson('/api/v1/me/preferences', [
+        $this->withJwt($user)->patchJson('/api/v1/me/preferences', [
             'timezone' => 'Asia/Hebron',
         ])->assertOk()
             ->assertJsonPath('data.ui_locale', 'en')
@@ -87,7 +87,7 @@ final class UserPreferenceApiTest extends TestCase
         $user = User::factory()->create();
         UserPreference::factory()->for($user)->create();
 
-        $this->actingAs($user, 'web')->patchJson('/api/v1/me/preferences', [
+        $this->withJwt($user)->patchJson('/api/v1/me/preferences', [
             'ui_locale' => UiLocale::Arabic->value,
             'resource_language' => ResourceLanguage::Arabic->value,
             'timezone' => 'America/Toronto',
@@ -102,7 +102,7 @@ final class UserPreferenceApiTest extends TestCase
         $user = User::factory()->create();
         $preference = UserPreference::factory()->for($user)->create();
 
-        $this->actingAs($user, 'web')->patchJson('/api/v1/me/preferences', [
+        $this->withJwt($user)->patchJson('/api/v1/me/preferences', [
             'ui_locale' => 'fr',
             'resource_language' => 'de',
             'timezone' => 'Not/A_Real_Timezone',
@@ -131,7 +131,7 @@ final class UserPreferenceApiTest extends TestCase
         $user = User::factory()->create();
         UserPreference::factory()->for($user)->create();
 
-        $this->actingAs($user, 'web')->patchJson('/api/v1/me/preferences')
+        $this->withJwt($user)->patchJson('/api/v1/me/preferences')
             ->assertUnprocessable()
             ->assertJsonStructure(['error' => ['details' => ['preferences']]]);
     }

@@ -17,7 +17,7 @@ final class UpdateUserPreferenceController
         UpdateUserPreferenceRequest $request,
         UpdateUserPreference $updateUserPreference,
     ): UserPreferenceResource {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

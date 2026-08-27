@@ -18,7 +18,7 @@ final class UpsertLearningProfileController
         UpsertLearningProfileRequest $request,
         UpsertLearningProfile $upsertLearningProfile,
     ): JsonResponse {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

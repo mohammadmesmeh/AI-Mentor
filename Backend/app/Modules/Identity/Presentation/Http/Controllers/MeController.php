@@ -14,7 +14,7 @@ final class MeController
     /** @throws AuthenticationException */
     public function __invoke(Request $request): UserResource
     {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

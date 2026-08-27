@@ -15,7 +15,7 @@ final class GetLearningProfileController
     /** @throws AuthenticationException */
     public function __invoke(Request $request, GetLearningProfile $getLearningProfile): LearningProfileResource
     {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

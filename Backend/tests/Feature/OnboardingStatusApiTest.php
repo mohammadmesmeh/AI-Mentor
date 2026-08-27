@@ -26,7 +26,7 @@ final class OnboardingStatusApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/onboarding-status')
+        $this->withJwt($user)->getJson('/api/v1/me/onboarding-status')
             ->assertOk()
             ->assertJsonPath('data.completed', false)
             ->assertJsonPath('data.missing_fields', CalculateOnboardingStatus::REQUIRED_FIELDS)
@@ -39,7 +39,7 @@ final class OnboardingStatusApiTest extends TestCase
         UserPreference::factory()->for($user)->create();
         LearningProfile::factory()->for($user)->create(['onboarding_completed_at' => null]);
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/onboarding-status')
+        $this->withJwt($user)->getJson('/api/v1/me/onboarding-status')
             ->assertOk()
             ->assertJsonPath('data.completed', true)
             ->assertJsonPath('data.missing_fields', []);
@@ -55,7 +55,7 @@ final class OnboardingStatusApiTest extends TestCase
             'onboarding_completed_at' => now(),
         ]);
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/onboarding-status')
+        $this->withJwt($user)->getJson('/api/v1/me/onboarding-status')
             ->assertOk()
             ->assertJsonPath('data.completed', false)
             ->assertJsonPath('data.missing_fields', ['desired_outcome', 'preferred_learning_methods']);
@@ -66,7 +66,7 @@ final class OnboardingStatusApiTest extends TestCase
         $user = User::factory()->create();
         UserPreference::factory()->for($user)->create();
 
-        $response = $this->actingAs($user, 'web')->getJson('/api/v1/me/onboarding-status')
+        $response = $this->withJwt($user)->getJson('/api/v1/me/onboarding-status')
             ->assertOk();
 
         self::assertNotContains('ui_locale', $response->json('data.missing_fields'));
@@ -82,13 +82,13 @@ final class OnboardingStatusApiTest extends TestCase
             'preferred_learning_methods' => [LearningMethod::ReadingDocs->value, 'unknown_method'],
         ]);
 
-        $this->actingAs($user, 'web')->getJson('/api/v1/me/onboarding-status')
+        $this->withJwt($user)->getJson('/api/v1/me/onboarding-status')
             ->assertOk()
             ->assertJsonPath('data.completed', false)
             ->assertJsonPath('data.missing_fields', ['preferred_learning_methods']);
     }
 
-    public function test_all_self_service_routes_use_sanctum_authentication(): void
+    public function test_all_self_service_routes_use_jwt_authentication(): void
     {
         $routeNames = [
             'api.v1.me.preferences.show',
@@ -102,7 +102,7 @@ final class OnboardingStatusApiTest extends TestCase
             $route = Route::getRoutes()->getByName($routeName);
 
             self::assertNotNull($route);
-            self::assertContains('auth:sanctum', $route->gatherMiddleware());
+            self::assertContains('auth:jwt', $route->gatherMiddleware());
         }
     }
 }

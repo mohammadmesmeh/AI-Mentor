@@ -17,7 +17,7 @@ final class GetOnboardingStatusController
         Request $request,
         CalculateOnboardingStatus $calculateOnboardingStatus,
     ): OnboardingStatusResource {
-        $user = $request->user('web');
+        $user = $request->user('jwt');
 
         if (! $user instanceof User) {
             throw new AuthenticationException;

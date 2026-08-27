@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Identity\Application\Exceptions\RevocationStoreUnavailableException;
 use App\Modules\Identity\Application\Exceptions\UserPreferenceNotFoundException;
 use App\Modules\LearningProfile\Application\Exceptions\LearningProfileNotFoundException;
 use App\Modules\Roadmap\Application\Exceptions\OnboardingIncompleteException;
@@ -25,7 +26,6 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api/v1',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
         $middleware->prepend(AssignRequestId::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -50,6 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $exception instanceof OnboardingIncompleteException => 'onboarding_incomplete',
                 $exception instanceof RoadmapGenerationInProgressException => 'roadmap_generation_in_progress',
                 $exception instanceof RoadmapGenerationRequestNotFoundException => 'roadmap_generation_request_not_found',
+                $exception instanceof RevocationStoreUnavailableException => 'authentication_service_unavailable',
                 default => match ($status) {
                     401 => 'unauthenticated',
                     403 => 'forbidden',

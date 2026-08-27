@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Presentation\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Modules\Identity\Application\Actions\AuthenticateAccessToken;
+use App\Modules\Identity\Application\Actions\LogoutUser;
+use App\Modules\Identity\Presentation\Http\Requests\LogoutRequest;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 
 final class LogoutController
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(LogoutRequest $request, LogoutUser $logoutUser): Response
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $logoutUser->execute(
+            AuthenticateAccessToken::claims($request),
+            (string) $request->validated('refresh_token'),
+        );
 
         return response()->noContent();
     }

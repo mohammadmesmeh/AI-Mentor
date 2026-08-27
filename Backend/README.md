@@ -54,6 +54,7 @@ Laravel/Eloquent implementations. Domain code does not depend on HTTP.
 erDiagram
     USERS ||--o| USER_PREFERENCES : has
     USERS ||--o| LEARNING_PROFILES : has
+    USERS ||--o{ REFRESH_TOKENS : authenticates
     USERS ||--o{ ROADMAPS : owns
     USERS ||--o{ ROADMAP_GENERATION_REQUESTS : submits
     ROADMAPS o|--o{ ROADMAP_GENERATION_REQUESTS : receives
@@ -69,8 +70,9 @@ erDiagram
 ```
 
 All public entity identifiers and foreign keys are ULIDs. Timestamps are stored
-in UTC. MySQL is the source of truth; Redis backs cache, sessions, queues, and
-Horizon.
+in UTC. MySQL is the source of truth; Redis backs cache, queues, Horizon, and
+the short-lived authentication revocation denylist. API authentication does not
+use Redis or database-backed Laravel sessions.
 
 The database permits many historical roadmaps per user but enforces at most one
 current roadmap with `UNIQUE (user_id, active_slot)`. The current record uses
@@ -85,6 +87,7 @@ All endpoints are versioned under `/api/v1`.
 GET /api/v1/health
 POST /api/v1/auth/register
 POST /api/v1/auth/login
+POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
 GET /api/v1/me
 GET /api/v1/me/preferences
@@ -94,41 +97,98 @@ PUT /api/v1/me/learning-profile
 GET /api/v1/me/onboarding-status
 POST /api/v1/roadmap-generation-requests
 GET /api/v1/roadmap-generation-requests/{generationRequest}
-GET /sanctum/csrf-cookie
 ```
 
 Responses use `data` or `error` plus `meta.request_id`. The same ULID request ID
 is returned in `X-Request-ID`. Production API errors do not expose stack traces
 or database details.
 
-### SPA authentication
+### API-first bearer authentication
 
-Authentication uses Sanctum's stateful browser flow and the `web` session
-guard. It never creates personal access tokens and never returns bearer tokens.
-Registration also creates the user's default preferences (`en`, `both`, `UTC`)
-in the same database transaction. Login is limited to active accounts and uses
-one generic validation error for unknown credentials, wrong passwords,
-suspended users, and deletion-requested users.
+Authentication uses the `auth:jwt` guard and accepts an access token only from
+`Authorization: Bearer <access_token>`. It does not use Sanctum, SPA sessions,
+cookies, CSRF tokens, or personal access tokens. There is no
+`/sanctum/csrf-cookie` request. Registration atomically creates the user,
+default preferences (`en`, `both`, `UTC`), and a token pair. Login accepts only
+active accounts and returns the same generic error for every credential or
+account-state failure.
 
-The browser must send credentials on every request. Before registration, login,
-or logout, request `GET /sanctum/csrf-cookie`, then send the URL-decoded
-`XSRF-TOKEN` cookie as the `X-XSRF-TOKEN` header. Successful registration and
-login rotate the session identifier. Logout invalidates the session and rotates
-its CSRF token. Login is limited to five attempts per minute for each normalized
-email and IP pair; registration is limited to three attempts per minute per IP.
+Access tokens are HS256 JWTs valid for 15 minutes by default. They contain only
+`iss`, `aud`, `sub`, `jti`, `sid`, `iat`, `nbf`, and `exp`. Refresh tokens are
+opaque 48-byte random values, URL-safe encoded, valid for 30 days by default,
+and only their SHA-256 hashes are stored. Every refresh atomically rotates the
+token under a database row lock. Reusing a replaced token revokes its entire
+family in MySQL and Redis. Logout revokes the family and deny-lists the current
+`jti` and `sid` with bounded TTLs, so access stops immediately. Authentication
+fails closed if Redis cannot verify revocation state.
 
-Set `FRONTEND_URL`, `SANCTUM_STATEFUL_DOMAINS`, and
-`CORS_ALLOWED_ORIGINS` explicitly for each environment. CORS allows credentials
-and never uses a wildcard origin. Session cookies are HTTP-only. The local
-examples use `SameSite=Lax`, which is appropriate when the frontend and API are
-same-site (different ports are allowed). For a truly cross-site production SPA,
-use `SESSION_SAME_SITE=none`, `SESSION_SECURE_COOKIE=true`, and HTTPS; otherwise
-keep `Lax`. Production must always set `SESSION_SECURE_COOKIE=true`.
+Register, login, and refresh return the same non-cacheable token contract:
+
+```json
+{
+  "data": {
+    "token_type": "Bearer",
+    "access_token": "...",
+    "expires_in": 900,
+    "refresh_token": "...",
+    "refresh_expires_in": 2592000,
+    "user": {}
+  },
+  "meta": {"request_id": "..."}
+}
+```
+
+Typical requests are:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Mohammad","email":"user@example.com","password":"Secret123!","password_confirmation":"Secret123!"}'
+
+curl http://localhost:8000/api/v1/me \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+
+curl -X POST http://localhost:8000/api/v1/auth/refresh \
+  -H 'Content-Type: application/json' \
+  -d '{"refresh_token":"REFRESH_TOKEN"}'
+
+curl -X POST http://localhost:8000/api/v1/auth/logout \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{"refresh_token":"REFRESH_TOKEN"}'
+```
+
+Set `JWT_SECRET` to Base64 containing at least 32 random bytes. It must be
+independent from `APP_KEY`; generate it locally and inject it at runtime:
+
+```bash
+php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
+```
+
+`JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_ACCESS_TTL_MINUTES`,
+`JWT_REFRESH_TTL_DAYS`, and `JWT_CLOCK_SKEW_SECONDS` configure validation and
+lifetime. A missing or weak secret stops token services outside tests. Never
+commit the secret, include tokens in URLs or logs, or copy them into diagnostics.
+
+Clients own secure token storage. Mobile clients should use platform secure
+storage. Browser clients must account for XSS: do not put a refresh token in
+Local Storage; prefer a hardened in-memory or isolated secure design appropriate
+to the deployed client. Rotation requires replacing the stored refresh token
+after every successful refresh. This migration intentionally invalidates all
+old Sanctum/session logins, so users must authenticate again.
+
+Set `CORS_ALLOWED_ORIGINS` explicitly for each environment (the local example is
+`http://localhost:3000`). CORS allows `Authorization`, `Content-Type`, `Accept`,
+`Idempotency-Key`, and `X-Request-ID`, uses no wildcard origin, and has
+`supports_credentials=false`. Login is limited to five attempts per normalized
+email/IP per minute, registration to three per IP, and refresh to ten per IP.
+The historical `personal_access_tokens` migration remains for data safety, but
+the application no longer writes or reads that table.
 
 ### Preferences and learning-profile onboarding
 
-All `/api/v1/me/*` endpoints require the Sanctum browser session described
-above. Ownership always comes from the authenticated session: clients must not
+All `/api/v1/me/*` endpoints require the JWT bearer access token described
+above. Ownership always comes from the authenticated user: clients must not
 send `user_id`, IDs, timestamps, or completion fields. Preferences contain UI
 and localization settings; the learning profile contains the inputs that will
 later personalize a roadmap. This phase does not generate a roadmap, dispatch a
@@ -266,6 +326,8 @@ dependency upgrades should update the tag and digest together.
 From `Backend/`, create the local environment file and replace every placeholder
 password. Initialize the dependency volume, generate an application key, and
 copy the printed value into `APP_KEY` in `.env.docker` before starting the stack.
+Also generate a separate JWT secret with the command in the authentication
+section and copy it into `JWT_SECRET` before starting the stack.
 
 ```bash
 cp .env.docker.example .env.docker
@@ -300,6 +362,7 @@ administrative authorization model is added.
 
 ```bash
 docker compose exec app composer validate --strict
+docker compose exec app composer audit
 docker compose exec app php artisan migrate:status
 docker compose exec app php artisan test
 docker compose exec app vendor/bin/pint --test
@@ -336,6 +399,7 @@ platform or a trusted reverse proxy; the container listens on unprivileged port
 - [ADR-002: ULID Identifiers](docs/architecture/ADR-002-ulid-identifiers.md)
 - [ADR-003: Single Active Roadmap](docs/architecture/ADR-003-single-active-roadmap.md)
 - [ADR-004: Roadmap Generation Request Concurrency](docs/architecture/ADR-004-roadmap-generation-request-concurrency.md)
+- [ADR-005: API-first JWT Bearer Authentication](docs/architecture/ADR-005-jwt-bearer-authentication.md)
 
 ## Deferred to the next phase
 
