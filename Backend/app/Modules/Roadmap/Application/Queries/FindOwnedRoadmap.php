@@ -16,6 +16,7 @@ final class FindOwnedRoadmap
             ->with([
                 'currentVersion.stages.tasks.taskType',
                 'currentVersion.stages.tasks.dependencies',
+                'currentVersion.stages.tasks.resources',
             ])
             ->whereKey($id)
             ->first();

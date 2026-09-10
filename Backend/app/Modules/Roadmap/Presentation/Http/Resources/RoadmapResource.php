@@ -21,6 +21,18 @@ final class RoadmapResource extends JsonResource
                 $tasks = [];
 
                 foreach ($stage->tasks as $task) {
+                    $resources = [];
+
+                    foreach ($task->resources as $resource) {
+                        $resources[] = [
+                            'id' => $resource->id,
+                            'title' => $resource->title,
+                            'url' => $resource->url,
+                            'type' => $this->enumValue($resource->getAttribute('type')),
+                            'position' => $resource->position,
+                        ];
+                    }
+
                     $tasks[] = [
                         'id' => $task->id,
                         'type' => $task->taskType->code,
@@ -31,6 +43,7 @@ final class RoadmapResource extends JsonResource
                         'is_required' => $task->is_required,
                         'estimated_minutes' => $task->estimated_minutes,
                         'depends_on_task_ids' => $task->dependencies->pluck('id')->values()->all(),
+                        'resources' => $resources,
                     ];
                 }
 

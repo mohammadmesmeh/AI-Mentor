@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Roadmap\Application\Actions;
 
 use App\Modules\Roadmap\Application\Exceptions\InvalidGeneratedRoadmapException;
+use App\Modules\TaskExecution\Domain\Enums\TaskResourceType;
 use App\Modules\TaskExecution\Domain\TaskDependencyRule;
 
 final readonly class ValidateGeneratedRoadmap
@@ -49,9 +50,15 @@ final readonly class ValidateGeneratedRoadmap
                     || ! is_array($task['dependencies'] ?? null)
                     || ! array_is_list($task['dependencies'])
                     || count($task['dependencies']) !== count(array_filter($task['dependencies'], 'is_string'))
-                    || count($task['dependencies']) !== count(array_unique($task['dependencies']))) {
+                    || count($task['dependencies']) !== count(array_unique($task['dependencies']))
+                    || ! is_array($task['resources'] ?? null)
+                    || ! array_is_list($task['resources'])
+                    || count($task['resources']) < 1
+                    || count($task['resources']) > 3) {
                     throw new InvalidGeneratedRoadmapException('A generated task has an invalid structure.');
                 }
+
+                $this->validateResources($task['resources']);
 
                 $taskKeys[$task['key']] = true;
                 $taskMinutes += $task['estimated_minutes'];
@@ -90,5 +97,50 @@ final readonly class ValidateGeneratedRoadmap
     private function isPositiveInteger(mixed $value): bool
     {
         return is_int($value) && $value > 0;
+    }
+
+    /** @param list<mixed> $resources */
+    private function validateResources(array $resources): void
+    {
+        $urls = [];
+
+        foreach ($resources as $resource) {
+            if (! is_array($resource)) {
+                throw new InvalidGeneratedRoadmapException('A generated task resource is invalid.');
+            }
+
+            $keys = array_keys($resource);
+            sort($keys);
+
+            if ($keys !== ['title', 'type', 'url']) {
+                throw new InvalidGeneratedRoadmapException('A generated task resource is invalid.');
+            }
+
+            $title = $resource['title'];
+            $url = $resource['url'];
+            $type = $resource['type'];
+            $host = is_string($url) ? parse_url($url, PHP_URL_HOST) : null;
+
+            if (! $this->isStringWithinLength($title, 255)
+                || ! $this->isStringWithinLength($url, 2048)
+                || ! in_array($type, TaskResourceType::values(), true)
+                || filter_var($url, FILTER_VALIDATE_URL) === false
+                || parse_url($url, PHP_URL_SCHEME) !== 'https'
+                || ! is_string($host)
+                || $host === '') {
+                throw new InvalidGeneratedRoadmapException('A generated task resource is invalid.');
+            }
+
+            if (isset($urls[$url])) {
+                throw new InvalidGeneratedRoadmapException('A generated task contains duplicate resource URLs.');
+            }
+
+            $urls[$url] = true;
+        }
+    }
+
+    private function isStringWithinLength(mixed $value, int $maximum): bool
+    {
+        return $this->isNonEmptyString($value) && mb_strlen($value) <= $maximum;
     }
 }

@@ -13,6 +13,7 @@ use App\Modules\Roadmap\Infrastructure\Persistence\Models\RoadmapGenerationReque
 use App\Modules\Roadmap\Infrastructure\Persistence\Models\RoadmapVersion;
 use App\Modules\Roadmap\Infrastructure\Persistence\Models\Stage;
 use App\Modules\TaskExecution\Infrastructure\Persistence\Models\Task;
+use App\Modules\TaskExecution\Infrastructure\Persistence\Models\TaskResource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -41,6 +42,13 @@ final class ModelRelationshipsTest extends TestCase
         ]);
         $stage = Stage::factory()->for($version, 'roadmapVersion')->create();
         $task = Task::factory()->for($stage)->create();
+        $resource = TaskResource::query()->create([
+            'task_id' => $task->id,
+            'title' => 'Laravel Documentation',
+            'url' => 'https://laravel.com/docs',
+            'type' => 'documentation',
+            'position' => 1,
+        ]);
         $roadmap->update(['current_version_id' => $version->id]);
 
         self::assertTrue($user->preference->is($preference));
@@ -56,5 +64,7 @@ final class ModelRelationshipsTest extends TestCase
         self::assertTrue($version->stages->contains($stage));
         self::assertTrue($stage->tasks->contains($task));
         self::assertTrue($task->stage->is($stage));
+        self::assertTrue($task->resources->contains($resource));
+        self::assertTrue($resource->task->is($task));
     }
 }

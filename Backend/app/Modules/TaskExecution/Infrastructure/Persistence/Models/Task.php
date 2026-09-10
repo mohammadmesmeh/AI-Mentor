@@ -60,6 +60,12 @@ final class Task extends Model
         return $this->hasMany(TaskDependency::class);
     }
 
+    /** @return HasMany<TaskResource, $this> */
+    public function resources(): HasMany
+    {
+        return $this->hasMany(TaskResource::class)->orderBy('position');
+    }
+
     /** @return BelongsToMany<Task, $this> */
     public function dependencies(): BelongsToMany
     {

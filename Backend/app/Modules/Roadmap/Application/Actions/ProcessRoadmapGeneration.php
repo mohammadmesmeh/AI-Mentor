@@ -134,7 +134,7 @@ final readonly class ProcessRoadmapGeneration
             $taskTypes = TaskType::query()->where('is_active', true)->get()->keyBy('code');
             $tasksByKey = [];
 
-            /** @var list<array{title: string, description: string, estimated_minutes: int, tasks: list<array{key: string, type: string, title: string, instructions: string, estimated_minutes: int, dependencies: list<string>}>}> $stages */
+            /** @var list<array{title: string, description: string, estimated_minutes: int, tasks: list<array{key: string, type: string, title: string, instructions: string, estimated_minutes: int, dependencies: list<string>, resources: list<array{title: string, url: string, type: string}>}>}> $stages */
             $stages = $generated['stages'];
 
             foreach ($stages as $stageIndex => $stageData) {
@@ -165,6 +165,16 @@ final readonly class ProcessRoadmapGeneration
                         'is_required' => true,
                         'estimated_minutes' => $taskData['estimated_minutes'],
                     ]);
+
+                    foreach ($taskData['resources'] as $resourceIndex => $resourceData) {
+                        $task->resources()->create([
+                            'title' => $resourceData['title'],
+                            'url' => $resourceData['url'],
+                            'type' => $resourceData['type'],
+                            'position' => $resourceIndex + 1,
+                        ]);
+                    }
+
                     $tasksByKey[$taskData['key']] = $task;
                 }
             }

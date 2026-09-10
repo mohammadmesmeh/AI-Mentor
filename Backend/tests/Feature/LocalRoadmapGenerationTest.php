@@ -67,7 +67,7 @@ final class LocalRoadmapGenerationTest extends TestCase
         self::assertNull($request->active_slot);
         self::assertSame('local_fake', $request->provider);
         self::assertNull($request->failure_code);
-        $roadmap = $request->roadmap()->with('currentVersion.stages.tasks.dependencies')->firstOrFail();
+        $roadmap = $request->roadmap()->with('currentVersion.stages.tasks.dependencies', 'currentVersion.stages.tasks.resources')->firstOrFail();
         self::assertSame(RoadmapStatus::Active, $roadmap->status);
         self::assertSame(1, $roadmap->active_slot);
         self::assertSame(RoadmapVersionStatus::Current, $roadmap->currentVersion->status);
@@ -77,7 +77,11 @@ final class LocalRoadmapGenerationTest extends TestCase
         self::assertSame(9, $roadmap->currentVersion->stages->sum(
             static fn ($stage): int => $stage->tasks->count(),
         ));
+        self::assertTrue($roadmap->currentVersion->stages->flatMap->tasks->every(
+            static fn ($task): bool => $task->resources->isNotEmpty(),
+        ));
         self::assertDatabaseCount('task_dependencies', 8);
+        self::assertDatabaseCount('task_resources', 9);
 
         $processor->execute($request->id);
 
@@ -86,6 +90,7 @@ final class LocalRoadmapGenerationTest extends TestCase
         self::assertDatabaseCount('stages', 3);
         self::assertDatabaseCount('tasks', 9);
         self::assertDatabaseCount('task_dependencies', 8);
+        self::assertDatabaseCount('task_resources', 9);
     }
 
     public function test_generation_request_follows_the_supported_success_transitions(): void
@@ -189,12 +194,17 @@ final class LocalRoadmapGenerationTest extends TestCase
             ->assertJsonPath('data.current_version.status', 'current')
             ->assertJsonCount(3, 'data.current_version.stages')
             ->assertJsonCount(3, 'data.current_version.stages.0.tasks')
+            ->assertJsonCount(1, 'data.current_version.stages.0.tasks.0.resources')
+            ->assertJsonPath('data.current_version.stages.0.tasks.0.resources.0.position', 1)
+            ->assertJsonPath('data.current_version.stages.0.tasks.0.resources.0.type', 'documentation')
             ->assertJsonStructure([
                 'data' => ['id', 'goal', 'status', 'current_version' => [
                     'id', 'version_number', 'source', 'status', 'stages' => [[
                         'id', 'title', 'description', 'position', 'status', 'estimated_minutes', 'tasks' => [[
                             'id', 'type', 'title', 'instructions', 'position', 'status', 'is_required',
-                            'estimated_minutes', 'depends_on_task_ids',
+                            'estimated_minutes', 'depends_on_task_ids', 'resources' => [[
+                                'id', 'title', 'url', 'type', 'position',
+                            ]],
                         ]],
                     ]],
                 ]],

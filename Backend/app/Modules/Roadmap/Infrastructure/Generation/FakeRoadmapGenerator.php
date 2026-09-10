@@ -54,6 +54,12 @@ final class FakeRoadmapGenerator implements RoadmapGenerator
             ['quiz', 'تحقق من الفهم', 'Check your understanding'],
             ['project', 'طبّق عمليًا', 'Apply it in practice'],
         ];
+        $resources = [
+            ['title' => 'Laravel Documentation', 'url' => 'https://laravel.com/docs', 'type' => 'documentation'],
+            ['title' => 'PHP Manual', 'url' => 'https://www.php.net/docs.php', 'type' => 'documentation'],
+            ['title' => 'MySQL Documentation', 'url' => 'https://dev.mysql.com/doc/', 'type' => 'documentation'],
+            ['title' => 'Redis Documentation', 'url' => 'https://redis.io/docs/latest/', 'type' => 'documentation'],
+        ];
         $stages = [];
         $previousTaskKey = null;
 
@@ -73,6 +79,7 @@ final class FakeRoadmapGenerator implements RoadmapGenerator
                     ),
                     'estimated_minutes' => $taskMinutes,
                     'dependencies' => $previousTaskKey === null ? [] : [$previousTaskKey],
+                    'resources' => [$resources[($stageIndex * 3 + $taskIndex) % count($resources)]],
                 ];
                 $previousTaskKey = $taskKey;
             }

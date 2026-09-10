@@ -2,8 +2,9 @@
 
 Laravel 12 foundation for the AI Mentor platform. This phase establishes the
 identity, learning-profile, roadmap, roadmap-version, stage, task, dependency,
-and roadmap-generation-request persistence model. AI generation, mentor chat,
-progress, resources, and adaptation workflows are intentionally deferred.
+task-resource, and roadmap-generation-request persistence model. External AI
+generation, mentor chat, progress, resource discovery, and adaptation workflows
+are intentionally deferred.
 
 ## Architecture
 
@@ -305,14 +306,21 @@ After the request transaction commits, `GenerateRoadmapJob` is dispatched to
 the default Redis queue and processed by Horizon. The local fake generator is
 deterministic from the immutable snapshot and uses no HTTP, API key, AI package,
 or external service. It produces three stages with three tasks each, estimated
-durations, and an acyclic dependency chain. Titles and instructions follow
+durations, an acyclic dependency chain, and at least one deterministic official
+learning resource per task. Titles and instructions follow
 `preferences.resource_language` (`ar`, `en`, or bilingual) where possible.
+
+Each generated task has between one and three resources. A resource accepts
+only `documentation`, `article`, `video`, or `course`; its URL must be a valid
+HTTPS URL and may not be repeated inside the same task. The local catalog is a
+small embedded list of official Laravel, PHP, MySQL, and Redis documentation.
+There is no network lookup or content library.
 
 The processor follows `queued → running → validating → succeeded`. Generator,
 validation, or persistence errors become `failed` with a safe `failure_code`;
 internal exception text is not returned. The complete roadmap, version, stages,
-tasks, current-version pointer, dependencies, and request success update are
-written in one transaction. The first roadmap is activated automatically; a
+tasks, resources, current-version pointer, dependencies, and request success
+update are written in one transaction. The first roadmap is activated automatically; a
 later generated roadmap remains `ready` when another roadmap is active. Running
 the same job after success is a no-op.
 
@@ -325,7 +333,33 @@ Authorization: Bearer ACCESS_TOKEN
 ```
 
 The response contains the current version with all ordered stages, tasks, task
-types, durations, and `depends_on_task_ids`. Ownership is derived from the JWT;
+types, durations, `depends_on_task_ids`, and ordered `resources`. A task created
+before this migration safely returns `"resources": []`. An example task is:
+
+```json
+{
+  "id": "01...",
+  "type": "read",
+  "title": "دراسة المفاهيم",
+  "instructions": "نفّذ هذه المهمة كخطوة عملية نحو: تعلم Laravel",
+  "position": 1,
+  "status": "available",
+  "is_required": true,
+  "estimated_minutes": 40,
+  "depends_on_task_ids": [],
+  "resources": [
+    {
+      "id": "01...",
+      "title": "Laravel Documentation",
+      "url": "https://laravel.com/docs",
+      "type": "documentation",
+      "position": 1
+    }
+  ]
+}
+```
+
+Ownership is derived from the JWT;
 unknown and foreign roadmap IDs both return `404 roadmap_not_found`.
 
 ### Local generation walkthrough (Insomnia)
@@ -342,7 +376,9 @@ unknown and foreign roadmap IDs both return `404 roadmap_not_found`.
    the bearer header, and a unique `Idempotency-Key` header.
 6. Poll the returned `status_url` with the same bearer token until `status` is
    `succeeded`.
-7. Send `GET /api/v1/roadmaps/{roadmap_id}` to retrieve the generated tree.
+7. Send `GET /api/v1/roadmaps/{roadmap_id}` to retrieve the generated tree;
+   confirm it has 3 stages, 9 tasks, and a non-empty `resources` array on every
+   task.
 
 No Grok/xAI configuration is needed. To retry a terminal failure, create a new
 generation request with a new idempotency key.
