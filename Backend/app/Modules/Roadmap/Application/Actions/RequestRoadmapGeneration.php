@@ -9,6 +9,7 @@ use App\Modules\LearningProfile\Application\Actions\CalculateOnboardingStatus;
 use App\Modules\Roadmap\Application\Data\GenerationRequestResult;
 use App\Modules\Roadmap\Application\Exceptions\OnboardingIncompleteException;
 use App\Modules\Roadmap\Application\Exceptions\RoadmapGenerationInProgressException;
+use App\Modules\Roadmap\Application\Jobs\GenerateRoadmapJob;
 use App\Modules\Roadmap\Domain\Enums\GenerationRequestStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -24,7 +25,7 @@ final readonly class RequestRoadmapGeneration
     {
         $keyHash = hash('sha256', $idempotencyKey);
 
-        return DB::transaction(function () use ($authenticatedUser, $keyHash): GenerationRequestResult {
+        $result = DB::transaction(function () use ($authenticatedUser, $keyHash): GenerationRequestResult {
             $user = User::query()->whereKey($authenticatedUser->getKey())->lockForUpdate()->firstOrFail();
 
             $existing = $user->roadmapGenerationRequests()
@@ -64,5 +65,11 @@ final readonly class RequestRoadmapGeneration
 
             return new GenerationRequestResult($generationRequest, false);
         }, 3);
+
+        if (! $result->replayed) {
+            GenerateRoadmapJob::dispatch((string) $result->request->getKey());
+        }
+
+        return $result;
     }
 }

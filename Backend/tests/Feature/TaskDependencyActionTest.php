@@ -49,4 +49,18 @@ final class TaskDependencyActionTest extends TestCase
         $this->app->make(CreateTaskDependency::class)
             ->execute($task->id, $dependency->id);
     }
+
+    public function test_application_layer_rejects_a_dependency_cycle(): void
+    {
+        $stage = Stage::factory()->create();
+        $first = Task::factory()->for($stage)->create(['position' => 1]);
+        $second = Task::factory()->for($stage)->create(['position' => 2]);
+        $action = $this->app->make(CreateTaskDependency::class);
+        $action->execute($first->id, $second->id);
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('cycle');
+
+        $action->execute($second->id, $first->id);
+    }
 }

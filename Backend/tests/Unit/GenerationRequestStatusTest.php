@@ -33,6 +33,7 @@ final class GenerationRequestStatusTest extends TestCase
     {
         yield 'queued starts processing' => [GenerationRequestStatus::Queued, GenerationRequestStatus::Running, true];
         yield 'queued cannot skip validation' => [GenerationRequestStatus::Queued, GenerationRequestStatus::Succeeded, false];
+        yield 'queued cannot fail before running' => [GenerationRequestStatus::Queued, GenerationRequestStatus::Failed, false];
         yield 'running enters validation' => [GenerationRequestStatus::Running, GenerationRequestStatus::Validating, true];
         yield 'validation succeeds' => [GenerationRequestStatus::Validating, GenerationRequestStatus::Succeeded, true];
         yield 'active request may fail' => [GenerationRequestStatus::Running, GenerationRequestStatus::Failed, true];

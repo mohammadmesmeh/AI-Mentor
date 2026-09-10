@@ -35,7 +35,7 @@ enum GenerationRequestStatus: string
     public function canTransitionTo(self $next): bool
     {
         return match ($this) {
-            self::Queued => in_array($next, [self::Running, self::Failed, self::Cancelled], true),
+            self::Queued => in_array($next, [self::Running, self::Cancelled], true),
             self::Running => in_array($next, [self::Validating, self::Failed, self::Cancelled], true),
             self::Validating => in_array($next, [self::Succeeded, self::Failed, self::Cancelled], true),
             self::Succeeded, self::Failed, self::Cancelled => false,

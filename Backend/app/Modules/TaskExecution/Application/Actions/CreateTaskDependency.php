@@ -37,6 +37,19 @@ final readonly class CreateTaskDependency
                 throw new DomainException('Task dependencies must belong to the same roadmap version.');
             }
 
+            /** @var list<array{task_id: string, depends_on_task_id: string}> $existingDependencies */
+            $existingDependencies = DB::table('task_dependencies')
+                ->join('tasks', 'task_dependencies.task_id', '=', 'tasks.id')
+                ->join('stages', 'tasks.stage_id', '=', 'stages.id')
+                ->where('stages.roadmap_version_id', $task->stage->roadmap_version_id)
+                ->get(['task_dependencies.task_id', 'task_dependencies.depends_on_task_id'])
+                ->map(static fn (object $row): array => [
+                    'task_id' => (string) $row->task_id,
+                    'depends_on_task_id' => (string) $row->depends_on_task_id,
+                ])->all();
+
+            $this->rule->ensureAcyclic($taskId, $dependencyId, $existingDependencies);
+
             return TaskDependency::query()->create([
                 'task_id' => $taskId,
                 'depends_on_task_id' => $dependencyId,

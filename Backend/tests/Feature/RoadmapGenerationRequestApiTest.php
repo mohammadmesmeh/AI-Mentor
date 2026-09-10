@@ -8,6 +8,7 @@ use App\Modules\Identity\Domain\Enums\ResourceLanguage;
 use App\Modules\Identity\Infrastructure\Persistence\Models\User;
 use App\Modules\Identity\Infrastructure\Persistence\Models\UserPreference;
 use App\Modules\LearningProfile\Infrastructure\Persistence\Models\LearningProfile;
+use App\Modules\Roadmap\Application\Jobs\GenerateRoadmapJob;
 use App\Modules\Roadmap\Domain\Enums\GenerationRequestStatus;
 use App\Modules\Roadmap\Infrastructure\Persistence\Models\RoadmapGenerationRequest;
 use Illuminate\Database\QueryException;
@@ -21,6 +22,12 @@ use Tests\TestCase;
 final class RoadmapGenerationRequestApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Queue::fake();
+    }
 
     public function test_endpoints_require_authentication(): void
     {
@@ -73,7 +80,6 @@ final class RoadmapGenerationRequestApiTest extends TestCase
 
     public function test_create_persists_a_queued_request_and_server_owned_immutable_snapshot_only(): void
     {
-        Queue::fake();
         $user = $this->completeUser();
         $key = 'generation-key-0001';
 
@@ -113,7 +119,7 @@ final class RoadmapGenerationRequestApiTest extends TestCase
         self::assertDatabaseCount('roadmaps', 0);
         self::assertDatabaseCount('roadmap_versions', 0);
         self::assertDatabaseCount('personal_access_tokens', 0);
-        Queue::assertNothingPushed();
+        Queue::assertPushed(GenerateRoadmapJob::class, 1);
     }
 
     public function test_active_replay_returns_same_request_without_rebuilding_snapshot_or_changing_state(): void

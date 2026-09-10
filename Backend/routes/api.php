@@ -13,6 +13,7 @@ use App\Modules\LearningProfile\Presentation\Http\Controllers\GetLearningProfile
 use App\Modules\LearningProfile\Presentation\Http\Controllers\GetOnboardingStatusController;
 use App\Modules\LearningProfile\Presentation\Http\Controllers\UpsertLearningProfileController;
 use App\Modules\Roadmap\Presentation\Http\Controllers\CreateRoadmapGenerationRequestController;
+use App\Modules\Roadmap\Presentation\Http\Controllers\GetRoadmapController;
 use App\Modules\Roadmap\Presentation\Http\Controllers\GetRoadmapGenerationRequestController;
 use App\Shared\Presentation\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
@@ -53,3 +54,6 @@ Route::middleware('auth:jwt')->prefix('roadmap-generation-requests')
         Route::get('/{generationRequest}', GetRoadmapGenerationRequestController::class)
             ->name('show');
     });
+
+Route::middleware('auth:jwt')->get('/roadmaps/{roadmap}', GetRoadmapController::class)
+    ->name('api.v1.roadmaps.show');

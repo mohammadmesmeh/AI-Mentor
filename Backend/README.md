@@ -97,6 +97,7 @@ PUT /api/v1/me/learning-profile
 GET /api/v1/me/onboarding-status
 POST /api/v1/roadmap-generation-requests
 GET /api/v1/roadmap-generation-requests/{generationRequest}
+GET /api/v1/roadmaps/{roadmap}
 ```
 
 Responses use `data` or `error` plus `meta.request_id`. The same ULID request ID
@@ -190,9 +191,9 @@ the application no longer writes or reads that table.
 All `/api/v1/me/*` endpoints require the JWT bearer access token described
 above. Ownership always comes from the authenticated user: clients must not
 send `user_id`, IDs, timestamps, or completion fields. Preferences contain UI
-and localization settings; the learning profile contains the inputs that will
-later personalize a roadmap. This phase does not generate a roadmap, dispatch a
-job, or call an AI provider.
+and localization settings; the learning profile contains the server-owned inputs
+used to generate a roadmap. Generation runs locally and does not call an AI
+provider.
 
 Preferences support partial updates:
 
@@ -268,7 +269,7 @@ source of truth.
 ### Roadmap generation request contract
 
 An authenticated user with complete onboarding can open the asynchronous
-generation lifecycle without starting generation in this phase:
+generation lifecycle:
 
 ```http
 POST /api/v1/roadmap-generation-requests
@@ -300,9 +301,51 @@ failure messages.
 GET /api/v1/roadmap-generation-requests/{generationRequest}
 ```
 
-This contract only persists and retrieves lifecycle requests. It intentionally
-does not create a roadmap/version/stage/task, dispatch a job, call an AI
-provider, or issue a personal access token.
+After the request transaction commits, `GenerateRoadmapJob` is dispatched to
+the default Redis queue and processed by Horizon. The local fake generator is
+deterministic from the immutable snapshot and uses no HTTP, API key, AI package,
+or external service. It produces three stages with three tasks each, estimated
+durations, and an acyclic dependency chain. Titles and instructions follow
+`preferences.resource_language` (`ar`, `en`, or bilingual) where possible.
+
+The processor follows `queued → running → validating → succeeded`. Generator,
+validation, or persistence errors become `failed` with a safe `failure_code`;
+internal exception text is not returned. The complete roadmap, version, stages,
+tasks, current-version pointer, dependencies, and request success update are
+written in one transaction. The first roadmap is activated automatically; a
+later generated roadmap remains `ready` when another roadmap is active. Running
+the same job after success is a no-op.
+
+Poll the request URL until it returns `status: succeeded`, then use its
+`roadmap_id` or `roadmap_url`:
+
+```http
+GET /api/v1/roadmaps/{roadmap}
+Authorization: Bearer ACCESS_TOKEN
+```
+
+The response contains the current version with all ordered stages, tasks, task
+types, durations, and `depends_on_task_ids`. Ownership is derived from the JWT;
+unknown and foreign roadmap IDs both return `404 roadmap_not_found`.
+
+### Local generation walkthrough (Insomnia)
+
+1. Start Docker with `docker compose up -d` and confirm
+   `docker compose exec app php artisan horizon:status` reports running.
+2. Register or log in and save `data.access_token` as an Insomnia environment
+   variable named `access_token`.
+3. Send `PUT /api/v1/me/learning-profile` with all onboarding fields and
+   `Authorization: Bearer {{ access_token }}`.
+4. If needed, send `PATCH /api/v1/me/preferences` and set
+   `resource_language` to `ar`, `en`, or `both`.
+5. Send `POST /api/v1/roadmap-generation-requests` with an empty JSON body,
+   the bearer header, and a unique `Idempotency-Key` header.
+6. Poll the returned `status_url` with the same bearer token until `status` is
+   `succeeded`.
+7. Send `GET /api/v1/roadmaps/{roadmap_id}` to retrieve the generated tree.
+
+No Grok/xAI configuration is needed. To retry a terminal failure, create a new
+generation request with a new idempotency key.
 
 ## Docker development environment
 
@@ -403,7 +446,6 @@ platform or a trusted reverse proxy; the container listens on unprivileged port
 
 ## Deferred to the next phase
 
-Email verification and password reset, roadmap generation execution and provider
-adapters, chat, resource discovery, task completion/progress, adaptation
-proposals, ownership-scoped product endpoints, observability, deployment, and
-the admin surface are outside this phase.
+Email verification and password reset, external AI provider adapters, chat,
+resource discovery, task completion/progress, adaptation proposals,
+observability, deployment, and the admin surface are outside this phase.

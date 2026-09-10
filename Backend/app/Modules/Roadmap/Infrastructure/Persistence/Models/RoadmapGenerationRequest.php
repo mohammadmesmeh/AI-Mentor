@@ -64,6 +64,22 @@ final class RoadmapGenerationRequest extends Model
         return $status instanceof GenerationRequestStatus && $status->isActive();
     }
 
+    /** @param array<string, mixed> $attributes */
+    public function transitionTo(GenerationRequestStatus $next, array $attributes = []): void
+    {
+        $current = $this->getAttribute('status');
+
+        if (! $current instanceof GenerationRequestStatus || ! $current->canTransitionTo($next)) {
+            throw new \LogicException('Invalid roadmap generation request status transition.');
+        }
+
+        $this->forceFill([
+            ...$attributes,
+            'status' => $next,
+            'active_slot' => $next->isActive() ? 1 : null,
+        ])->save();
+    }
+
     protected static function booted(): void
     {
         self::updating(function (self $request): void {

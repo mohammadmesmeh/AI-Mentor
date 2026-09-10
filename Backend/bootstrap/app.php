@@ -8,6 +8,7 @@ use App\Modules\LearningProfile\Application\Exceptions\LearningProfileNotFoundEx
 use App\Modules\Roadmap\Application\Exceptions\OnboardingIncompleteException;
 use App\Modules\Roadmap\Application\Exceptions\RoadmapGenerationInProgressException;
 use App\Modules\Roadmap\Application\Exceptions\RoadmapGenerationRequestNotFoundException;
+use App\Modules\Roadmap\Application\Exceptions\RoadmapNotFoundException;
 use App\Shared\Presentation\Http\Middleware\AssignRequestId;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $exception instanceof OnboardingIncompleteException => 'onboarding_incomplete',
                 $exception instanceof RoadmapGenerationInProgressException => 'roadmap_generation_in_progress',
                 $exception instanceof RoadmapGenerationRequestNotFoundException => 'roadmap_generation_request_not_found',
+                $exception instanceof RoadmapNotFoundException => 'roadmap_not_found',
                 $exception instanceof RevocationStoreUnavailableException => 'authentication_service_unavailable',
                 default => match ($status) {
                     401 => 'unauthenticated',

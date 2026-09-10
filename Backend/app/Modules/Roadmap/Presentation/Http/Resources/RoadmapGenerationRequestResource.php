@@ -23,6 +23,9 @@ final class RoadmapGenerationRequestResource extends JsonResource
             'status_url' => route('api.v1.roadmap-generation-requests.show', [
                 'generationRequest' => $this->resource->getKey(),
             ]),
+            'roadmap_url' => $this->resource->roadmap_id === null
+                ? null
+                : route('api.v1.roadmaps.show', ['roadmap' => $this->resource->roadmap_id]),
         ];
     }
 

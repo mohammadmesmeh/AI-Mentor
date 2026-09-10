@@ -10,7 +10,9 @@ use App\Modules\Identity\Application\Contracts\TokenRevocationStore;
 use App\Modules\Identity\Infrastructure\Security\Jwt\JwtRequestGuard;
 use App\Modules\Identity\Infrastructure\Security\Jwt\LcobucciAccessTokenService;
 use App\Modules\Identity\Infrastructure\Security\RedisTokenRevocationStore;
+use App\Modules\Roadmap\Application\Contracts\RoadmapGenerator;
 use App\Modules\Roadmap\Application\Policies\RoadmapPolicy;
+use App\Modules\Roadmap\Infrastructure\Generation\FakeRoadmapGenerator;
 use App\Modules\Roadmap\Infrastructure\Persistence\Models\Roadmap;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -26,6 +28,7 @@ final class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AccessTokenService::class, LcobucciAccessTokenService::class);
         $this->app->singleton(TokenRevocationStore::class, RedisTokenRevocationStore::class);
+        $this->app->singleton(RoadmapGenerator::class, FakeRoadmapGenerator::class);
     }
 
     public function boot(): void

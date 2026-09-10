@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Modules\Roadmap\Application\Jobs\GenerateRoadmapJob;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -78,6 +79,6 @@ final class AuthenticationHttpFlowTest extends TestCase
 
         self::assertNotSame($firstAccess, $secondAccess);
         self::assertNotSame($firstRefresh, $secondRefresh);
-        Queue::assertNothingPushed();
+        Queue::assertPushed(GenerateRoadmapJob::class, 1);
     }
 }
