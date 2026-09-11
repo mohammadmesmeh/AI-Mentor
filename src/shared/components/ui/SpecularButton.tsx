@@ -69,26 +69,26 @@ interface ThemePalette {
 */
 const THEME_COLORS: Record<ButtonTheme, ThemePalette> = {
   dark: {
-    tint: "#1ea28c",       // --color-primary-500
-    textColor: "#f3f4f6",  // --text-primary (داكن: فاتح → مرئي على الخلفية الداكنة)
-    baseColor: "#158272",  // --color-primary-600
-    lineColor: "#3fcb9f",  // --color-accent-400
+    tint: "#4476a9",       // --color-primary-500
+    textColor: "#f3f6fb",  // --text-primary (داكن: فاتح → مرئي على الخلفية الداكنة)
+    baseColor: "#355e8d",  // --color-primary-600
+    lineColor: "#c084fc",  // --color-accent-400
     boxShadow:
       "inset 0 1px 0 rgba(255,255,255,0.05), " +
-      "0 0 0 1px rgb(30 162 140 / 15%), " +
-      "0 0 24px rgb(30 162 140 / 35%), " +
-      "0 0 48px rgb(34 173 132 / 15%)",
+      "0 0 0 1px rgb(124 58 237 / 15%), " +
+      "0 0 24px rgb(124 58 237 / 35%), " +
+      "0 0 48px rgb(168 85 247 / 15%)",
   },
   light: {
-    tint: "#1ea28c",       // --color-primary-500 (ثابت بين الثيمين)
-    textColor: "#14161a",  // --text-primary (فاتح: غامق → مرئي على الخلفية الفاتحة)
-    baseColor: "#158272",  // --color-primary-600 (ثابت بين الثيمين)
-    lineColor: "#3fcb9f",  // --color-accent-400 (ثابت بين الثيمين)
+    tint: "#4476a9",       // --color-primary-500 (ثابت بين الثيمين)
+    textColor: "#0d1b2e",  // --text-primary (فاتح: غامق → مرئي على الخلفية الفاتحة)
+    baseColor: "#355e8d",  // --color-primary-600 (ثابت بين الثيمين)
+    lineColor: "#c084fc",  // --color-accent-400 (ثابت بين الثيمين)
     boxShadow:
       "inset 0 1px 0 rgba(255,255,255,0.05), " +
-      "0 0 0 1px rgb(30 162 140 / 15%), " +
-      "0 0 24px rgb(30 162 140 / 35%), " +
-      "0 0 48px rgb(34 173 132 / 15%)",
+      "0 0 0 1px rgb(124 58 237 / 15%), " +
+      "0 0 24px rgb(124 58 237 / 35%), " +
+      "0 0 48px rgb(168 85 247 / 15%)",
   },
 }
 

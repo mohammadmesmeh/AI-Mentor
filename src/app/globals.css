@@ -53,8 +53,6 @@
   }
 
   html {
-    /* منع التمرير الأفقي نهائياً */
-    overflow-x: hidden;
     /* Dark هو الوضع الافتراضي: color-scheme يبقى dark حتى بدون أي
        class على <html>، فمتصفح (scrollbars, form controls..) بيطابق
        الهوية الغامقة فوراً، وما بصير "ومضة" فاتحة قبل ما JS يشتغل. */
@@ -76,7 +74,7 @@
   }
 
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
     width: 100%;
     background-color: var(--bg-base);
     color: var(--text-primary);
@@ -131,53 +129,65 @@
   --breakpoint-2xl: 96rem;   /* 1536px — large desktop monitors (1440p+)          */
   --breakpoint-3xl: 120rem;  /* 1920px — ultra-wide / cinema displays             */
 
-  /* --- Color: Primary — "Calm Teal"
-     Trust and clarity without the coldness of pure blue. Used for primary
-     actions, links, focus, and the dominant brand hue across the product —
-     the calm, dependable register that AI/assistant products lean on. */
-  --color-primary-50:  #eefcfb;
-  --color-primary-100: #d2f6f1;
-  --color-primary-200: #a6ece1;
-  --color-primary-300: #70dcc9;
-  --color-primary-400: #3fc4ab;
-  --color-primary-500: #1ea28c;
-  --color-primary-600: #158272;
-  --color-primary-700: #12685b;
-  --color-primary-800: #12534a;
-  --color-primary-900: #12443d;
-  --color-primary-950: #062824;
+  /* --- Color: Primary — "Midnight Navy"
+     A deep, trustworthy navy used for primary actions, links, focus, and
+     the dominant brand hue — the calm, dependable register that AI/assistant
+     products lean on. Anchor: #12314D (deep navy). */
+  --color-primary-50:  #f2f6fb;
+  --color-primary-100: #e0eaf6;
+  --color-primary-200: #c2d5ea;
+  --color-primary-300: #97b7d8;
+  --color-primary-400: #6694c2;
+  --color-primary-500: #4476a9;
+  --color-primary-600: #355e8d;
+  --color-primary-700: #2b4c74;
+  --color-primary-800: #1a3654;
+  --color-primary-900: #12314d;
+  --color-primary-950: #0a1d30;
 
-  /* --- Color: Secondary — "Slate Mist"
-     A cool, faintly teal-tinted neutral (never pure gray) used for chrome,
-     secondary actions, and structural surfaces — echoes the primary hue at
-     near-zero saturation so neutrals never fight the brand color. */
-  --color-secondary-50:  #f4f8f7;
-  --color-secondary-100: #e5eeed;
-  --color-secondary-200: #cedbd9;
-  --color-secondary-300: #adc1be;
-  --color-secondary-400: #85a19d;
-  --color-secondary-500: #64827e;
-  --color-secondary-600: #4c6763;
-  --color-secondary-700: #3c524f;
-  --color-secondary-800: #304240;
-  --color-secondary-900: #223231;
-  --color-secondary-950: #131e1d;
+  /* --- Color: Secondary — "Azure Blue"
+     A cool blue used for chrome, secondary actions, and structural surfaces.
+     Reads blue (never teal) so neutrals hold a crisp, professional register.
+     Anchors: #DEEAFB (100) → #1D4E89 (700). */
+  --color-secondary-50:  #f4f8fd;
+  --color-secondary-100: #deeafb;
+  --color-secondary-200: #c2d9f5;
+  --color-secondary-300: #9cc0ec;
+  --color-secondary-400: #6b9fdd;
+  --color-secondary-500: #4683cb;
+  --color-secondary-600: #3a6fb3;
+  --color-secondary-700: #1d4e89;
+  --color-secondary-800: #1b4579;
+  --color-secondary-900: #173a66;
+  --color-secondary-950: #0d2443;
 
-  /* --- Color: Accent — "Growth Emerald"
-     Pairs with Calm Teal as the product's signature teal→emerald duo.
-     Reserved for progress, achievement, and momentum: streaks, completed
-     lessons, upward metrics. Deliberately not used for primary actions. */
-  --color-accent-50:  #edfcf6;
-  --color-accent-100: #d3f8e9;
-  --color-accent-200: #a6efd3;
-  --color-accent-300: #70e0bb;
-  --color-accent-400: #3fcb9f;
-  --color-accent-500: #22ad84;
-  --color-accent-600: #178a6b;
-  --color-accent-700: #146e57;
-  --color-accent-800: #135845;
-  --color-accent-900: #12483a;
-  --color-accent-950: #072a21;
+  /* --- Color: Accent — "Vibrant Purple"
+     Pairs with Midnight Navy as the product's signature navy→purple duo.
+     Reserved for AI-glow, highlights, interactive accents, and progressive
+     UI moments. Deliberately not used for primary actions. Anchor: #7C3AED. */
+  --color-accent-50:  #faf5ff;
+  --color-accent-100: #f3e8ff;
+  --color-accent-200: #e9d5ff;
+  --color-accent-300: #d8b4fe;
+  --color-accent-400: #c084fc;
+  --color-accent-500: #a855f7;
+  --color-accent-600: #9333ea;
+  --color-accent-700: #7c3aed;
+  --color-accent-800: #6d28d9;
+  --color-accent-900: #581c87;
+  --color-accent-950: #3b0764;
+
+  /* --- Color: Flat tokens (single-stop, named by role) --- */
+  --color-midnight:       #0a1930;   /* deep hero/sectional navy bg        */
+  --color-canvas:         #ffffff;   /* light-mode page canvas             */
+  --color-alt-bg:         #eff4fb;   /* light-mode alternating section bg  */
+  --color-light-blue-bg:  #deeafb;   /* light-blue callout / border tint   */
+  --color-light-blue-text:#1d4e89;   /* deep blue text on light-blue bg    */
+  --color-text-muted:     #667085;   /* muted helper text (light mode)     */
+  --color-success-green:  #10b981;   /* positive / complete / live states  */
+  --color-success-bg:     #d1fae5;   /* soft success callout background    */
+  --color-live-red:       #ef4444;   /* live / error / destructive accent  */
+  --color-accent-purple:  #7c3aed;   /* brand purple accent / AI glow      */
 
   /* --- Color: Success --- */
   --color-success-50:  #f0fbf4;
@@ -208,12 +218,15 @@
   --color-info-900: #0e3866;
 
   /* --- Fonts ---
-     LTR: Space Grotesk (geometric, modern, pairs with awwwards/Linear-style
-     product chrome). RTL: IBM Plex Sans Arabic (legible, matching x-height).
+     LTR display/headings: Nunito (rounded, high-contrast geometric — the
+     brand voice for hero/display type). LTR body: Space Grotesk (geometric,
+     modern, pairs with awwwards/Linear-style product chrome). RTL: IBM Plex
+     Sans Arabic (legible, matching x-height) for both, switched via
+     html[dir="rtl"] in §3.5.
      Code: Geist Mono for inline code and data.
      Load these via next/font in the root layout; this file only declares
      the stacks and safe fallbacks. */
-  --font-display: "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Nunito", "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body:    "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-code:    "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
@@ -264,6 +277,8 @@
   --font-weight-medium:   500;
   --font-weight-semibold: 600;
   --font-weight-bold:     700;
+  --font-weight-extrabold: 800;
+  --font-weight-black:     900;
 
   /* --- Radius ---
      Semantic, not numeric — every consumer reaches for "card" or "pill",
@@ -290,12 +305,12 @@
   --shadow-hero:
     0 24px 64px rgb(16 18 22 / 18%),
     0 8px 24px rgb(16 18 22 / 10%);
-  /* AI Glow: a soft dual-hue halo (teal + emerald) for AI-active states */
+  /* AI Glow: a soft dual-hue halo (navy + purple) for AI-active states */
   --shadow-ai-glow:
-    0 0 0 1px rgb(30 162 140 / 15%),
-    0 0 24px rgb(30 162 140 / 35%),
-    0 0 48px rgb(34 173 132 / 15%);
-  --shadow-focus: 0 0 0 3px rgb(30 162 140 / 35%);
+    0 0 0 1px rgb(124 58 237 / 15%),
+    0 0 24px rgb(124 58 237 / 35%),
+    0 0 48px rgb(168 85 247 / 15%);
+  --shadow-focus: 0 0 0 3px rgb(68 118 169 / 35%);
   --shadow-hover: 0 10px 24px rgb(16 18 22 / 12%);
 
   /* --- Easing curves --- */
@@ -319,8 +334,9 @@
   /* --- Containers ---
      Max-width tokens for capped, centered layouts at the large end of the
      breakpoint scale (see §5 for the full responsive rationale). */
-  --container-content: 72rem;  /* 1152px — max width for reading/app content */
-  --container-wide:    88rem;  /* 1408px — dashboards, kanban, wide tables   */
+  --container-content: 77.5rem;  /* 1240px — max width for reading/app content */
+  --container-hero:    63.75rem; /* 1020px — hero text max-width               */
+  --container-wide:    88rem;    /* 1408px — dashboards, kanban, wide tables  */
 }
 
 /* ==========================================================================
@@ -345,10 +361,10 @@
 
   --color-border-default:   var(--border-default);
   --color-border-strong:    var(--border-strong);
-  --font-heading: var(--font-default);
+  --font-heading: var(--font-nunito);
   --font-sans: var(--font-default);
   --font-body: var(--font-default);
-  --font-display: var(--font-default);
+  --font-display: var(--font-nunito);
   --font-ui: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -397,29 +413,29 @@
 .dark {
   --font-default:    var(--font-space);
   --font-ui:         var(--font-inter);
-  --bg-base:          #0a0b0e;
-  --surface:          #111318;
-  --surface-card:     #16181d;
-  --surface-elevated: #1c1f26;
+  --bg-base:          #0a0d14;
+  --surface:          #10141d;
+  --surface-card:     #151a26;
+  --surface-elevated: #1b2130;
 
-  --text-primary:   #f3f4f6;
-  --text-secondary: #b4b8c2;
-  --text-muted:     #868c99;
-  --text-inverse:   #0a0b0e;
+  --text-primary:   #f3f6fb;
+  --text-secondary: #b6bdcb;
+  --text-muted:     #8b93a7;
+  --text-inverse:   #0a0d14;
 
   --border-default: #24272e;
   --border-strong:  #34383f;
 
   --overlay-scrim: rgb(4 5 7 / 65%);
-  --glass-bg: rgb(22 24 29 / 55%);
-  --glass-border: rgb(255 255 255 / 8%);
-  --scrollbar-thumb: var(--color-secondary-700);
+  --glass-bg: rgb(17 25 41 / 55%);
+  --glass-border: rgb(160 190 226 / 16%);
+  --scrollbar-thumb: var(--color-secondary-800);
   --scrollbar-track: transparent;
 
   /* Custom cursor — theme-aware tokens */
   --cursor-color:               var(--color-primary-500);
-  --cursor-glow:                0 0 12px 2px rgb(30 162 140 / 0.35);
-  --cursor-glow-color:          rgb(30 162 140 / 0.25);
+  --cursor-glow:                0 0 12px 2px rgb(68 118 169 / 0.35);
+  --cursor-glow-color:          rgb(68 118 169 / 0.25);
   --cursor-dot-size:            4px;
   --cursor-ring-size:           28px;
   --cursor-ring-hover-size:     44px;
@@ -433,32 +449,32 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.75 0.10 175);
-  --primary-foreground: oklch(0.16 0.02 175);
-  --secondary: oklch(0.269 0 0);
+  --primary: oklch(0.55 0.10 252);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.30 0.03 252);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.48 0.17 288);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.60 0.10 175);
-  --chart-1: oklch(0.85 0.06 175);
-  --chart-2: oklch(0.70 0.09 175);
-  --chart-3: oklch(0.62 0.11 150);
-  --chart-4: oklch(0.50 0.10 175);
-  --chart-5: oklch(0.38 0.08 175);
+  --ring: oklch(0.55 0.10 252);
+  --chart-1: oklch(0.65 0.12 252);
+  --chart-2: oklch(0.55 0.10 252);
+  --chart-3: oklch(0.62 0.18 288);
+  --chart-4: oklch(0.55 0.13 210);
+  --chart-5: oklch(0.45 0.10 252);
   --radius: 0.625rem;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.55 0.14 175);
+  --sidebar-primary: oklch(0.55 0.10 252);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.32 0.05 288);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.60 0.10 175);
+  --sidebar-ring: oklch(0.55 0.10 252);
 }
 
 /* .light: الوضع الفاتح الثانوي — يفعّل فقط لما اليوزر يختاره صراحة
@@ -466,28 +482,28 @@
 .light {
   --font-default:    var(--font-space);
   --font-ui:         var(--font-inter);
-  --bg-base:          #fcfcfd;
-  --surface:          #f5f6f8;
+  --bg-base:          #ffffff;
+  --surface:          #f6f8fc;
   --surface-card:     #ffffff;
   --surface-elevated: #ffffff;
 
-  --text-primary:   #14161a;
-  --text-secondary: #4b505b;
-  --text-muted:     #6b7280;
+  --text-primary:   #0d1b2e;
+  --text-secondary: #475467;
+  --text-muted:     #667085;
   --text-inverse:   #fcfcfd;
 
-  --border-default: #e2e4e9;
-  --border-strong:  #c9cdd6;
+  --border-default: #e3e8f0;
+  --border-strong:  #c6d0de;
 
   --overlay-scrim: rgb(16 18 22 / 45%);
   --glass-bg: rgb(255 255 255 / 65%);
-  --glass-border: rgb(255 255 255 / 40%);
+  --glass-border: rgb(222 234 251 / 60%);
   --scrollbar-thumb: var(--color-secondary-300);
   --scrollbar-track: transparent;
 
   /* Custom cursor — light mode overrides */
-  --cursor-glow:              0 0 12px 2px rgb(30 162 140 / 0.2);
-  --cursor-glow-color:        rgb(30 162 140 / 0.15);
+  --cursor-glow:              0 0 12px 2px rgb(68 118 169 / 0.2);
+  --cursor-glow-color:        rgb(68 118 169 / 0.15);
   --cursor-ring-hover-opacity: 0.5;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -495,40 +511,41 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.62 0.11 175);
-  --primary-foreground: oklch(0.98 0.01 175);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.45 0.11 252);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.95 0.02 252);
+  --secondary-foreground: oklch(0.35 0.08 252);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: oklch(0.55 0.22 288);
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.65 0.10 175);
-  --chart-1: oklch(0.85 0.06 175);
-  --chart-2: oklch(0.70 0.09 175);
-  --chart-3: oklch(0.62 0.11 150);
-  --chart-4: oklch(0.50 0.10 175);
-  --chart-5: oklch(0.38 0.08 175);
+  --ring: oklch(0.45 0.11 252);
+  --chart-1: oklch(0.62 0.14 252);
+  --chart-2: oklch(0.52 0.11 252);
+  --chart-3: oklch(0.60 0.20 288);
+  --chart-4: oklch(0.55 0.14 210);
+  --chart-5: oklch(0.42 0.11 252);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.62 0.11 175);
-  --sidebar-primary-foreground: oklch(0.98 0.01 175);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.45 0.11 252);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0.01 288);
+  --sidebar-accent-foreground: oklch(0.35 0.08 288);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.65 0.10 175);
+  --sidebar-ring: oklch(0.45 0.11 252);
 }
 
 /* RTL font switch — loaded via next/font and toggled by the `dir`
    attribute on <html>. Every consumer of --font-default (body, headings,
    Tailwind's font-sans utility, etc.) picks up the Arabic font
    automatically without per-component overrides. */
-[dir="rtl"] {
+html[dir="rtl"] {
   --font-default: var(--font-arabic);
+  --font-nunito:  var(--font-arabic);
   --font-ui:      var(--font-rubik);
 
   /* --- Arabic typography: line-height scale ---
@@ -866,7 +883,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 
-/* Brand gradient background — teal → emerald, used sparingly (hero only) */
+/* Brand gradient background — navy → purple, used sparingly (hero only) */
 @utility gradient-bg-brand {
   background-image: linear-gradient(
     135deg,
@@ -943,6 +960,27 @@
   max-width: var(--container-wide);
   margin-inline: auto;
   padding-inline: 1.5rem;
+}
+
+/* Dark sectional panel — midnight-navy canvas with light text.
+   Overrides the ambient theme locally so Hero/CTA/Footer always render
+   dark regardless of the app's .dark/.light mode. */
+@utility dark-section {
+  background-color: var(--color-midnight);
+  color: var(--color-canvas);
+}
+
+/* Fine dot-grid texture for dark sectional backdrops. Composes with
+   `dark-section` (color from it, pattern from this). Statically drawn,
+   so it is inherently reduced-motion safe; keep it decorative and mark
+   it `aria-hidden` in markup. */
+@utility dot-grid {
+  background-image: radial-gradient(
+    circle,
+    rgb(222 234 251 / 0.16) 1px,
+    transparent 1.25px
+  );
+  background-size: 24px 24px;
 }
 
 /* Custom scrollbar — thin, theme-aware, non-intrusive */
@@ -1122,8 +1160,8 @@
 
 /* Pulsing glow for the "assistant is active" affordance */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(30 162 140 / 35%); }
-  50%      { box-shadow: 0 0 0 8px rgb(30 162 140 / 0%); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(68 118 169 / 35%); }
+  50%      { box-shadow: 0 0 0 8px rgb(68 118 169 / 0%); }
 }
 
 /* Slow hue drift for brand gradient surfaces (hero backgrounds only) */
@@ -1170,10 +1208,10 @@
      legally @apply'd here. */
   .btn-primary {
     @apply btn;
-    background-color: var(--color-primary-500);
-    color: var(--text-inverse);
+    background-color: var(--color-primary-800);
+    color: var(--color-canvas);
   }
-  .btn-primary:hover  { background-color: var(--color-primary-600); }
+  .btn-primary:hover  { background-color: var(--color-primary-900); }
   .btn-secondary {
     @apply btn;
     background-color: var(--surface);

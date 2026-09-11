@@ -1,114 +1,113 @@
-"use client";
-
-import { useRef, useState } from "react";
-import { useMotionValueEvent, useScroll, useSpring } from "framer-motion";
-import { useT } from "@/shared/hooks/useT";
-import { Container } from "@/shared/components/ui/Container";
-import { TextReveal } from "@/shared/components/animations/TextReveal";
-import { StepCard } from "@/shared/components/ui/StepCard";
+import { Activity, FlaskConical, Layers, RefreshCw } from "lucide-react"
+import { Container } from "@/shared/components/ui/Container"
+import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
+import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { StepCard } from "@/shared/components/ui/StepCard"
+import { useT } from "@/shared/hooks/useT"
+import { cn } from "@/lib/utils"
 
 export const HowItWork = () => {
-    const t = useT("howItWork")
-    const steps = [
-        {
-            number: "01",
-            title: t("step1.title", "Tell us your goal"),
-            description: t("step1.description", "Share what you want to learn, your current level, and the time you have available."),
-        },
-        {
-            number: "02",
-            title: t("step2.title", "Get a structured roadmap"),
-            description: t("step2.description", "Your AI mentor builds staged milestones matched to your goals and desired outcome."),
-        },
-        {
-            number: "03",
-            title: t("step3.title", "Do one task at a time"),
-            description: t("step3.description", "Follow clear instructions and curated resources without getting lost across multiple tabs."),
-        },
-        {
-            number: "04",
-            title: t("step4.title", "Check in with your mentor"),
-            description: t("step4.description", "Ask questions in context — your mentor already understands where you are."),
-        },
-    ];
+  const t = useT("howItWork")
 
-    const timelineRef = useRef<HTMLDivElement>(null)
-    const { scrollYProgress } = useScroll({
-        target: timelineRef,
-        offset: ["start center", "end center"],
-    })
-    const progress = useSpring(scrollYProgress, {
-        stiffness: 120,
-        damping: 30,
-        restDelta: 0.001,
-    })
+  const steps = [
+    {
+      number: "01",
+      icon: Activity,
+      title: t("step1.title", "Diagnostic Profile Sync"),
+      description: t(
+        "step1.description",
+        "Your mentor maps your goals, current level, and available time into a clear learning profile — the foundation for every decision that follows."
+      ),
+      span: "sm:row-span-2 lg:col-span-2 lg:row-span-2",
+      cardClass: "sm:p-8",
+    },
+    {
+      number: "02",
+      icon: Layers,
+      title: t("step2.title", "Real-time Curriculum Synthesis"),
+      description: t(
+        "step2.description",
+        "A four-phase curriculum is assembled and re-sequenced in real time, so the path you see always matches where you actually are."
+      ),
+    },
+    {
+      number: "03",
+      icon: FlaskConical,
+      title: t("step3.title", "Sandbox Proof & Calibration"),
+      description: t(
+        "step3.description",
+        "Each milestone is proven through hands-on sandbox practice, then calibrated to close the gaps that matter most."
+      ),
+    },
+    {
+      number: "04",
+      icon: RefreshCw,
+      title: t("step4.title", "Dynamic Milestone Refactoring"),
+      description: t(
+        "step4.description",
+        "Milestones refactor dynamically as you grow — your roadmap stays ambitious, but every next step remains achievable."
+      ),
+      span: "sm:col-span-2 lg:col-span-2",
+    },
+  ]
 
-    const [activeIndex, setActiveIndex] = useState(0)
-    const [progressValue, setProgressValue] = useState(0)
+  return (
+    <section
+      id="how-it-works"
+      className="relative overflow-hidden py-24"
+      aria-labelledby="how-it-works-heading"
+    >
+      <Container>
+        <div className="mx-auto max-w-3xl text-center">
+          <FadeInView as="div" delay={0.05}>
+            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
+              {t("badge", "Precision Learning Pipeline")}
+            </span>
+          </FadeInView>
 
-    useMotionValueEvent(scrollYProgress, "change", (value) => {
-        const index = Math.min(
-            steps.length - 1,
-            Math.max(0, Math.floor(value * steps.length))
-        )
-        setActiveIndex(index)
-    })
-    useMotionValueEvent(progress, "change", (value) => {
-        setProgressValue(value)
-    })
+          <HeadingReveal
+            as="h2"
+            id="how-it-works-heading"
+            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
+            delay={0.1}
+          >
+            {t("title", "Bento Learning Architecture")}
+          </HeadingReveal>
 
-    const fillFor = (index: number) => {
-        if (steps.length <= 1) return progressValue >= 1 ? 1 : 0
-        const segStart = index / steps.length
-        const segEnd = (index + 1) / steps.length
-        return Math.min(1, Math.max(0, (progressValue - segStart) / (segEnd - segStart)))
-    }
+          <FadeInView
+            as="p"
+            className="mt-4 text-muted-foreground"
+            delay={0.15}
+          >
+            {t(
+              "subtitle",
+              "A four-phase curriculum engine that rebuilds your path as you learn — so every milestone stays sharp and achievable."
+            )}
+          </FadeInView>
+        </div>
 
-    return (
-        <section
-            className="relative overflow-hidden py-10 md:py-16"
-            aria-labelledby="how-it-works-heading"
+        <ul
+          role="list"
+          className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-            {/* Background glow */}
-            <div
-                className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-br from-primary-500/10 via-accent-500/5 to-transparent blur-[120px] opacity-60"
-                aria-hidden="true"
-            />
-
-            <Container>
-                {/* Heading */}
-                <div className="mx-auto max-w-3xl text-center">
-                    <TextReveal
-                        as="h2"
-                        id="how-it-works-heading"
-                        className="text-3xl font-bold tracking-tight sm:text-4xl"
-                    >
-                        {t("title", "How It Works")}
-                    </TextReveal>
-
-                    <TextReveal
-                        as="p"
-                        className="mt-4 text-muted-foreground"
-                    >
-                        {t("subtitle", "Four steps from a vague goal to daily momentum.")}
-                    </TextReveal>
-                </div>
-
-                {/* Timeline */}
-                <div ref={timelineRef} className="mx-auto mt-16 max-w-3xl">
-                    <div className="space-y-12">
-                        {steps.map((step, index) => (
-                            <StepCard
-                                key={step.number}
-                                {...step}
-                                active={index === activeIndex}
-                                connector={index < steps.length - 1}
-                                fill={fillFor(index)}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </Container>
-        </section>
-    );
-};  
+          {steps.map((step, index) => (
+            <li key={step.number} className="contents">
+              <FadeInView
+                className={cn("h-full", step.span)}
+                delay={0.2 + index * 0.08}
+              >
+                <StepCard
+                  number={step.number}
+                  title={step.title}
+                  description={step.description}
+                  icon={step.icon}
+                  className={cn("h-full", step.cardClass)}
+                />
+              </FadeInView>
+            </li>
+          ))}
+        </ul>
+      </Container>
+    </section>
+  )
+}

@@ -1,55 +1,43 @@
-import type { ReactNode } from "react"
+import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-import {
-  Card,
-  CardHeader,
-} from "@/components/ui/card"
-import { Shine } from "@/shared/components/animations/Shine"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
-import { FadeInView } from "@/shared/components/animations/FadeInView"
-import { IconBounce } from "@/shared/components/animations/IconBounce"
-
 interface FeatureCardProps {
-  icon: ReactNode
+  icon: LucideIcon
   title: string
   description: string
   className?: string
 }
 
 function FeatureCard({
-  icon,
+  icon: Icon,
   title,
   description,
   className,
 }: FeatureCardProps) {
   return (
-    <Shine className="h-full rounded-xl" >
-      <Card
-        className={cn(
-          "group flex h-full flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-primary/20",
-          className
-        )}
+    <article
+      className={cn(
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#DEEAFB]/60 bg-light-blue-bg/40 p-6 backdrop-blur-md before:pointer-events-none before:absolute before:-bottom-12 before:-end-12 before:content-[''] before:h-36 before:w-36 before:rounded-full before:bg-midnight before:opacity-[0.08] before:blur-[72px]",
+        "transition-all duration-300 hover:-translate-y-1 hover:bg-light-blue-bg/60 hover:shadow-xl",
+        "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:bg-light-blue-bg/40 motion-reduce:hover:shadow-none",
+        className
+      )}
+    >
+      <div
+        aria-hidden="true"
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white"
       >
-        <CardHeader className="flex-1">
-          <div>
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/20" aria-hidden="true">
-              <IconBounce>
-                {icon}
-              </IconBounce>
-          </div>
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </div>
 
-          <HeadingReveal as="h3" className="text-lg font-semibold">
-            {title}
-          </HeadingReveal>
-          </div>
+      <h3 className="relative mt-4 font-display text-lg font-bold text-primary">
+        {title}
+      </h3>
 
-          <FadeInView as="p" className="mt-auto text-sm text-muted-foreground" delay={0.05}>
-            {description}
-          </FadeInView>
-        </CardHeader>
-      </Card>
-    </Shine>
+      <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </article>
   )
 }
 
