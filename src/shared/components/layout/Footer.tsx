@@ -1,4 +1,6 @@
-import { Link } from "@/i18n/navigation"
+"use client"
+
+import { Link, usePathname } from "@/i18n/navigation"
 import { Terminal } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 
@@ -11,6 +13,11 @@ const footerLinks = [
 
 function Footer() {
   const t = useT("footer")
+  const pathname = usePathname()
+
+  if (typeof pathname === "string" && pathname.startsWith("/auth")) {
+    return null
+  }
 
   return (
     <footer className="border-t border-white/10 bg-midnight px-6 py-12">

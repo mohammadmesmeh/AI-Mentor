@@ -10,4 +10,8 @@ interface RegisterFormValues {
   confirmPassword: string
 }
 
-export type { LoginFormValues, RegisterFormValues }
+type AuthViewMode = "sign-in" | "create-account" | "recovery"
+
+type PasswordVisibility = "mask" | "reveal"
+
+export type { AuthViewMode, LoginFormValues, PasswordVisibility, RegisterFormValues }
