@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, IBM_Plex_Sans_Arabic, Rubik, Inter, IBM_Plex_Mono } from "next/font/google";
+import { Space_Grotesk, IBM_Plex_Sans_Arabic, Rubik, Inter, IBM_Plex_Mono, Nunito } from "next/font/google";
 import { cookies } from "next/headers";
 import { hasLocale } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -37,6 +37,13 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
 })
 
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
+  display: "swap",
+})
+
 export const metadata: Metadata = {
   title: "AI Mentor",
   description: "AI Mentor is your personal AI mentor that builds your learning path from goals to growth.",
@@ -65,7 +72,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dir}
-      className={`${theme} ${spaceGrotesk.variable} ${ibmPlexSansArabic.variable} ${rubik.variable} ${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${theme} ${spaceGrotesk.variable} ${ibmPlexSansArabic.variable} ${rubik.variable} ${inter.variable} ${ibmPlexMono.variable} ${nunito.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

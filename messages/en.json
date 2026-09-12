@@ -37,7 +37,8 @@
   "cta": {
     "button": "Start Learning Free",
     "description": "Stop guessing what to learn next. Get a personalized roadmap built by AI and start making real progress today.",
-    "title": "Ready to Master Your Next Skill?"
+    "title": "Ready to Synthesize Your AI Career Roadmap?",
+    "subtext": "No credit card required"
   },
   "dashboard": {
     "milestones": {
@@ -59,8 +60,9 @@
   "features": {
     "aiAnswers": {
       "description": "Ask questions anytime and get clear, contextual answers from your AI mentor — no more digging through forums.",
-      "title": "Instant AI Answers"
+      "title": "AI-Powered Assistance"
     },
+    "badge": "Core Capabilities",
     "heading": "Everything You Need to Learn Faster",
     "personalizedPlans": {
       "description": "Every roadmap is built around your goals, current level, and schedule — not a generic course outline.",
@@ -68,43 +70,49 @@
     },
     "progressTracking": {
       "description": "See exactly how far you've come and what's next, with milestones that keep you moving forward.",
-      "title": "Real-Time Progress Tracking"
+      "title": "Progress Tracking"
     },
     "smartFeedback": {
       "description": "Get actionable feedback that adapts to your pace, so you always know what to improve.",
-      "title": "Smart, Adaptive Feedback"
+      "title": "Smart Feedback"
     },
     "subheading": "AI Mentor combines personalized guidance, structured milestones, and on-demand support to help you learn smarter, not harder."
   },
   "footer": {
-    "copyright": "© AI Mentor. All rights reserved.",
-    "description": "Your personal AI mentor — turning ambitious goals into daily, achievable progress.",
-    "tagline": "Learn smarter. Grow faster."
+    "copyright": "© 2025 AI Mentor Inc. Precision intelligence for human mastery.",
+    "links": {
+      "privacy": "Privacy Policy",
+      "status": "Status",
+      "terms": "Terms of Service",
+      "trust": "Resource Trust Policy"
+    }
   },
   "hero": {
-    "cta": "Get Your Free Learning Path",
-    "description": "AI Mentor builds a personalized, step-by-step learning roadmap around your goals — then guides you through every milestone, one task at a time.",
-    "title": "Your Personal AI Mentor for Mastering Any Skill"
+    "title": "Your Dynamic AI Career Roadmap, Synthesized in Real Time",
+    "description": "Tell AI Mentor what you want to master. It synthesizes your roadmap from your goals, level, and schedule — then guides you through every milestone, one task at a time.",
+    "ctaPrimary": "Generate Free Roadmap",
+    "ctaSecondary": "Explore Curriculums"
   },
   "howItWork": {
+    "badge": "Precision Learning Pipeline",
+    "title": "Bento Learning Architecture",
+    "subtitle": "A four-phase curriculum engine that rebuilds your path as you learn — so every milestone stays sharp and achievable.",
     "step1": {
-      "description": "Share what you want to learn, your current level, and the time you have available.",
-      "title": "Tell us your goal"
+      "title": "Diagnostic Profile Sync",
+      "description": "Your mentor maps your goals, current level, and available time into a clear learning profile — the foundation for every decision that follows."
     },
     "step2": {
-      "description": "Your AI mentor builds staged milestones matched to your goals and desired outcome.",
-      "title": "Get a structured roadmap"
+      "title": "Real-time Curriculum Synthesis",
+      "description": "A four-phase curriculum is assembled and re-sequenced in real time, so the path you see always matches where you actually are."
     },
     "step3": {
-      "description": "Follow clear instructions and curated resources without getting lost across multiple tabs.",
-      "title": "Do one task at a time"
+      "title": "Sandbox Proof & Calibration",
+      "description": "Each milestone is proven through hands-on sandbox practice, then calibrated to close the gaps that matter most."
     },
     "step4": {
-      "description": "Ask questions in context — your mentor already understands where you are.",
-      "title": "Check in with your mentor"
-    },
-    "subtitle": "Four steps from a vague goal to daily momentum.",
-    "title": "How It Works"
+      "title": "Dynamic Milestone Refactoring",
+      "description": "Milestones refactor dynamically as you grow — your roadmap stays ambitious, but every next step remains achievable."
+    }
   },
   "metadata": {
     "description": "AI Mentor is your personal AI mentor that builds your learning path from goals to growth.",
@@ -120,11 +128,18 @@
     "brand": "AI Mentor",
     "closeMenu": "Close menu",
     "logout": "Logout",
+    "mainNavigation": "Main navigation",
     "mobileNavigation": "Mobile navigation",
     "openMenu": "Open menu",
-    "cta": "Get Started",
-    "about": "About",
-    "home": "Home"
+    "home": "Home",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "curriculum": "Curriculum",
+    "pricing": "Pricing",
+    "signIn": "Sign In",
+    "startLearning": "Start Learning",
+    "start": "Start",
+    "skipToContent": "Skip to main content"
   },
   "notFound": {
     "backHome": "Back to Home",

@@ -1,78 +1,52 @@
+import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-import { Shine } from "@/shared/components/animations/Shine"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
-import { FadeInView } from "@/shared/components/animations/FadeInView"
 
 interface StepCardProps {
   number: string
   title: string
   description: string
-  active?: boolean
+  icon: LucideIcon
   className?: string
-  connector?: boolean
-  fill?: number
 }
 
 function StepCard({
   number,
   title,
   description,
-  active = false,
+  icon: Icon,
   className,
-  connector = true,
-  fill = 0,
 }: StepCardProps) {
-  const clampedFill = Math.min(1, Math.max(0, fill))
-
   return (
-    <div className={cn("relative flex gap-6", className)}>
-      {connector && (
-        <>
-          <span
-            aria-hidden="true"
-            className="absolute start-6 top-6 -bottom-[4.5rem] w-px bg-border/60"
-          />
-          <span
-            aria-hidden="true"
-            className="absolute start-6 top-6 -bottom-[4.5rem] w-px origin-top bg-gradient-to-b from-primary-500 via-accent-500 to-primary-500"
-            style={{ transform: `scaleY(${clampedFill})` }}
-          />
-        </>
+    <article
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-2xl border border-[#DEEAFB]/60 bg-light-blue-bg/40 p-6 backdrop-blur-md before:pointer-events-none before:absolute before:-bottom-12 before:-end-12 before:content-[''] before:h-36 before:w-36 before:rounded-full before:bg-midnight before:opacity-[0.08] before:blur-[72px]",
+        "transition-all duration-300 hover:-translate-y-1 hover:bg-light-blue-bg/60 hover:shadow-xl",
+        "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:bg-light-blue-bg/40 motion-reduce:hover:shadow-none",
+        className
       )}
+    >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute end-5 top-2 select-none font-display text-[88px] font-extrabold leading-none text-midnight/5"
+      >
+        {number}
+      </span>
 
-      {/* Number */}
-      <Shine className="h-12 w-12 shrink-0 rounded-full">
-        <div
-          className={cn(
-            "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-all duration-500",
-            active
-              ? "scale-110 border-primary-500/70 bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-[0_0_28px_-6px_var(--color-primary-500)]"
-              : "border bg-background text-primary shadow-sm"
-          )}
-        >
-          {number}
-        </div>
-      </Shine>
-
-      {/* Text */}
-      <div className="pt-1">
-        <HeadingReveal
-          as="h3"
-          className={cn("text-xl font-semibold", active && "text-primary")}
-        >
-          {title}
-        </HeadingReveal>
-
-        <FadeInView
-          as="p"
-          className="mt-2 text-muted-foreground"
-          delay={0.05}
-        >
-          {description}
-        </FadeInView>
+      <div
+        aria-hidden="true"
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white"
+      >
+        <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-    </div>
+
+      <h3 className="relative mt-4 font-display text-lg font-bold text-primary">
+        {title}
+      </h3>
+
+      <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+    </article>
   )
 }
 
