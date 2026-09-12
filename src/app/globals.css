@@ -1176,6 +1176,13 @@ html[dir="rtl"] {
   50%      { opacity: 0.45; }
 }
 
+/* Slow ambient opacity breath for decorative auth dot grids */
+@keyframes ambient-breathe {
+  0%, 100% { opacity: var(--breathe-base, 0.35); }
+  30%      { opacity: calc(var(--breathe-base, 0.35) - 0.04); }
+  65%      { opacity: calc(var(--breathe-base, 0.35) + 0.09); }
+}
+
 /* Three-dot typing indicator, staggered via nth-child in §8 */
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }

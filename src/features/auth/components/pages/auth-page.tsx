@@ -5,15 +5,15 @@ import { useSelector } from "react-redux"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { Container } from "@/shared/components/ui/Container"
-import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { AuthForm } from "../AuthForm"
+import { AuthBrandPanel } from "../AuthBrandPanel"
 import type { RootState } from "@/redux/store"
 
 function AuthPage() {
-  const t = useTranslations("auth")
   const router = useRouter()
   const onboarding = useSelector((state: RootState) => state.onboarding)
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const t = useTranslations("footer")
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -27,24 +27,20 @@ function AuthPage() {
   if (isAuthenticated) return null
 
   return (
-    <Container className="py-16">
-      <div className="mx-auto max-w-sm text-center">
-        <FadeInView>
-          <h1 className="text-heading-md font-semibold text-foreground">
-            {t("welcomeTitle")}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {t("welcomeDescription")}
-          </p>
-        </FadeInView>
-
-        <div className="mt-10">
-          <FadeInView delay={0.1}>
+    <div className="relative flex flex-1 flex-col overflow-hidden py-8 text-[#12314D] md:py-12 lg:py-16">
+      <Container className="relative z-10 my-auto max-w-5xl">
+        <div className="grid overflow-hidden rounded-[24px] border border-slate-200/80 bg-white/95 shadow-[0_30px_70px_-20px_rgba(2,32,71,0.25)] backdrop-blur-md lg:min-h-[580px] lg:grid-cols-12">
+          <AuthBrandPanel />
+          <section className="p-8 sm:p-10 md:p-12 lg:col-span-7">
             <AuthForm />
-          </FadeInView>
+          </section>
         </div>
-      </div>
-    </Container>
+      </Container>
+
+      <footer className="relative z-10 mt-8 flex items-center justify-center border-t border-slate-200/60 pt-5">
+        <p className="text-xs text-slate-400">{t("copyright")}</p>
+      </footer>
+    </div>
   )
 }
 
