@@ -1,0 +1,161 @@
+name: ai-mentor-backend
+
+x-app-service: &app-service
+  image: ai-mentor-backend:development
+  build:
+    context: .
+    target: development
+  env_file:
+    - .env.docker
+  user: www-data
+  volumes:
+    - ./:/var/www/html
+    - bootstrap_cache:/var/www/html/bootstrap/cache
+    - storage_data:/var/www/html/storage
+    - vendor_data:/var/www/html/vendor
+  networks:
+    - backend
+  restart: unless-stopped
+  stop_grace_period: 30s
+
+x-runtime-dependencies: &runtime-dependencies
+  setup:
+    condition: service_completed_successfully
+  migrate:
+    condition: service_completed_successfully
+  mysql:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+
+services:
+  setup:
+    <<: *app-service
+    command:
+      - composer
+      - install
+      - --no-interaction
+      - --prefer-dist
+      - --no-progress
+    networks:
+      - tooling
+    healthcheck:
+      disable: true
+    restart: "no"
+
+  migrate:
+    <<: *app-service
+    command:
+      - sh
+      - -lc
+      - php artisan migrate --force && php artisan db:seed --force
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: "no"
+
+  app:
+    <<: *app-service
+    networks:
+      - backend
+      - tooling
+    ports:
+      - "8000:8080"
+    depends_on: *runtime-dependencies
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl --insecure --silent --location --show-error --fail http://127.0.0.1:8080/api/v1/health >/dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  horizon:
+    <<: *app-service
+    command:
+      - php
+      - artisan
+      - horizon
+    depends_on: *runtime-dependencies
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - php artisan horizon:status >/dev/null 2>&1
+      interval: 15s
+      timeout: 10s
+      retries: 6
+      start_period: 20s
+
+  scheduler:
+    <<: *app-service
+    command:
+      - php
+      - artisan
+      - schedule:work
+    depends_on: *runtime-dependencies
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pgrep -f "[a]rtisan schedule:work" >/dev/null
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  mysql:
+    image: mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
+    env_file:
+      - .env.docker
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping --host=127.0.0.1 --user=root --password="$$MYSQL_ROOT_PASSWORD" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  redis:
+    image: redis:7.4-alpine@sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+volumes:
+  bootstrap_cache:
+  mysql_data:
+  redis_data:
+  storage_data:
+  vendor_data:
+
+networks:
+  backend:
+    internal: true
+  tooling:
