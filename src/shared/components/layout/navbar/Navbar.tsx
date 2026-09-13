@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { LogOut } from "lucide-react"
+import { Home, LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
@@ -13,7 +13,7 @@ import { NavLinks } from "./NavLinks"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 import { useT } from "@/shared/hooks/useT"
-import { useRouter } from "@/i18n/navigation"
+import { usePathname, useRouter } from "@/i18n/navigation"
 import { logout } from "@/redux/slices/authSlice"
 import type { RootState, AppDispatch } from "@/redux/store"
 
@@ -31,6 +31,8 @@ function Navbar() {
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const t = useT("nav")
+  const pathname = usePathname()
+  const isAuth = typeof pathname === "string" && pathname.startsWith("/auth")
 
   const navLinks: NavLink[] = [
     { href: "/", label: t("home", "Home") },
@@ -139,41 +141,50 @@ function Navbar() {
           <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-5">
             <Logo />
 
-            <nav
-              aria-label={t("mainNavigation", "Main navigation")}
-              className="hidden items-center gap-1 sm:flex"
-            >
-              {navLinks.map((link) => (
-                <NavLinks
-                  key={link.label}
-                  link={link}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                />
-              ))}
-            </nav>
+            {!isAuth && (
+              <nav
+                aria-label={t("mainNavigation", "Main navigation")}
+                className="hidden items-center gap-1 sm:flex"
+              >
+                {navLinks.map((link) => (
+                  <NavLinks
+                    key={link.label}
+                    link={link}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                  />
+                ))}
+              </nav>
+            )}
 
             <div className="hidden items-center gap-2 sm:flex">
               <LanguageSwitcher />
               <ThemeToggle />
-              {isAuthenticated ? (
-                <Button variant="secondary" size="sm" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4" />
-                  {t("logout", "Logout")}
+              {isAuth && (
+                <Button variant="secondary" size="sm" href="/">
+                  <Home className="h-4 w-4" aria-hidden="true" />
+                  {t("home", "Home")}
                 </Button>
-              ) : (
-                <>
-                  <Button variant="secondary" size="sm" href="/auth">
-                    {t("signIn", "Sign In")}
-                  </Button>
-                  <Button variant="primary" size="sm" href="/auth">
-                    {t("startLearning", "Start Learning")}
-                  </Button>
-                </>
               )}
+              {!isAuth &&
+                (isAuthenticated ? (
+                  <Button variant="secondary" size="sm" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4" />
+                    {t("logout", "Logout")}
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="secondary" size="sm" href="/auth">
+                      {t("signIn", "Sign In")}
+                    </Button>
+                    <Button variant="primary" size="sm" href="/auth">
+                      {t("startLearning", "Start Learning")}
+                    </Button>
+                  </>
+                ))}
             </div>
 
             <div className="flex items-center gap-2 sm:hidden">
-              {!isAuthenticated && (
+              {!isAuth && !isAuthenticated && (
                 <Button variant="primary" size="sm" href="/auth">
                   {t("start", "Start")}
                 </Button>
@@ -193,42 +204,56 @@ function Navbar() {
             )}
           >
             <div className="flex flex-col gap-3 px-4 pb-4 pt-1">
-              {navLinks.map((link) => (
-                <NavLinks
-                  key={link.label}
-                  link={link}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  mobile
-                />
-              ))}
+              {!isAuth &&
+                navLinks.map((link) => (
+                  <NavLinks
+                    key={link.label}
+                    link={link}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    mobile
+                  />
+                ))}
+
+              {isAuth && (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  href="/"
+                  onClick={close}
+                >
+                  <Home className="h-4 w-4" aria-hidden="true" />
+                  {t("home", "Home")}
+                </Button>
+              )}
 
               <div className="mt-2 flex items-center gap-2">
                 <LanguageSwitcher mobile />
                 <ThemeToggle mobile />
               </div>
 
-              {isAuthenticated ? (
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => {
-                    close()
-                    handleLogout()
-                  }}
-                >
-                  <LogOut className="h-4 w-4" />
-                  {t("logout", "Logout")}
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  className="w-full"
-                  href="/auth"
-                  onClick={close}
-                >
-                  {t("startLearning", "Start Learning")}
-                </Button>
-              )}
+              {!isAuth &&
+                (isAuthenticated ? (
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={() => {
+                      close()
+                      handleLogout()
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t("logout", "Logout")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    href="/auth"
+                    onClick={close}
+                  >
+                    {t("startLearning", "Start Learning")}
+                  </Button>
+                ))}
             </div>
           </div>
         </div>
