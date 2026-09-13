@@ -15,7 +15,10 @@ function Footer() {
   const t = useT("footer")
   const pathname = usePathname()
 
-  if (typeof pathname === "string" && pathname.startsWith("/auth")) {
+  if (
+    typeof pathname === "string" &&
+    (pathname.startsWith("/auth") || pathname.startsWith("/dashboard"))
+  ) {
     return null
   }
 

@@ -121,6 +121,10 @@ function Navbar() {
     [mobileOpen, close]
   )
 
+  if (typeof pathname === "string" && pathname.startsWith("/dashboard")) {
+    return null
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full" onKeyDown={handleKeyDown}>
       <a
