@@ -11,6 +11,7 @@ interface InputFieldProps {
   multiline?: boolean
   rows?: number
   className?: string
+  inputClassName?: string
 }
 
 function InputField({
@@ -22,6 +23,7 @@ function InputField({
   multiline,
   rows = 4,
   className,
+  inputClassName,
 }: InputFieldProps) {
   return (
     <div className={cn("space-y-2", className)}>
@@ -34,7 +36,7 @@ function InputField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={rows}
-          className="input resize-none min-h-[120px]"
+          className={cn("input resize-none min-h-[120px]", inputClassName)}
         />
       ) : (
         <input
@@ -42,10 +44,14 @@ function InputField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="input"
+          className={cn("input", inputClassName)}
         />
       )}
-      {error && <p className="text-sm text-danger-500">{error}</p>}
+      {error && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

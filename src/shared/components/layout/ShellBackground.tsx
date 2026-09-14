@@ -13,11 +13,13 @@ interface ShellBackgroundProps {
 
 function ShellBackground({ children, decor }: ShellBackgroundProps) {
   const pathname = usePathname()
-  const isAuth = typeof pathname === "string" && pathname.startsWith("/auth")
+  const isAuthSurface =
+    typeof pathname === "string" &&
+    (pathname.startsWith("/auth") || pathname.startsWith("/onboarding"))
 
   return (
-    <div className={cn("flex flex-1 flex-col", isAuth && authSurface)}>
-      {isAuth && decor}
+    <div className={cn("flex flex-1 flex-col", isAuthSurface && authSurface)}>
+      {isAuthSurface && decor}
       {children}
     </div>
   )

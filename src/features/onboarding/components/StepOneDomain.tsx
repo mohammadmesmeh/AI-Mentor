@@ -5,13 +5,13 @@ import { useTranslations } from "next-intl"
 import { InputField } from "./components/InputField"
 import { StepNavigation } from "./components/StepNavigation"
 
-interface StepOneLearningGoalProps {
+interface StepOneDomainProps {
   value: string
   onChange: (value: string) => void
   onNext: () => void
 }
 
-function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalProps) {
+function StepOneDomain({ value, onChange, onNext }: StepOneDomainProps) {
   const t = useTranslations("onboarding")
   const [error, setError] = useState("")
 
@@ -27,12 +27,13 @@ function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalPro
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-heading-md font-semibold text-foreground">
+        <h1
+          className="font-display text-heading-md font-bold tracking-tight text-foreground outline-none sm:text-[26px]"
+          tabIndex={-1}
+        >
           {t("stepOneTitle")}
         </h1>
-        <p className="text-muted-foreground">
-          {t("stepOneDescription")}
-        </p>
+        <p className="text-muted-foreground">{t("stepOneDescription")}</p>
       </div>
       <InputField
         value={value}
@@ -41,16 +42,12 @@ function StepOneLearningGoal({ value, onChange, onNext }: StepOneLearningGoalPro
           if (error) setError("")
         }}
         placeholder={t("stepOnePlaceholder")}
-        multiline
-        rows={4}
         error={error}
+        inputClassName="p-4 rounded-xl"
       />
-      <StepNavigation
-        onContinue={handleContinue}
-        canContinue={!!value.trim()}
-      />
+      <StepNavigation onContinue={handleContinue} canContinue={!!value.trim()} />
     </div>
   )
 }
 
-export { StepOneLearningGoal, type StepOneLearningGoalProps }
+export { StepOneDomain, type StepOneDomainProps }

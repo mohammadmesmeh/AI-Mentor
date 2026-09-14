@@ -1,26 +1,28 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 export interface OnboardingData {
-  learningGoal: string
-  skillLevel: string
-  learningPreferences: string[]
+  domain: string
+  level: string | null
   timeCommitment: string
   timeCustomDescription: string
   successGoal: string
+  learningPreferences: string[]
 }
+
+export type SubmitStatus = "idle" | "submitting" | "succeeded" | "failed"
 
 interface OnboardingState {
   currentStep: number
-  learningGoal: string
-  skillLevel: string | null
-  learningPreferences: string[]
+  domain: string
+  level: string | null
   timeCommitment: string
   timeCustomDescription: string
   successGoal: string
+  learningPreferences: string[]
   isComplete: boolean
-  isGenerating: boolean
   roadmap: string[] | null
-  onboardingData: OnboardingData | null
+  submitStatus: SubmitStatus
+  submitError: string | null
 }
 
 function loadOnboardingComplete(): boolean {
@@ -34,16 +36,16 @@ function loadOnboardingComplete(): boolean {
 
 const initialState: OnboardingState = {
   currentStep: 1,
-  learningGoal: "",
-  skillLevel: null,
-  learningPreferences: [],
+  domain: "",
+  level: null,
   timeCommitment: "",
   timeCustomDescription: "",
   successGoal: "",
+  learningPreferences: [],
   isComplete: loadOnboardingComplete(),
-  isGenerating: false,
   roadmap: null,
-  onboardingData: null,
+  submitStatus: "idle",
+  submitError: null,
 }
 
 const onboardingSlice = createSlice({
@@ -59,31 +61,33 @@ const onboardingSlice = createSlice({
         Partial<
           Pick<
             OnboardingState,
-            | "learningGoal"
-            | "skillLevel"
-            | "learningPreferences"
+            | "domain"
+            | "level"
             | "timeCommitment"
             | "timeCustomDescription"
             | "successGoal"
+            | "learningPreferences"
           >
         >
       >
     ) {
       Object.assign(state, action.payload)
     },
-    setIsGenerating(state, action: PayloadAction<boolean>) {
-      state.isGenerating = action.payload
+    setSubmitStatus(state, action: PayloadAction<SubmitStatus>) {
+      state.submitStatus = action.payload
+      if (action.payload !== "failed") {
+        state.submitError = null
+      }
+    },
+    setSubmitError(state, action: PayloadAction<string | null>) {
+      state.submitError = action.payload
     },
     completeOnboarding(state) {
       state.isComplete = true
-      state.isGenerating = false
       try { localStorage.setItem("ai-mentor-onboarding-complete", "true") } catch {}
     },
     setRoadmap(state, action: PayloadAction<string[]>) {
       state.roadmap = action.payload
-    },
-    saveOnboardingData(state, action: PayloadAction<OnboardingData>) {
-      state.onboardingData = action.payload
     },
     resetOnboarding() {
       try { localStorage.removeItem("ai-mentor-onboarding-complete") } catch {}
@@ -95,10 +99,10 @@ const onboardingSlice = createSlice({
 export const {
   goToStep,
   setOnboardingData,
-  setIsGenerating,
+  setSubmitStatus,
+  setSubmitError,
   completeOnboarding,
   setRoadmap,
-  saveOnboardingData,
   resetOnboarding,
 } = onboardingSlice.actions
 

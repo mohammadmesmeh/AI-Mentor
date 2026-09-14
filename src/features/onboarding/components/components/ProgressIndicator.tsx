@@ -13,7 +13,11 @@ function ProgressIndicator({ currentStep, totalSteps }: ProgressIndicatorProps) 
   const t = useT("onboarding")
   return (
     <div className="flex flex-col items-center gap-3">
-      <span className="text-sm text-muted-foreground">
+      <span
+        className="mb-2.5 text-xs font-semibold text-muted-foreground"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {t("step", `Step ${currentStep} of ${totalSteps}`, { current: currentStep, total: totalSteps })}
       </span>
       <div className="flex items-center gap-2">

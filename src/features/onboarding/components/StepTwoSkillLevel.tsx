@@ -51,7 +51,10 @@ function StepTwoSkillLevel({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-heading-md font-semibold text-foreground">
+        <h1
+          className="font-display text-heading-md font-bold tracking-tight text-foreground outline-none"
+          tabIndex={-1}
+        >
           {t("stepTwoTitle")}
         </h1>
         <p className="text-muted-foreground">
@@ -72,7 +75,11 @@ function StepTwoSkillLevel({
           />
         ))}
       </div>
-      {error && <p className="text-sm text-danger-500">{error}</p>}
+      {error && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {error}
+        </p>
+      )}
       <StepNavigation
         onBack={onBack}
         onContinue={handleContinue}

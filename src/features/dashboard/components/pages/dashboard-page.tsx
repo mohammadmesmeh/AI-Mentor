@@ -43,8 +43,7 @@ function DashboardPage() {
   }
 
   const learnerName = auth.user?.name
-  const learningGoal =
-    onboarding.onboardingData?.learningGoal || onboarding.learningGoal
+  const learningGoal = onboarding.domain
   const stageTitles = onboarding.roadmap
   const stageCount = onboarding.roadmap.length
   const currentStageIndex = 0
