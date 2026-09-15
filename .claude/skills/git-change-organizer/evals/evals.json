@@ -1,0 +1,38 @@
+{
+  "skill_name": "git-change-organizer",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "My git status is a mess -- I've been heads-down for hours on a navbar dark mode toggle and there's a random footer copyright fix and some shared CSS tweaks mixed in too, plus I think I left a debug file lying around. Can you organize this into clean branches and PRs? I don't want to lose anything, and ask me if something's genuinely unclear -- otherwise just use your judgment.",
+      "expected_output": "Separate branches/commits for: the dark-mode-toggle feature, the footer copyright bugfix, and a decision (made or asked-about) on the ambiguous shared theme.css change and the stray debug file. All original changed files end up committed somewhere -- nothing silently dropped. PRs opened (or a clear, non-fatal explanation if gh isn't usable). No merge attempted. No destructive git operations against the original working tree.",
+      "files": [],
+      "expectations": [
+        "no_data_loss: every originally-changed path (Navbar.tsx, Footer.tsx, theme.css, DarkModeToggle.tsx, Footer.tsx.orig-debug) is committed on some branch, or its omission is explicitly explained",
+        "original_tree_preserved_or_explained: the original working tree's uncommitted changes are still present or their removal is explicitly explained",
+        "separates_feature_from_bugfix: the dark-mode-toggle change lands in a different commit/branch than the footer copyright fix",
+        "flags_ambiguous_file: the shared theme.css change is called out rather than silently dumped into one group",
+        "debug_leftover_handled_deliberately: the stray debug file is explicitly called out rather than silently committed as real code",
+        "no_destructive_git_ops: no reset --hard, checkout -- ., clean -f, or --force push",
+        "no_unrequested_merge: process stops at branch/PR creation",
+        "clean_commit_messages: every new commit has a specific, descriptive message",
+        "gh_unavailable_handled_gracefully: a non-GitHub remote is treated as an expected limitation, not a fatal error"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "I've got a pile of uncommitted changes in this repo -- a couple of unrelated bugfixes, half of a pagination feature, a deleted legacy file, and I think I also tweaked the CI workflow file at some point. Can you split these into separate PRs for me?",
+      "expected_output": "Independent bugfixes end up as separate commits/branches from the pagination feature and from the deleted-file cleanup. The CI workflow edit is treated deliberately (flagged/asked about or given its own clearly-labeled group) rather than folded silently into another PR. The deletion is preserved as a real deletion on its branch. All five original changes are accounted for. No merge attempted without being asked.",
+      "files": [],
+      "expectations": [
+        "no_data_loss: all five original changes are accounted for across the created branches",
+        "independent_bugfixes_separated: the two unrelated bugfixes end up in different commits/branches unless explicitly justified otherwise",
+        "feature_isolated: the pagination addition is in its own branch/commit",
+        "deletion_preserved: the legacy file's deletion is actually committed as a deletion, not lost or silently restored",
+        "ci_file_flagged: the CI workflow change is explicitly flagged or isolated, not silently folded into another commit",
+        "no_destructive_git_ops: no reset --hard, checkout -- ., clean -f, or --force push",
+        "no_unrequested_merge: process stops at branch/PR creation",
+        "clean_commit_messages: every new commit has a specific, descriptive message"
+      ]
+    }
+  ]
+}
