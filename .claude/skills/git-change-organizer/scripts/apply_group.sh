@@ -23,6 +23,10 @@
 
 set -uo pipefail
 
+# See snapshot.sh for why: never let git's default path-quoting for
+# non-ASCII/unusual filenames leak into anything this skill parses.
+git() { command git -c core.quotePath=false "$@"; }
+
 base=""
 branch=""
 paths_file=""
@@ -110,6 +114,14 @@ while IFS= read -r path; do
       else
         failed_log+=("$path (failed to apply deletion)")
       fi
+    else
+      # Neither present in the working tree nor in the worktree's base --
+      # this path from --paths-file doesn't correspond to anything real.
+      # Never let that pass silently (it's exactly how a mis-encoded path
+      # from an upstream listing could vanish without a trace): treat it
+      # as a failure so the caller sees it and check_coverage.sh's MISSING
+      # report has a matching explanation instead of a mystery.
+      failed_log+=("$path (not found in working tree or in base '$base' -- check for encoding/quoting issues in how this path was listed)")
     fi
   fi
 done < "$paths_file"

@@ -10,6 +10,15 @@
 
 set -euo pipefail
 
+# Git quotes "unusual" filenames (non-ASCII, spaces treated as special, etc.)
+# in most listing/diff output by default (core.quotePath=true), e.g. an
+# em-dash comes out as a C-style-escaped "\342\200\224" inside quotes rather
+# than the literal UTF-8 bytes. Every downstream script in this skill treats
+# paths as literal strings to open/copy/diff, so that escaping must never
+# leak into any list this skill produces -- force it off for every git call
+# here.
+git() { command git -c core.quotePath=false "$@"; }
+
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 

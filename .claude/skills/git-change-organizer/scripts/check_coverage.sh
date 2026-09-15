@@ -33,11 +33,15 @@ for b in "${branches[@]}"; do
     echo "ERROR: no manifest for branch '$b' at $m -- did apply_group.sh run (and succeed) for it?" >&2
     exit 1
   fi
-  sed "s|\$| $b|" "$m" >> "$all_committed"
+  # Tab-delimited, not space-appended: paths routinely contain spaces (this
+  # script once mis-handled exactly that by field-splitting on whitespace,
+  # which silently truncated any such path to its first word). A literal
+  # tab in a path is effectively never real, so it's a safe delimiter.
+  sed "s|\$|\t$b|" "$m" >> "$all_committed"
 done
 
-missing=$(comm -23 <(sort -u "$expected") <(awk '{print $1}' "$all_committed" | sort -u) || true)
-dup_paths=$(awk '{print $1}' "$all_committed" | sort | uniq -d || true)
+missing=$(comm -23 <(sort -u "$expected") <(cut -f1 "$all_committed" | sort -u) || true)
+dup_paths=$(cut -f1 "$all_committed" | sort | uniq -d || true)
 
 status=0
 
@@ -51,14 +55,14 @@ if [ -n "$dup_paths" ]; then
   echo "DUPLICATE -- these paths were committed to more than one branch:"
   while IFS= read -r p; do
     echo "  $p ->"
-    grep -F "$p " "$all_committed" | awk '{print "    "$2}'
+    awk -F'\t' -v p="$p" '$1 == p {print "    "$2}' "$all_committed"
   done <<< "$dup_paths"
   status=1
 fi
 
 if [ "$status" -eq 0 ]; then
   echo "OK -- every changed path is committed on exactly one branch:"
-  sort "$all_committed" | awk '{print "  "$1" -> "$2}'
+  sort "$all_committed" | awk -F'\t' '{print "  "$1" -> "$2}'
 fi
 
 exit $status
