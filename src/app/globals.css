@@ -53,10 +53,7 @@
   }
 
   html {
-    /* Dark هو الوضع الافتراضي: color-scheme يبقى dark حتى بدون أي
-       class على <html>، فمتصفح (scrollbars, form controls..) بيطابق
-       الهوية الغامقة فوراً، وما بصير "ومضة" فاتحة قبل ما JS يشتغل. */
-    color-scheme: dark;
+    color-scheme: light;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -68,7 +65,6 @@
     color-scheme: dark;
   }
 
-  /* .light: صنف صريح لما اليوزر يختار الوضع الفاتح يدويًا (عبر toggle) */
   html.light {
     color-scheme: light;
   }
@@ -178,10 +174,10 @@
   --color-accent-950: #3b0764;
 
   /* --- Color: Flat tokens (single-stop, named by role) --- */
-  --color-midnight:       #0a1930;   /* deep hero/sectional navy bg        */
-  --color-canvas:         #ffffff;   /* light-mode page canvas             */
-  --color-alt-bg:         #eff4fb;   /* light-mode alternating section bg  */
-  --color-light-blue-bg:  #deeafb;   /* light-blue callout / border tint   */
+  --color-midnight:       #0a1930;   /* deep hero/sectional navy bg (design.md #0A1930) */
+  --color-canvas:         #f8fafc;   /* light-mode page canvas (design.md #F8FAFC)      */
+  --color-alt-bg:         #f1f5f9;   /* light-mode alternating section bg (#F1F5F9)     */
+  --color-light-blue-bg:  #deeafb;   /* light-blue callout / border tint                */
   --color-light-blue-text:#1d4e89;   /* deep blue text on light-blue bg    */
   --color-text-muted:     #667085;   /* muted helper text (light mode)     */
   --color-success-green:  #10b981;   /* positive / complete / live states  */
@@ -280,15 +276,13 @@
   --font-weight-extrabold: 800;
   --font-weight-black:     900;
 
-  /* --- Radius ---
-     Semantic, not numeric — every consumer reaches for "card" or "pill",
-     never a raw pixel value. */
-  --radius-sm:   0.375rem; /* 6px  — checkboxes, small chips           */
-  --radius-md:   0.625rem; /* 10px — inputs, buttons, small badges     */
-  --radius-lg:   0.875rem; /* 14px — cards, dropdowns                  */
-  --radius-xl:   1.25rem;  /* 20px — modals, elevated panels           */
-  --radius-2xl:  1.75rem;  /* 28px — hero panels, premium containers   */
-  --radius-pill: 999px;    /* pills, avatars, status dots              */
+  /* --- Radius (aligned with design.md) --- */
+  --radius-sm:   0.25rem;  /* 4px  — checkboxes, small chips (design.md sm)      */
+  --radius-md:   0.5rem;   /* 8px  — inputs, standard buttons (design.md DEFAULT)*/
+  --radius-lg:   1rem;     /* 16px — cards, panels, modules (design.md lg)       */
+  --radius-xl:   1.5rem;   /* 24px — modals, elevated panels (design.md xl)      */
+  --radius-2xl:  2rem;     /* 32px — hero panels, large containers               */
+  --radius-pill: 9999px;   /* pills, avatars, status dots (design.md full)       */
 
   /* --- Shadows ---
      Each shadow is tuned for its elevation layer; deeper elevation gets a
@@ -353,6 +347,7 @@
   --color-surface:          var(--surface);
   --color-surface-card:     var(--surface-card);
   --color-surface-elevated: var(--surface-elevated);
+  --color-alt-bg:           var(--alt-bg);
 
   --color-text-primary:     var(--text-primary);
   --color-text-secondary:   var(--text-secondary);
@@ -397,19 +392,90 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.25);
+  --radius-md: calc(var(--radius) * 0.5);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
+  --radius-pill: 9999px;
 }
 
-/* :root, .dark: نفس القيم — Dark هو الوضع الافتراضي الحقيقي (يظهر حتى
-   بدون أي class على <html>)، و.dark محفوظة كمان بشكل صريح للتوافق مع
-   أي مكتبة theme-toggle (زي next-themes) بتضيف .dark يدويًا. */
+/* :root, .light: Default theme is light-mode-first as specified by design.md.
+   .dark provides the dark-mode override when toggled by ThemeToggle. */
 :root,
+.light {
+  --font-default:    var(--font-space);
+  --font-ui:         var(--font-inter);
+  --bg-base:          #f8fafc;  /* Main Canvas (design.md #F8FAFC) */
+  --surface:          #f1f5f9;  /* Alternating Section (design.md #F1F5F9) */
+  --surface-card:     #ffffff;  /* surface-container-lowest (design.md #FFFFFF) */
+  --surface-elevated: #ffffff;
+  --alt-bg:           #f1f5f9;  /* Alternating section bg (design.md #F1F5F9) */
+
+  --text-primary:   #0d1b2e;
+  --text-secondary: #475467;
+  --text-muted:     #667085;    /* Muted Text (design.md #667085) */
+  --text-inverse:   #fcfcfd;
+
+  --border-default: #e2e8f0;
+  --border-strong:  #c3c6ce;    /* outline-variant (design.md #C3C6CE) */
+
+  --overlay-scrim: rgb(16 18 22 / 45%);
+  --glass-bg: rgb(255 255 255 / 65%);
+  --glass-border: rgb(222 234 251 / 60%);
+  --scrollbar-thumb: var(--color-secondary-300);
+  --scrollbar-track: transparent;
+
+  /* Custom cursor — light mode */
+  --cursor-color:             var(--color-primary-500);
+  --cursor-glow:              0 0 12px 2px rgb(68 118 169 / 0.2);
+  --cursor-glow-color:        rgb(68 118 169 / 0.15);
+  --cursor-dot-size:          4px;
+  --cursor-ring-size:         28px;
+  --cursor-ring-hover-size:   44px;
+  --cursor-ring-pointer-size: 22px;
+  --cursor-ring-opacity:      0.45;
+  --cursor-ring-hover-opacity: 0.5;
+  --cursor-ring-pointer-opacity: 0.7;
+
+  /* Shadcn semantic tokens (light-first, aligned with design.md) */
+  --background: #f8fafc;        /* Main Canvas (design.md #F8FAFC) */
+  --foreground: #111c2d;        /* on-surface (design.md #111C2D) */
+  --card: #ffffff;              /* surface-container-lowest (design.md #FFFFFF) */
+  --card-foreground: #111c2d;   /* on-surface (design.md #111C2D) */
+  --popover: #ffffff;
+  --popover-foreground: #111c2d;
+  --primary: #12314d;           /* Primary Navy (design.md #12314D) */
+  --primary-foreground: #ffffff;/* on-primary (design.md #FFFFFF) */
+  --secondary: #deeafb;         /* Secondary / Azure tint */
+  --secondary-foreground: #1d4e89; /* Secondary Blue Text (design.md #1D4E89) */
+  --muted: #f1f5f9;             /* Alternating section (design.md #F1F5F9) */
+  --muted-foreground: #667085;  /* Muted Text (design.md #667085) */
+  --accent: #f3e8ff;            /* Accent Purple tint */
+  --accent-foreground: #7c3aed; /* Accent Purple (design.md #7C3AED) */
+  --destructive: #ba1a1a;       /* Error (design.md #BA1A1A) */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #12314d;              /* Primary Navy focus ring */
+  --chart-1: oklch(0.62 0.14 252);
+  --chart-2: oklch(0.52 0.11 252);
+  --chart-3: oklch(0.60 0.20 288);
+  --chart-4: oklch(0.55 0.14 210);
+  --chart-5: oklch(0.42 0.11 252);
+  --radius: 1rem;               /* 16px cards & panels (design.md lg) */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #111c2d;
+  --sidebar-primary: #12314d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #12314d;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #12314d;
+}
+
+/* .dark: Preserved dark theme override when activated via ThemeToggle */
 .dark {
   --font-default:    var(--font-space);
   --font-ui:         var(--font-inter);
@@ -417,6 +483,7 @@
   --surface:          #10141d;
   --surface-card:     #151a26;
   --surface-elevated: #1b2130;
+  --alt-bg:           #10141d;  /* dark-mode alternating section */
 
   --text-primary:   #f3f6fb;
   --text-secondary: #b6bdcb;
@@ -443,6 +510,7 @@
   --cursor-ring-opacity:        0.45;
   --cursor-ring-hover-opacity:  0.6;
   --cursor-ring-pointer-opacity: 0.7;
+
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -466,7 +534,7 @@
   --chart-3: oklch(0.62 0.18 288);
   --chart-4: oklch(0.55 0.13 210);
   --chart-5: oklch(0.45 0.10 252);
-  --radius: 0.625rem;
+  --radius: 1rem;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.55 0.10 252);
@@ -475,68 +543,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.55 0.10 252);
-}
-
-/* .light: الوضع الفاتح الثانوي — يفعّل فقط لما اليوزر يختاره صراحة
-   (toggle)، عكس الوضع القديم اللي كان :root نفسه هو الفاتح. */
-.light {
-  --font-default:    var(--font-space);
-  --font-ui:         var(--font-inter);
-  --bg-base:          #ffffff;
-  --surface:          #f6f8fc;
-  --surface-card:     #ffffff;
-  --surface-elevated: #ffffff;
-
-  --text-primary:   #0d1b2e;
-  --text-secondary: #475467;
-  --text-muted:     #667085;
-  --text-inverse:   #fcfcfd;
-
-  --border-default: #e3e8f0;
-  --border-strong:  #c6d0de;
-
-  --overlay-scrim: rgb(16 18 22 / 45%);
-  --glass-bg: rgb(255 255 255 / 65%);
-  --glass-border: rgb(222 234 251 / 60%);
-  --scrollbar-thumb: var(--color-secondary-300);
-  --scrollbar-track: transparent;
-
-  /* Custom cursor — light mode overrides */
-  --cursor-glow:              0 0 12px 2px rgb(68 118 169 / 0.2);
-  --cursor-glow-color:        rgb(68 118 169 / 0.15);
-  --cursor-ring-hover-opacity: 0.5;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.45 0.11 252);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.95 0.02 252);
-  --secondary-foreground: oklch(0.35 0.08 252);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.55 0.22 288);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.45 0.11 252);
-  --chart-1: oklch(0.62 0.14 252);
-  --chart-2: oklch(0.52 0.11 252);
-  --chart-3: oklch(0.60 0.20 288);
-  --chart-4: oklch(0.55 0.14 210);
-  --chart-5: oklch(0.42 0.11 252);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.45 0.11 252);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0.01 288);
-  --sidebar-accent-foreground: oklch(0.35 0.08 288);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.45 0.11 252);
 }
 
 /* RTL font switch — loaded via next/font and toggled by the `dir`

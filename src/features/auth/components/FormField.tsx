@@ -26,9 +26,9 @@ function FormField({ label, required = false, error, children }: FormFieldProps)
 
   return (
     <div className="space-y-2 text-start">
-      <label htmlFor={id} className="text-sm font-semibold text-[#12314D]">
+      <label htmlFor={id} className="text-sm font-semibold text-primary">
         {label}
-        {required && <span className="text-red-600"> *</span>}
+        {required && <span className="text-danger-500"> *</span>}
       </label>
       {control}
       {error && (

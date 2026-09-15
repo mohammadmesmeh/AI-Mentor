@@ -29,7 +29,7 @@ function BrandPanel() {
         <h2 className="mb-4 font-display text-2xl font-extrabold leading-[1.18] tracking-tight text-foreground uppercase sm:text-[26px]">
           {t("brandTitle")}
         </h2>
-        <p className="mb-6 text-smv leading-relaxed text-muted-foreground">
+        <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
           {t("brandDescription")}
         </p>
         <ul className="space-y-3.5 pt-2">

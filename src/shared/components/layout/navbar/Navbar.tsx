@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { Home, LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
@@ -17,6 +17,8 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { logout } from "@/redux/slices/authSlice"
 import type { RootState, AppDispatch } from "@/redux/store"
 
+import { useSurfaceTheme, type SurfaceTheme } from "@/shared/components/layout/ShellBackground"
+
 const SCROLL_OFFSET = 88
 
 type NavLink = {
@@ -24,7 +26,11 @@ type NavLink = {
   label: string
 }
 
-function Navbar() {
+interface NavbarProps {
+  navbarTheme?: SurfaceTheme
+}
+
+function Navbar({ navbarTheme }: NavbarProps = {}) {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
@@ -33,6 +39,18 @@ function Navbar() {
   const t = useT("nav")
   const pathname = usePathname()
   const isAuth = typeof pathname === "string" && pathname.startsWith("/auth")
+  const [isScrolled, setIsScrolled] = useState(false)
+  const surfaceTheme = useSurfaceTheme()
+  const activeSurfaceTheme = navbarTheme ?? surfaceTheme
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    handleScroll()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   const navLinks: NavLink[] = [
     { href: "/", label: t("home", "Home") },
@@ -125,8 +143,14 @@ function Navbar() {
     return null
   }
 
+  const topTransparent = !isScrolled && !mobileOpen
+  const isDarkTop = topTransparent && activeSurfaceTheme === "dark"
+
   return (
-    <header className="sticky top-0 z-50 w-full" onKeyDown={handleKeyDown}>
+    <header
+      className="sticky top-0 z-50 w-full pt-2.5 pb-1 sm:pt-3"
+      onKeyDown={handleKeyDown}
+    >
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-lg"
@@ -134,15 +158,24 @@ function Navbar() {
         {t("skipToContent", "Skip to main content")}
       </a>
 
-      <Container className="py-3">
+      <Container className="p-0 sm:px-5">
         <div
           className={cn(
-            "rounded-2xl border border-light-blue-bg/50 bg-white/40 backdrop-blur-xl",
-            "shadow-[0_8px_32px_-8px_rgba(18,49,77,0.15)]",
-            "dark:border-white/10 dark:bg-slate-900/60"
+            "border rounded-2xl mx-3 sm:mx-0 transition-all duration-300 ease-out motion-reduce:transition-none",
+            isScrolled || mobileOpen
+              ? cn(
+                  "border-light-blue-bg/60 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(18,49,77,0.15)] dark:border-white/10",
+                  mobileOpen ? "bg-white/95 dark:bg-slate-900/95" : "bg-white/75 dark:bg-slate-900/75"
+                )
+              : "border-transparent bg-transparent shadow-none backdrop-blur-0"
           )}
         >
-          <div className="flex h-14 items-center justify-between gap-3 px-4 sm:px-5">
+          <div
+            className={cn(
+              "flex h-14 items-center justify-between gap-3 px-4 sm:px-5",
+              isDarkTop && "dark"
+            )}
+          >
             <Logo />
 
             {!isAuth && (

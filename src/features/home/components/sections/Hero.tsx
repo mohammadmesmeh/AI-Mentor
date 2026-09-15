@@ -4,6 +4,7 @@ import { useRouter } from "@/i18n/navigation"
 import { Container } from "@/shared/components/ui/Container"
 import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
@@ -32,9 +33,14 @@ export function Hero() {
 
   return (
     <section
-      className="dark-section relative mx-auto mt-6 max-w-(--container-content) overflow-hidden rounded-2xl px-6 pb-20 pt-36 sm:mt-8 sm:rounded-3xl sm:pb-24"
+      className="dark-section relative w-full pt-6 pb-0 sm:pt-8"
       aria-labelledby="hero-heading"
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-full h-32 dark-section"
+      />
+      <div className="dark-section relative mx-3 max-w-(--container-content) overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.4)] px-6 pb-20 pt-24 sm:mx-6 sm:rounded-3xl sm:pb-24 sm:pt-28 lg:mx-auto">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="dot-grid absolute inset-0" aria-hidden="true" />
         <div
@@ -84,7 +90,7 @@ export function Hero() {
               onClick={() => router.push("/auth")}
               className={cn(
                 ctaBase,
-                "bg-primary text-primary-foreground shadow-md hover:bg-primary-700"
+                "dark bg-primary text-primary-foreground shadow-md hover:bg-primary/80"
               )}
             >
               {t("ctaPrimary", "Generate Free Roadmap")}
@@ -103,6 +109,9 @@ export function Hero() {
           </FadeInView>
         </div>
       </Container>
+      </div>
+
+      <SectionWave fillClassName="text-background" className="mt-8 sm:mt-12" />
     </section>
   )
 }

@@ -56,12 +56,16 @@ function GoogleSignInButton() {
         variant="secondary"
         disabled={isResolving}
         onClick={handleSignIn}
-        className="w-full border border-slate-200 bg-white py-2.5 text-[#12314D] shadow-sm hover:bg-slate-50 hover:scale-100 hover:shadow-sm"
+        className="w-full border border-border bg-card py-2.5 text-primary shadow-sm hover:bg-muted hover:scale-100 hover:shadow-sm"
       >
         <GoogleMark />
         {t("signInWithGoogle")}
       </Button>
-      {message && <p className="text-sm text-danger-500">{message}</p>}
+      {message && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {message}
+        </p>
+      )}
     </div>
   )
 }
