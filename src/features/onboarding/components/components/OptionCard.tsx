@@ -26,10 +26,13 @@ function OptionCard({
     <motion.button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={cn(
         "relative w-full rounded-xl border bg-card p-5 text-start shadow-sm transition-all duration-200 cursor-pointer",
-        "hover:border-primary/30 hover:shadow-md",
-        selected ? "border-primary/50 ring-1 ring-primary/20" : "border-border",
+        "hover:border-primary/40 hover:shadow-md",
+        selected
+          ? "border-primary/60 bg-primary/[0.05] ring-1 ring-primary/20"
+          : "border-border",
         className,
       )}
       whileTap={{ scale: 0.98 }}

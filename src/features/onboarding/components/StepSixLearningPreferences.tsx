@@ -5,23 +5,23 @@ import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
 
-interface StepThreeLearningPreferencesProps {
-  value: string[]
-  onChange: (value: string[]) => void
+interface StepSixLearningPreferencesProps {
+  preferences: string[]
+  onChangePreferences: (value: string[]) => void
   onNext: () => void
   onBack: () => void
 }
 
-function StepThreeLearningPreferences({
-  value,
-  onChange,
+function StepSixLearningPreferences({
+  preferences,
+  onChangePreferences,
   onNext,
   onBack,
-}: StepThreeLearningPreferencesProps) {
+}: StepSixLearningPreferencesProps) {
   const t = useTranslations("onboarding")
   const [error, setError] = useState("")
 
-  const preferences = [
+  const preferenceOptions = [
     { value: "hands-on", title: t("handsOn") },
     { value: "video", title: t("video") },
     { value: "reading", title: t("reading") },
@@ -29,16 +29,16 @@ function StepThreeLearningPreferences({
   ] as const
 
   const togglePreference = (pref: string) => {
-    if (value.includes(pref)) {
-      onChange(value.filter((v) => v !== pref))
-    } else {
-      onChange([...value, pref])
-    }
+    onChangePreferences(
+      preferences.includes(pref)
+        ? preferences.filter((v) => v !== pref)
+        : [...preferences, pref],
+    )
     if (error) setError("")
   }
 
   const handleContinue = () => {
-    if (value.length === 0) {
+    if (preferences.length === 0) {
       setError(t("stepThreeError"))
       return
     }
@@ -49,29 +49,36 @@ function StepThreeLearningPreferences({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-heading-md font-semibold text-foreground">
-          {t("stepThreeTitle")}
+        <h1
+          className="font-display text-heading-md font-bold tracking-tight text-foreground outline-none"
+          tabIndex={-1}
+        >
+          {t("stepFivePreferencesTitle")}
         </h1>
-        <p className="text-muted-foreground">{t("stepThreeDescription")}</p>
+        <p className="text-muted-foreground">{t("stepFivePreferencesDescription")}</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {preferences.map((pref) => (
+        {preferenceOptions.map((pref) => (
           <OptionCard
             key={pref.value}
             title={pref.title}
-            selected={value.includes(pref.value)}
+            selected={preferences.includes(pref.value)}
             onClick={() => togglePreference(pref.value)}
           />
         ))}
       </div>
-      {error && <p className="text-sm text-danger-500">{error}</p>}
+      {error && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {error}
+        </p>
+      )}
       <StepNavigation
         onBack={onBack}
         onContinue={handleContinue}
-        canContinue={value.length > 0}
+        canContinue={preferences.length > 0}
       />
     </div>
   )
 }
 
-export { StepThreeLearningPreferences, type StepThreeLearningPreferencesProps }
+export { StepSixLearningPreferences, type StepSixLearningPreferencesProps }

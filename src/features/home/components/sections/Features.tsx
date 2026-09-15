@@ -6,6 +6,7 @@ import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { useT } from "@/shared/hooks/useT"
 import { FeatureCard } from "@/shared/components/ui/FeatureCard"
+import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { cn } from "@/lib/utils"
 
 const features = [
@@ -34,7 +35,7 @@ export function Features() {
   return (
     <section
       id="features"
-      className="py-24"
+      className="relative overflow-hidden bg-alt-bg pt-20 pb-0 sm:pt-24"
       aria-labelledby="features-heading"
     >
       <Container>
@@ -79,6 +80,8 @@ export function Features() {
           ))}
         </div>
       </Container>
+
+      <SectionWave fillClassName="text-midnight" className="mt-16 sm:mt-20" />
     </section>
   )
 }

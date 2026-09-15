@@ -1,42 +1,46 @@
 "use client"
 
-import { useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
+import { useEffect, useRef } from "react"
 import { useLocale } from "next-intl"
 import { AnimatePresence, motion } from "framer-motion"
-import { useRouter } from "@/i18n/navigation"
+import { useDispatch, useSelector } from "react-redux"
 import {
   goToStep,
   setOnboardingData,
-  setIsGenerating,
+  setSubmitStatus,
+  setSubmitError,
   completeOnboarding,
-  saveOnboardingData,
+  type OnboardingData,
+  type SubmitStatus,
 } from "@/redux/slices/onboardingSlice"
-import type { OnboardingData } from "@/redux/slices/onboardingSlice"
 import type { RootState } from "@/redux/store"
+import { onboardingService } from "../../services/onboardingService"
 import { OnboardingLayout } from "../OnboardingLayout"
-import { StepOneLearningGoal } from "../StepOneLearningGoal"
+import { StepOneDomain } from "../StepOneDomain"
 import { StepTwoSkillLevel } from "../StepTwoSkillLevel"
-import { StepThreeLearningPreferences } from "../StepThreeLearningPreferences"
-import { StepFourTimeCommitment } from "../StepFourTimeCommitment"
-import { StepFiveSuccessGoal } from "../StepFiveSuccessGoal"
-import { RoadmapGeneration } from "../RoadmapGeneration"
+import { StepThreeTimeCommitment } from "../StepThreeTimeCommitment"
+import { StepFourSuccessGoal } from "../StepFourSuccessGoal"
+import { StepSixLearningPreferences } from "../StepSixLearningPreferences"
+import { StepSevenReview } from "../StepSevenReview"
 
 function OnboardingPage() {
   const dispatch = useDispatch()
-  const router = useRouter()
   const locale = useLocale()
   const onboarding = useSelector((state: RootState) => state.onboarding)
-  const { currentStep, isGenerating, isComplete } = onboarding
+  const { currentStep, submitStatus, isComplete } = onboarding
+  const stepRegionRef = useRef<HTMLDivElement>(null)
+
+  const showSuccess = submitStatus === "succeeded" || isComplete
 
   useEffect(() => {
-    if (isComplete) {
-      router.push("/dashboard")
-    }
-  }, [isComplete, router])
+    const id = window.setTimeout(() => {
+      stepRegionRef.current?.querySelector("h1")?.focus()
+    }, 320)
+    return () => window.clearTimeout(id)
+  }, [currentStep, showSuccess])
 
   const handleNext = () => {
-    if (currentStep < 5) {
+    if (currentStep < 6) {
       dispatch(goToStep(currentStep + 1))
     }
   }
@@ -51,61 +55,73 @@ function OnboardingPage() {
     dispatch(setOnboardingData({ [field]: value } as never))
   }
 
-  const handleGenerate = () => {
-    dispatch(setIsGenerating(true))
-    // TODO: Replace with Gemini roadmap generation API
-    setTimeout(() => {
-      const onboardingData: OnboardingData = {
-        learningGoal: onboarding.learningGoal,
-        skillLevel: onboarding.skillLevel ?? "",
-        learningPreferences: onboarding.learningPreferences,
-        timeCommitment: onboarding.timeCommitment,
-        timeCustomDescription: onboarding.timeCustomDescription,
-        successGoal: onboarding.successGoal,
+  const handleEdit = (step: number) => {
+    dispatch(goToStep(step))
+  }
+
+  const handleSubmit = async () => {
+    if (submitStatus === "submitting") {
+      return
+    }
+    dispatch(setSubmitStatus("submitting"))
+    const answers: OnboardingData = {
+      domain: onboarding.domain,
+      level: onboarding.level,
+      timeCommitment: onboarding.timeCommitment,
+      timeCustomDescription: onboarding.timeCustomDescription,
+      successGoal: onboarding.successGoal,
+      learningPreferences: onboarding.learningPreferences,
+    }
+    try {
+      const result = await onboardingService.submitOnboarding(answers)
+      if (result.status === "not-connected") {
+        dispatch(setSubmitStatus("failed"))
+        dispatch(setSubmitError("stepSixErrorNotConnected"))
+        return
       }
-      dispatch(saveOnboardingData(onboardingData))
+      dispatch(setSubmitStatus("succeeded"))
       dispatch(completeOnboarding())
-    }, 3000)
+    } catch {
+      dispatch(setSubmitStatus("failed"))
+      dispatch(setSubmitError("stepSixErrorNotConnected"))
+    }
   }
 
-  if (isComplete) {
-    return null
-  }
-
-  if (isGenerating) {
-    return (
-      <div className="flex min-h-[80vh] items-center justify-center">
-        <RoadmapGeneration />
-      </div>
-    )
-  }
+  const reviewStep = (status: SubmitStatus) => (
+    <StepSevenReview
+      domain={onboarding.domain}
+      level={onboarding.level}
+      timeCommitment={onboarding.timeCommitment}
+      timeCustomDescription={onboarding.timeCustomDescription}
+      successGoal={onboarding.successGoal}
+      preferences={onboarding.learningPreferences}
+      status={status}
+      error={onboarding.submitError}
+      onEdit={handleEdit}
+      onSubmit={handleSubmit}
+      onRetry={handleSubmit}
+      onBack={handleBack}
+    />
+  )
 
   const steps: Record<number, React.ReactNode> = {
     1: (
-      <StepOneLearningGoal
-        value={onboarding.learningGoal}
-        onChange={(v) => handleUpdate("learningGoal", v)}
+      <StepOneDomain
+        value={onboarding.domain}
+        onChange={(v) => handleUpdate("domain", v)}
         onNext={handleNext}
       />
     ),
     2: (
       <StepTwoSkillLevel
-        value={onboarding.skillLevel}
-        onChange={(v) => handleUpdate("skillLevel", v)}
+        value={onboarding.level}
+        onChange={(v) => handleUpdate("level", v)}
         onNext={handleNext}
         onBack={handleBack}
       />
     ),
     3: (
-      <StepThreeLearningPreferences
-        value={onboarding.learningPreferences}
-        onChange={(v) => handleUpdate("learningPreferences", v)}
-        onNext={handleNext}
-        onBack={handleBack}
-      />
-    ),
-    4: (
-      <StepFourTimeCommitment
+      <StepThreeTimeCommitment
         value={onboarding.timeCommitment}
         customDescription={onboarding.timeCustomDescription}
         onChange={(v) => handleUpdate("timeCommitment", v)}
@@ -114,28 +130,37 @@ function OnboardingPage() {
         onBack={handleBack}
       />
     ),
-    5: (
-      <StepFiveSuccessGoal
+    4: (
+      <StepFourSuccessGoal
         value={onboarding.successGoal}
         onChange={(v) => handleUpdate("successGoal", v)}
-        onGenerate={handleGenerate}
+        onNext={handleNext}
         onBack={handleBack}
-        allData={onboarding}
       />
     ),
+    5: (
+      <StepSixLearningPreferences
+        preferences={onboarding.learningPreferences}
+        onChangePreferences={(v) => handleUpdate("learningPreferences", v)}
+        onNext={handleNext}
+        onBack={handleBack}
+      />
+    ),
+    6: reviewStep(onboarding.submitStatus),
   }
 
   return (
-    <OnboardingLayout currentStep={currentStep} totalSteps={5}>
+    <OnboardingLayout currentStep={currentStep} totalSteps={6}>
       <AnimatePresence mode="wait">
         <motion.div
-          key={currentStep}
+          ref={stepRegionRef}
+          key={showSuccess ? "success" : currentStep}
           initial={{ opacity: 0, x: locale === "ar" ? -24 : 24 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: locale === "ar" ? 24 : -24 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
-          {steps[currentStep]}
+          {showSuccess ? reviewStep("succeeded") : steps[currentStep]}
         </motion.div>
       </AnimatePresence>
     </OnboardingLayout>

@@ -22,7 +22,6 @@ export function CTA() {
       aria-labelledby="cta-heading"
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute -top-40 left-1/2 h-[420px] w-[680px] -translate-x-1/2 rounded-full bg-primary-500/15 blur-[120px]" />
         <div className="absolute -bottom-32 end-[10%] h-[320px] w-[320px] rounded-full bg-accent-500/10 blur-[100px]" />
       </div>
 
@@ -61,7 +60,7 @@ export function CTA() {
               onClick={() => router.push("/auth")}
               className={cn(
                 ctaBase,
-                "w-full bg-primary text-primary-foreground shadow-md hover:bg-primary-700 sm:w-auto sm:px-10"
+                "dark w-full bg-primary text-primary-foreground shadow-md hover:bg-primary/80 sm:w-auto sm:px-10"
               )}
             >
               {t("button", "Start Learning Free")}

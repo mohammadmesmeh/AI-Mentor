@@ -3,6 +3,7 @@ import { Container } from "@/shared/components/ui/Container"
 import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { StepCard } from "@/shared/components/ui/StepCard"
+import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
@@ -54,7 +55,7 @@ export const HowItWork = () => {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden py-24"
+      className="relative overflow-hidden bg-background pt-10 pb-0 sm:pt-14 lg:pt-16"
       aria-labelledby="how-it-works-heading"
     >
       <Container>
@@ -108,6 +109,8 @@ export const HowItWork = () => {
           ))}
         </ul>
       </Container>
+
+      <SectionWave fillClassName="text-alt-bg" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }

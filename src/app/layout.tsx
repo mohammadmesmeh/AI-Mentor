@@ -66,7 +66,7 @@ export default async function RootLayout({
 
   const cookieStore = await cookies();
   const themeCookie = cookieStore.get("ai-mentor-theme");
-  const theme = themeCookie?.value === "light" ? "light" : "dark";
+  const theme = themeCookie?.value === "dark" ? "dark" : "light";
 
   return (
     <html

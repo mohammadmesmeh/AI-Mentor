@@ -6,7 +6,7 @@ import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
 import { InputField } from "./components/InputField"
 
-interface StepFourTimeCommitmentProps {
+interface StepThreeTimeCommitmentProps {
   value: string
   customDescription: string
   onChange: (value: string) => void
@@ -15,14 +15,14 @@ interface StepFourTimeCommitmentProps {
   onBack: () => void
 }
 
-function StepFourTimeCommitment({
+function StepThreeTimeCommitment({
   value,
   customDescription,
   onChange,
   onCustomChange,
   onNext,
   onBack,
-}: StepFourTimeCommitmentProps) {
+}: StepThreeTimeCommitmentProps) {
   const t = useTranslations("onboarding")
   const [error, setError] = useState("")
 
@@ -50,7 +50,10 @@ function StepFourTimeCommitment({
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-heading-md font-semibold text-foreground">
+        <h1
+          className="font-display text-heading-md font-bold tracking-tight text-foreground outline-none"
+          tabIndex={-1}
+        >
           {t("stepFourTitle")}
         </h1>
       </div>
@@ -77,7 +80,11 @@ function StepFourTimeCommitment({
           </OptionCard>
         ))}
       </div>
-      {error && <p className="text-sm text-danger-500">{error}</p>}
+      {error && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {error}
+        </p>
+      )}
       <StepNavigation
         onBack={onBack}
         onContinue={handleContinue}
@@ -87,4 +94,4 @@ function StepFourTimeCommitment({
   )
 }
 
-export { StepFourTimeCommitment, type StepFourTimeCommitmentProps }
+export { StepThreeTimeCommitment, type StepThreeTimeCommitmentProps }

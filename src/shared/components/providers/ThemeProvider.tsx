@@ -28,10 +28,10 @@ function setCookie(name: string, value: string, days: number) {
 }
 
 function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark"
+  if (typeof window === "undefined") return "light"
   const stored = localStorage.getItem(STORAGE_KEY)
   if (stored === "dark" || stored === "light") return stored
-  return "dark"
+  return "light"
 }
 
 function applyTheme(theme: Theme) {
