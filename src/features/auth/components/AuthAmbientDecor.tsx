@@ -12,7 +12,7 @@ function AuthAmbientDecor() {
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0">
       <div
-        className="absolute left-0 top-0 h-80 w-80 animate-[ambient-breathe_10s_ease-in-out_infinite] opacity-35"
+        className="absolute start-0 top-0 h-80 w-80 animate-[ambient-breathe_10s_ease-in-out_infinite] opacity-35"
         style={
           {
             "--breathe-base": 0.35,
@@ -24,7 +24,7 @@ function AuthAmbientDecor() {
         }
       />
       <div
-        className="absolute bottom-0 right-0 h-96 w-96 animate-[ambient-breathe_13s_ease-in-out_infinite] opacity-40"
+        className="absolute bottom-0 end-0 h-96 w-96 animate-[ambient-breathe_13s_ease-in-out_infinite] opacity-40"
         style={
           {
             "--breathe-base": 0.4,

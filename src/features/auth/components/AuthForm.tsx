@@ -11,7 +11,7 @@ import type { AuthViewMode } from "../types/auth.types"
 import type { AppDispatch } from "@/redux/store"
 
 const linkClass =
-  "cursor-pointer rounded-sm text-sm font-semibold text-sky-600 underline-offset-4 hover:text-sky-700 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-sky-500/40"
+  "cursor-pointer rounded-sm text-sm font-semibold text-secondary-foreground underline-offset-4 hover:text-secondary-foreground/80 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 
 interface ViewHeader {
   title: string
@@ -41,16 +41,16 @@ function AuthForm() {
       </p>
 
       <header className="text-start">
-        <h2 className="text-2xl font-bold tracking-tight text-[#12314D] sm:text-3xl">
+        <h2 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
           {viewHeaders[viewMode].title}
         </h2>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-muted-foreground">
           {t("requiredFieldsLead")}{" "}
-          <span className="font-bold text-red-600">(*) </span>
+          <span className="font-bold text-danger-500">(*) </span>
           {t("requiredFieldsEnd")}
         </p>
         {viewHeaders[viewMode].description && (
-          <p className="mt-2 text-sm text-slate-500">{viewHeaders[viewMode].description}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{viewHeaders[viewMode].description}</p>
         )}
       </header>
 
@@ -61,15 +61,15 @@ function AuthForm() {
       </div>
 
       {viewMode === "sign-in" ? (
-        <div className="flex flex-col items-center gap-1 border-t border-slate-200/80 pt-6 text-center text-sm">
-          <p className="text-slate-600">{t("noEnterpriseCredentials")}</p>
+        <div className="flex flex-col items-center gap-1 border-t border-border pt-6 text-center text-sm">
+          <p className="text-muted-foreground">{t("noEnterpriseCredentials")}</p>
           <button type="button" onClick={() => switchView("create-account")} className={linkClass}>
             {t("applyEarlyAccess")}
             <span aria-hidden="true">→</span>
           </button>
         </div>
       ) : (
-        <div className="flex justify-center border-t border-slate-200/80 pt-6 text-center text-sm">
+        <div className="flex justify-center border-t border-border pt-6 text-center text-sm">
           <button type="button" onClick={() => switchView("sign-in")} className={linkClass}>
             {t("backToSignIn")}
           </button>

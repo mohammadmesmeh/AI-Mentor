@@ -5,24 +5,24 @@ function AuthBrandPanel() {
   const t = useTranslations("auth")
 
   return (
-    <aside className="flex flex-col justify-between gap-10 border-b border-slate-200/80 p-8 sm:p-10 md:p-12 lg:col-span-5 lg:border-b-0 lg:border-e lg:border-slate-200/80">
+    <aside className="flex flex-col justify-between gap-10 border-b border-border p-8 sm:p-10 md:col-span-5 md:border-b-0 md:border-e md:border-border md:p-12">
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#D5E8F7] bg-[#EDF6FC] px-4 py-1.5">
-          <Sun className="h-3.5 w-3.5 text-[#24618E]" aria-hidden="true" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#24618E]">
+        <div className="inline-flex items-center gap-2 rounded-full border border-light-blue-bg bg-light-blue-bg/60 px-4 py-1.5">
+          <Sun className="h-3.5 w-3.5 text-light-blue-text" aria-hidden="true" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-light-blue-text">
             {t("accessTitle")}
           </span>
         </div>
-        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-[#12314D] sm:text-5xl">
+        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-primary sm:text-5xl">
           {t("portalTitle")}
         </h1>
-        <p className="mt-4 max-w-sm text-sm leading-relaxed text-slate-500">
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
           {t("welcomeDescription")}
         </p>
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("findUsOn")}
         </p>
         <div className="flex items-center gap-2.5">
@@ -36,9 +36,9 @@ function AuthBrandPanel() {
             <GitHubIcon />
           </SocialTile>
         </div>
-        <p className="pt-1 text-xs text-slate-400">
+        <p className="pt-1 text-xs text-muted-foreground">
           <span className="font-medium uppercase tracking-wide">{t("contactUs")}</span>{" "}
-          <span className="font-medium text-slate-500">{t("supportEmail")}</span>
+          <span className="font-medium text-muted-foreground">{t("supportEmail")}</span>
         </p>
       </div>
     </aside>
@@ -50,7 +50,7 @@ function SocialTile({ label, children }: { label: string; children: React.ReactN
     <span
       role="img"
       aria-label={label}
-      className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-slate-500"
+      className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-muted-foreground"
     >
       {children}
     </span>

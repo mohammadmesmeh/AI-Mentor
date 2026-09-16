@@ -32,18 +32,22 @@ function RecoveryView() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           placeholder={t("emailPlaceholder")}
-          className="input border-[#E2E8F0] bg-[#F8FAFC]"
+          className="input border-border bg-background"
           autoComplete="email"
         />
       </FormField>
 
-      {message && <p className="text-sm text-danger-500">{message}</p>}
+      {message && (
+        <p className="text-sm text-danger-500" aria-live="polite">
+          {message}
+        </p>
+      )}
 
       <div className="flex justify-end">
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#617D94] px-6 py-2.5 text-white shadow-none hover:bg-[#4E677C] hover:scale-100 hover:shadow-none"
+          className="bg-primary px-6 py-2.5 text-primary-foreground shadow-none hover:bg-primary/80 hover:scale-100 hover:shadow-none"
         >
           {isSubmitting ? t("requestingReset") : t("requestReset")}
         </Button>
