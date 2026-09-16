@@ -51,4 +51,3 @@ function ShellBackground({ children, decor }: ShellBackgroundProps) {
 }
 
 export { ShellBackground }
-export { ShellBackground }

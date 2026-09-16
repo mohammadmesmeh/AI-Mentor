@@ -191,7 +191,7 @@ A learner on tablet or mobile gets an **intentional** adaptation — not a compr
 
 ### UI & Design Requirements
 
-- **DR-001**: The Dashboard MUST reuse the existing design system (Tailwind tokens, `Container`, `Button`, `Card`, existing nav patterns) and MUST NOT introduce global palette changes, new s, or new dependencies.
+- **DR-001**: The Dashboard MUST reuse the existing design system (Tailwind tokens, `Container`, `Button`, `Card`, existing nav patterns) and MUST NOT introduce global palette changes, new fonts, or new dependencies.
 - **DR-002**: Visual direction is white and very light blue surfaces, navy as the primary dark accent, subtle borders and shadows, soft blue accents, limited gradients, limited glassmorphism, no neon effects, no excessive glowing, and no decorative effects that compete with learning actions — mapped onto existing theme-aware tokens (e.g., primary/midnight navy family, `light-blue-bg`/`light-blue-text`, `bg-card`, `border-*`).
 - **DR-003**: **Theme conflict (documented decision, mirroring the auth-page precedent)**: the app default theme is dark while this direction is a light canvas. Existing architecture takes priority: the Dashboard MUST be built from theme-aware tokens so it remains fully readable and functional in the default dark theme AND the light theme. The design direction MUST NOT force a global theme and MUST NOT change the ThemeProvider default.
 - **DR-004**: Layout MUST be calm, premium, spacious, and low-card-count; the page MUST NOT assemble into an analytics dashboard or "dashboard clutter" of many small cards.
