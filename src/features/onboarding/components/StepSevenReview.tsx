@@ -9,15 +9,13 @@ import {
   buildCoreRows,
   buildPreferencesRow,
 } from "./components/ReviewSummary"
-import type { SubmitStatus } from "@/redux/slices/onboardingSlice"
+import type {
+  SubmitStatus,
+  OnboardingFormState,
+} from "@/redux/slices/onboardingSlice"
 
 interface StepSevenReviewProps {
-  domain: string
-  level: string | null
-  timeCommitment: string
-  timeCustomDescription: string
-  successGoal: string
-  preferences: string[]
+  form: OnboardingFormState
   status: SubmitStatus
   error: string | null
   onEdit: (step: number) => void
@@ -27,12 +25,7 @@ interface StepSevenReviewProps {
 }
 
 function StepSevenReview({
-  domain,
-  level,
-  timeCommitment,
-  timeCustomDescription,
-  successGoal,
-  preferences,
+  form,
   status,
   error,
   onEdit,
@@ -43,14 +36,8 @@ function StepSevenReview({
   const t = useTranslations("onboarding")
 
   const rows = [
-    ...buildCoreRows(t, {
-      domain,
-      level,
-      timeCommitment,
-      timeCustomDescription,
-      successGoal,
-    }),
-    buildPreferencesRow(t, preferences),
+    ...buildCoreRows(t, form),
+    buildPreferencesRow(t, form.preferences),
   ]
 
   if (status === "succeeded") {
@@ -96,7 +83,7 @@ function StepSevenReview({
               aria-hidden="true"
             />
             <p className="text-muted-foreground" aria-live="polite">
-              {t(error)}
+              {error}
             </p>
           </CardContent>
         </Card>

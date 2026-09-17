@@ -10,6 +10,9 @@ interface InputFieldProps {
   error?: string
   multiline?: boolean
   rows?: number
+  type?: "text" | "number"
+  min?: number
+  max?: number
   className?: string
   inputClassName?: string
 }
@@ -22,6 +25,9 @@ function InputField({
   error,
   multiline,
   rows = 4,
+  type = "text",
+  min,
+  max,
   className,
   inputClassName,
 }: InputFieldProps) {
@@ -40,8 +46,10 @@ function InputField({
         />
       ) : (
         <input
-          type="text"
+          type={type}
           value={value}
+          min={min}
+          max={max}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cn("input", inputClassName)}

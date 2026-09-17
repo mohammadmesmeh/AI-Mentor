@@ -2,45 +2,90 @@
 
 import { useEffect, useRef } from "react"
 import { useLocale } from "next-intl"
+import { useRouter } from "@/i18n/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { useDispatch, useSelector } from "react-redux"
 import {
   goToStep,
-  setOnboardingData,
+  updateForm,
+  updatePreferences,
+  hydrate,
   setSubmitStatus,
   setSubmitError,
-  completeOnboarding,
-  type OnboardingData,
   type SubmitStatus,
 } from "@/redux/slices/onboardingSlice"
 import type { RootState } from "@/redux/store"
-import { onboardingService } from "../../services/onboardingService"
+import {
+  useGetOnboardingStatusQuery,
+  useGetLearningProfileQuery,
+  useGetPreferencesQuery,
+  usePutLearningProfileMutation,
+} from "@/lib/api/apiSlice"
+import { toApiError } from "@/lib/api/errors"
 import { OnboardingLayout } from "../OnboardingLayout"
 import { StepOneDomain } from "../StepOneDomain"
 import { StepTwoSkillLevel } from "../StepTwoSkillLevel"
 import { StepThreeTimeCommitment } from "../StepThreeTimeCommitment"
 import { StepFourSuccessGoal } from "../StepFourSuccessGoal"
 import { StepSixLearningPreferences } from "../StepSixLearningPreferences"
+import { PreferencesStep } from "../PreferencesStep"
 import { StepSevenReview } from "../StepSevenReview"
+
+const TOTAL_STEPS = 7
 
 function OnboardingPage() {
   const dispatch = useDispatch()
+  const router = useRouter()
   const locale = useLocale()
   const onboarding = useSelector((state: RootState) => state.onboarding)
-  const { currentStep, submitStatus, isComplete } = onboarding
+  const { currentStep, form, preferences, submitStatus, submitError } = onboarding
   const stepRegionRef = useRef<HTMLDivElement>(null)
 
-  const showSuccess = submitStatus === "succeeded" || isComplete
+  const { data: preferencesQuery } = useGetPreferencesQuery()
+  const { data: profileQuery, isLoading: profileLoading } = useGetLearningProfileQuery()
+  const { data: onboardingQuery } = useGetOnboardingStatusQuery()
+  const [putLearningProfile] = usePutLearningProfileMutation()
+
+  useEffect(() => {
+    if (profileQuery === undefined && preferencesQuery === undefined && onboardingQuery === undefined) {
+      return
+    }
+    dispatch(
+      hydrate({
+        preferences: preferencesQuery ?? null,
+        learningProfile: profileQuery ?? null,
+        onboardingStatus: onboardingQuery ?? null,
+      })
+    )
+  }, [dispatch, preferencesQuery, profileQuery, onboardingQuery])
+
+  useEffect(() => {
+    if (onboardingQuery?.completed && submitStatus !== "succeeded") {
+      router.replace("/dashboard")
+    }
+  }, [onboardingQuery?.completed, submitStatus, router])
 
   useEffect(() => {
     const id = window.setTimeout(() => {
       stepRegionRef.current?.querySelector("h1")?.focus()
     }, 320)
     return () => window.clearTimeout(id)
-  }, [currentStep, showSuccess])
+  }, [currentStep, submitStatus])
+
+  const showSuccess = submitStatus === "succeeded"
+
+  useEffect(() => {
+    if (!showSuccess) {
+      return
+    }
+    const id = window.setTimeout(() => {
+      router.replace("/dashboard")
+    }, 1800)
+    return () => window.clearTimeout(id)
+  }, [showSuccess, router])
 
   const handleNext = () => {
-    if (currentStep < 6) {
+    if (currentStep < TOTAL_STEPS) {
       dispatch(goToStep(currentStep + 1))
     }
   }
@@ -51,10 +96,6 @@ function OnboardingPage() {
     }
   }
 
-  const handleUpdate = (field: string, value: unknown) => {
-    dispatch(setOnboardingData({ [field]: value } as never))
-  }
-
   const handleEdit = (step: number) => {
     dispatch(goToStep(step))
   }
@@ -63,40 +104,39 @@ function OnboardingPage() {
     if (submitStatus === "submitting") {
       return
     }
-    dispatch(setSubmitStatus("submitting"))
-    const answers: OnboardingData = {
-      domain: onboarding.domain,
-      level: onboarding.level,
-      timeCommitment: onboarding.timeCommitment,
-      timeCustomDescription: onboarding.timeCustomDescription,
-      successGoal: onboarding.successGoal,
-      learningPreferences: onboarding.learningPreferences,
-    }
-    try {
-      const result = await onboardingService.submitOnboarding(answers)
-      if (result.status === "not-connected") {
-        dispatch(setSubmitStatus("failed"))
-        dispatch(setSubmitError("stepSixErrorNotConnected"))
-        return
-      }
-      dispatch(setSubmitStatus("succeeded"))
-      dispatch(completeOnboarding())
-    } catch {
+    if (
+      !form.selfAssessedLevel ||
+      form.availableMinutesPerWeek === null ||
+      form.availableMinutesPerWeek === undefined ||
+      Number.isNaN(form.availableMinutesPerWeek) ||
+      form.preferredLearningMethods.length === 0
+    ) {
       dispatch(setSubmitStatus("failed"))
-      dispatch(setSubmitError("stepSixErrorNotConnected"))
+      dispatch(setSubmitError("stepSixSubmitFailed"))
+      return
+    }
+    dispatch(setSubmitStatus("submitting"))
+    try {
+      await putLearningProfile({
+        goal: form.goal.trim(),
+        selfAssessedLevel: form.selfAssessedLevel,
+        availableMinutesPerWeek: form.availableMinutesPerWeek,
+        desiredOutcome: form.desiredOutcome.trim(),
+        preferredLearningMethods: form.preferredLearningMethods,
+      }).unwrap()
+      dispatch(setSubmitStatus("succeeded"))
+    } catch (error) {
+      toApiError(error)
+      dispatch(setSubmitStatus("failed"))
+      dispatch(setSubmitError("stepSixSubmitFailed"))
     }
   }
 
   const reviewStep = (status: SubmitStatus) => (
     <StepSevenReview
-      domain={onboarding.domain}
-      level={onboarding.level}
-      timeCommitment={onboarding.timeCommitment}
-      timeCustomDescription={onboarding.timeCustomDescription}
-      successGoal={onboarding.successGoal}
-      preferences={onboarding.learningPreferences}
+      form={form}
       status={status}
-      error={onboarding.submitError}
+      error={submitError}
       onEdit={handleEdit}
       onSubmit={handleSubmit}
       onRetry={handleSubmit}
@@ -107,62 +147,74 @@ function OnboardingPage() {
   const steps: Record<number, React.ReactNode> = {
     1: (
       <StepOneDomain
-        value={onboarding.domain}
-        onChange={(v) => handleUpdate("domain", v)}
+        value={form.goal}
+        onChange={(v) => dispatch(updateForm({ goal: v }))}
         onNext={handleNext}
       />
     ),
     2: (
       <StepTwoSkillLevel
-        value={onboarding.level}
-        onChange={(v) => handleUpdate("level", v)}
+        value={form.selfAssessedLevel}
+        onChange={(v) => dispatch(updateForm({ selfAssessedLevel: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />
     ),
     3: (
       <StepThreeTimeCommitment
-        value={onboarding.timeCommitment}
-        customDescription={onboarding.timeCustomDescription}
-        onChange={(v) => handleUpdate("timeCommitment", v)}
-        onCustomChange={(v) => handleUpdate("timeCustomDescription", v)}
+        value={form.availableMinutesPerWeek}
+        onChange={(v) => dispatch(updateForm({ availableMinutesPerWeek: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />
     ),
     4: (
       <StepFourSuccessGoal
-        value={onboarding.successGoal}
-        onChange={(v) => handleUpdate("successGoal", v)}
+        value={form.desiredOutcome}
+        onChange={(v) => dispatch(updateForm({ desiredOutcome: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />
     ),
     5: (
       <StepSixLearningPreferences
-        preferences={onboarding.learningPreferences}
-        onChangePreferences={(v) => handleUpdate("learningPreferences", v)}
+        preferences={form.preferredLearningMethods}
+        onChangePreferences={(v) => dispatch(updateForm({ preferredLearningMethods: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />
     ),
-    6: reviewStep(onboarding.submitStatus),
+    6: (
+      <PreferencesStep
+        preferences={form.preferences}
+        onChange={(patch) => dispatch(updatePreferences(patch))}
+        onNext={handleNext}
+        onBack={handleBack}
+      />
+    ),
+    7: reviewStep(submitStatus),
   }
 
   return (
-    <OnboardingLayout currentStep={currentStep} totalSteps={6}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          ref={stepRegionRef}
-          key={showSuccess ? "success" : currentStep}
-          initial={{ opacity: 0, x: locale === "ar" ? -24 : 24 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: locale === "ar" ? 24 : -24 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        >
-          {showSuccess ? reviewStep("succeeded") : steps[currentStep]}
-        </motion.div>
-      </AnimatePresence>
+    <OnboardingLayout currentStep={currentStep} totalSteps={TOTAL_STEPS}>
+      {profileLoading && preferences === null ? (
+        <p className="py-8 text-center text-muted-foreground" aria-live="polite">
+          Loading…
+        </p>
+      ) : (
+        <AnimatePresence mode="wait">
+          <motion.div
+            ref={stepRegionRef}
+            key={showSuccess ? "success" : currentStep}
+            initial={{ opacity: 0, x: locale === "ar" ? -24 : 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: locale === "ar" ? 24 : -24 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {showSuccess ? reviewStep("succeeded") : steps[currentStep]}
+          </motion.div>
+        </AnimatePresence>
+      )}
     </OnboardingLayout>
   )
 }

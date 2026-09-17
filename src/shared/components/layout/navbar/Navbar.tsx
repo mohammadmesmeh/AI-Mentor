@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useSelector, useDispatch } from "react-redux"
+import { useSelector } from "react-redux"
 import { Home, LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
 import { Container } from "@/shared/components/ui/Container"
@@ -14,8 +14,8 @@ import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 import { useT } from "@/shared/hooks/useT"
 import { usePathname, useRouter } from "@/i18n/navigation"
-import { logout } from "@/redux/slices/authSlice"
-import type { RootState, AppDispatch } from "@/redux/store"
+import { useLogoutMutation } from "@/lib/api/apiSlice"
+import type { RootState } from "@/redux/store"
 
 import { useSurfaceTheme, type SurfaceTheme } from "@/shared/components/layout/ShellBackground"
 
@@ -31,8 +31,8 @@ interface NavbarProps {
 }
 
 function Navbar({ navbarTheme }: NavbarProps = {}) {
-  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
+  const [logout] = useLogoutMutation()
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const { isOpen: mobileOpen, toggle, close } = useMobileMenu()
   const mobileMenuRef = useRef<HTMLDivElement>(null)
@@ -61,7 +61,9 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
   ]
 
   const handleLogout = () => {
-    dispatch(logout())
+    // Local session is cleared synchronously inside the mutation's
+    // onQueryStarted (FR-006); navigating away must not wait on the network.
+    logout()
     router.push("/")
   }
 

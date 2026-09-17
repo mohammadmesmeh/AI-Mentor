@@ -4,10 +4,11 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
+import type { LearningMethod } from "@/lib/api/types"
 
 interface StepSixLearningPreferencesProps {
-  preferences: string[]
-  onChangePreferences: (value: string[]) => void
+  preferences: LearningMethod[]
+  onChangePreferences: (value: LearningMethod[]) => void
   onNext: () => void
   onBack: () => void
 }
@@ -22,13 +23,13 @@ function StepSixLearningPreferences({
   const [error, setError] = useState("")
 
   const preferenceOptions = [
-    { value: "hands-on", title: t("handsOn") },
-    { value: "video", title: t("video") },
-    { value: "reading", title: t("reading") },
-    { value: "quizzes", title: t("quizzes") },
+    { value: "hands_on_projects", title: t("handsOn") },
+    { value: "video_walkthroughs", title: t("video") },
+    { value: "reading_docs", title: t("reading") },
+    { value: "quizzes_drills", title: t("quizzes") },
   ] as const
 
-  const togglePreference = (pref: string) => {
+  const togglePreference = (pref: LearningMethod) => {
     onChangePreferences(
       preferences.includes(pref)
         ? preferences.filter((v) => v !== pref)

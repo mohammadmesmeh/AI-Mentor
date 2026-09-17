@@ -2,45 +2,35 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { OptionCard } from "./components/OptionCard"
-import { StepNavigation } from "./components/StepNavigation"
 import { InputField } from "./components/InputField"
+import { StepNavigation } from "./components/StepNavigation"
 
 interface StepThreeTimeCommitmentProps {
-  value: string
-  customDescription: string
-  onChange: (value: string) => void
-  onCustomChange: (value: string) => void
+  value: number | null
+  onChange: (value: number) => void
   onNext: () => void
   onBack: () => void
 }
 
+const MIN_MINUTES = 15
+const MAX_MINUTES = 10080
+
 function StepThreeTimeCommitment({
   value,
-  customDescription,
   onChange,
-  onCustomChange,
   onNext,
   onBack,
 }: StepThreeTimeCommitmentProps) {
   const t = useTranslations("onboarding")
   const [error, setError] = useState("")
 
-  const timeOptions = [
-    { value: "15-30", title: t("time15to30") },
-    { value: "30-60", title: t("time30to60") },
-    { value: "1-2", title: t("time1to2") },
-    { value: "weekends", title: t("timeWeekends") },
-    { value: "custom", title: t("timeCustom") },
-  ] as const
-
   const handleContinue = () => {
-    if (!value) {
-      setError(t("stepFourError"))
+    if (value === null || value === undefined) {
+      setError(t("minutesRequired"))
       return
     }
-    if (value === "custom" && !customDescription.trim()) {
-      setError(t("stepFourCustomError"))
+    if (Number.isNaN(value) || value < MIN_MINUTES || value > MAX_MINUTES) {
+      setError(t("minutesInvalid"))
       return
     }
     setError("")
@@ -56,39 +46,27 @@ function StepThreeTimeCommitment({
         >
           {t("stepFourTitle")}
         </h1>
+        <p className="text-sm text-muted-foreground">{t("minutesRangeHint")}</p>
       </div>
-      <div className="space-y-3">
-        {timeOptions.map((option) => (
-          <OptionCard
-            key={option.value}
-            title={option.title}
-            selected={value === option.value}
-            onClick={() => {
-              onChange(option.value)
-              if (error) setError("")
-            }}
-          >
-            {value === "custom" && option.value === "custom" && (
-              <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                <InputField
-                  value={customDescription}
-                  onChange={onCustomChange}
-                  placeholder={t("timeCustomPlaceholder")}
-                />
-              </div>
-            )}
-          </OptionCard>
-        ))}
-      </div>
-      {error && (
-        <p className="text-sm text-danger-500" aria-live="polite">
-          {error}
-        </p>
-      )}
+      <InputField
+        value={value === null ? "" : String(value)}
+        onChange={(v) => {
+          const parsed = v.trim() === "" ? NaN : Number(v)
+          onChange(parsed)
+          if (error) setError("")
+        }}
+        placeholder={t("minutesPerWeekPlaceholder")}
+        label={t("minutesPerWeek")}
+        type="number"
+        min={MIN_MINUTES}
+        max={MAX_MINUTES}
+        error={error}
+        inputClassName="p-4 rounded-xl"
+      />
       <StepNavigation
         onBack={onBack}
         onContinue={handleContinue}
-        canContinue={!!value}
+        canContinue={value !== null && !Number.isNaN(value) && value >= MIN_MINUTES && value <= MAX_MINUTES}
       />
     </div>
   )

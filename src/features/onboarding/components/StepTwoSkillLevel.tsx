@@ -4,10 +4,11 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
+import type { SelfAssessedLevel } from "@/lib/api/types"
 
 interface StepTwoSkillLevelProps {
-  value: string | null
-  onChange: (value: string) => void
+  value: SelfAssessedLevel | null
+  onChange: (value: SelfAssessedLevel) => void
   onNext: () => void
   onBack: () => void
 }
@@ -23,12 +24,12 @@ function StepTwoSkillLevel({
 
   const skillLevels = [
     {
-      value: "beginner",
+      value: "complete_beginner",
       title: t("beginner"),
       description: t("beginnerDesc"),
     },
     {
-      value: "some-experience",
+      value: "some_experience",
       title: t("someExperience"),
       description: t("someExperienceDesc"),
     },
