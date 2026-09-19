@@ -1,0 +1,130 @@
+"use client"
+
+import { ChevronRight } from "lucide-react"
+import { useId, useState } from "react"
+import { Container } from "@/shared/components/ui/Container"
+import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
+import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { SectionWave } from "@/shared/components/ui/SectionWave"
+import { useT } from "@/shared/hooks/useT"
+import { cn } from "@/lib/utils"
+
+const faqItemKeys = [
+  "multipleRoadmaps",
+  "whenMultipleRoadmaps",
+  "communityAvailable",
+  "moreAiModels",
+] as const
+
+export function FAQ() {
+  const t = useT("faq")
+
+  return (
+    <section
+      id="faq"
+      className="relative overflow-hidden bg-alt-bg pt-20 pb-0 sm:pt-24"
+      aria-labelledby="faq-heading"
+    >
+      <Container>
+        <div className="mx-auto max-w-3xl text-center">
+          <FadeInView as="div" delay={0.05}>
+            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
+              {t("badge", "Common Questions")}
+            </span>
+          </FadeInView>
+
+          <HeadingReveal
+            as="h2"
+            id="faq-heading"
+            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
+            delay={0.1}
+          >
+            {t("heading", "Frequently Asked Questions")}
+          </HeadingReveal>
+
+          <FadeInView as="p" className="mt-4 text-lg text-muted-foreground" delay={0.15}>
+            {t(
+              "subheading",
+              "Straight answers about what's available today and what's coming next."
+            )}
+          </FadeInView>
+        </div>
+
+        <FadeInView
+          as="div"
+          className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 pb-20 sm:pb-24"
+          delay={0.2}
+        >
+          {faqItemKeys.map((itemKey) => (
+            <FaqItem
+              key={itemKey}
+              question={t(`items.${itemKey}.question`, itemKey)}
+              answer={t(`items.${itemKey}.answer`, "")}
+            />
+          ))}
+        </FadeInView>
+      </Container>
+
+      <SectionWave fillClassName="text-midnight" className="mt-16 sm:mt-20" />
+    </section>
+  )
+}
+
+interface FaqItemProps {
+  question: string
+  answer: string
+}
+
+function FaqItem({ question, answer }: FaqItemProps) {
+  const [clicked, setClicked] = useState(false)
+  const [hovering, setHovering] = useState(false)
+  const id = useId()
+  const triggerId = `${id}-trigger`
+  const contentId = `${id}-content`
+  const isOpen = clicked || hovering
+
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-light-blue-bg/60 bg-light-blue-bg/40 backdrop-blur-md transition-colors duration-300"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+    >
+      <h3>
+        <button
+          type="button"
+          id={triggerId}
+          onClick={() => setClicked((prev) => !prev)}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-start font-display text-base font-bold text-primary sm:px-6 sm:py-5"
+        >
+          <span>{question}</span>
+          <ChevronRight
+            className={cn(
+              "h-4 w-4 shrink-0 text-primary transition-transform duration-300 ease-out",
+              isOpen ? "rotate-90" : "rtl:rotate-180"
+            )}
+            aria-hidden="true"
+          />
+        </button>
+      </h3>
+
+      <div
+        id={contentId}
+        role="region"
+        aria-labelledby={triggerId}
+        aria-hidden={!isOpen}
+        className={cn(
+          "grid transition-[grid-template-rows] duration-300 ease-out",
+          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        )}
+      >
+        <div className="overflow-hidden">
+          <p className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground sm:px-6 sm:pb-5">
+            {answer}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}

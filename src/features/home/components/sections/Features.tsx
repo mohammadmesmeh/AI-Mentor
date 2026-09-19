@@ -81,7 +81,7 @@ export function Features() {
         </div>
       </Container>
 
-      <SectionWave fillClassName="text-midnight" className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-background" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }
