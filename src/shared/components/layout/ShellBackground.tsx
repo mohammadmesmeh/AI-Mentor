@@ -11,7 +11,12 @@ const SurfaceThemeContext = createContext<SurfaceTheme>("dark")
 export const useSurfaceTheme = () => useContext(SurfaceThemeContext)
 
 const authSurface =
-  "relative flex flex-1 flex-col bg-[radial-gradient(85%_65%_at_50%_100%,#BFE7FC_0%,#D8F0FE_45%,#F0F8FF_75%,#FFFFFF_100%)]"
+  "relative flex flex-1 flex-col " +
+  "bg-[radial-gradient(85%_65%_at_50%_100%,#BFE7FC_0%,#D8F0FE_45%,#F0F8FF_75%,#FFFFFF_100%)] " +
+  // Same glow-rising-from-bottom shape, translated to the dark azure/navy
+  // scale (secondary-800 -> secondary-900 -> dark surface -> dark canvas)
+  // instead of collapsing to a flat dark color.
+  "dark:bg-[radial-gradient(85%_65%_at_50%_100%,#1b4579_0%,#173a66_45%,#10141d_75%,#0a0d14_100%)]"
 
 interface ShellBackgroundProps {
   children: React.ReactNode

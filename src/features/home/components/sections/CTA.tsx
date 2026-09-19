@@ -60,7 +60,7 @@ export function CTA() {
               onClick={() => router.push("/auth")}
               className={cn(
                 ctaBase,
-                "dark w-full bg-primary text-primary-foreground shadow-md hover:bg-primary/80 sm:w-auto sm:px-10"
+                "w-full bg-primary text-primary-foreground shadow-md hover:bg-primary/80 sm:w-auto sm:px-10"
               )}
             >
               {t("button", "Start Learning Free")}

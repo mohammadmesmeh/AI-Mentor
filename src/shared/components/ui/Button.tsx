@@ -11,8 +11,13 @@ const buttonVariants = cva(
       variant: {
         primary:
           "bg-primary text-primary-foreground hover:bg-primary/80 shadow-xs hover:shadow-md hover:shadow-primary/20 hover:scale-[1.02]",
+        // Solid navy-on-navy in dark mode barely separates from the page
+        // behind it, so dark mode trades the flat fill for a bordered glass
+        // surface instead — the border/blur read regardless of what's behind
+        // the button, where a fill color alone can't guarantee contrast.
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02]",
+          "border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02] " +
+          "dark:border-white/15 dark:bg-white/8 dark:text-secondary-foreground dark:shadow-none dark:backdrop-blur-md dark:hover:bg-white/14 dark:hover:shadow-none",
       },
       size: {
         default: "min-h-9 px-4 py-2",

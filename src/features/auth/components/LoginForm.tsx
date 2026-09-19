@@ -141,7 +141,7 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-primary px-6 py-2.5 text-primary-foreground shadow-none hover:bg-primary/80 hover:scale-100 hover:shadow-none"
+        className="w-full px-6 py-2.5"
       >
         {isLoading ? (
           <span className="flex items-center gap-2">

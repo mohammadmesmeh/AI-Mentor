@@ -348,6 +348,8 @@
   --color-surface-card:     var(--surface-card);
   --color-surface-elevated: var(--surface-elevated);
   --color-alt-bg:           var(--alt-bg);
+  --color-light-blue-bg:    var(--light-blue-bg);
+  --color-light-blue-text:  var(--light-blue-text);
 
   --color-text-primary:     var(--text-primary);
   --color-text-secondary:   var(--text-secondary);
@@ -413,6 +415,8 @@
   --surface-card:     #ffffff;  /* surface-container-lowest (design.md #FFFFFF) */
   --surface-elevated: #ffffff;
   --alt-bg:           #f1f5f9;  /* Alternating section bg (design.md #F1F5F9) */
+  --light-blue-bg:    #deeafb;  /* light-blue callout / border tint */
+  --light-blue-text:  #1d4e89;  /* deep blue text on light-blue bg */
 
   --text-primary:   #0d1b2e;
   --text-secondary: #475467;
@@ -484,6 +488,13 @@
   --surface-card:     #151a26;
   --surface-elevated: #1b2130;
   --alt-bg:           #10141d;  /* dark-mode alternating section */
+  /* Same azure hue as light's light-blue-bg/text, translated to a solid
+     dark-navy chip with a bright sky-blue foreground — the same treatment
+     already used by .badge-info for dark mode, applied to this token pair
+     since ~10 components (badges, FeatureCard/StepCard/Pricing/FAQ, the
+     Navbar pill border, AuthBrandPanel) consume it directly. */
+  --light-blue-bg:    var(--color-secondary-900);
+  --light-blue-text:  var(--color-secondary-300);
 
   --text-primary:   #f3f6fb;
   --text-secondary: #b6bdcb;
@@ -511,38 +522,62 @@
   --cursor-ring-hover-opacity:  0.6;
   --cursor-ring-pointer-opacity: 0.7;
 
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.55 0.10 252);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.30 0.03 252);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.48 0.17 288);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0.10 252);
+  /* Shadcn semantic tokens — derived from the custom dark palette above
+     (not the shadcn/ui default scaffold). Every component that consumes
+     bg-card/bg-primary/bg-secondary/bg-muted/bg-accent/border-border/ring
+     (buttons, shadcn Card, inputs via utility overrides, focus rings) must
+     resolve to the same navy/azure/purple dark palette as the rest of the
+     app instead of the generic gray scaffold shadcn ships by default. */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--surface-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-elevated);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--color-primary-500);      /* lightened from primary-900 so it reads against the near-black bg, same hue as --cursor-color/--shadow-focus */
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-secondary-900);
+  --secondary-foreground: var(--color-secondary-300);
+  --muted: var(--surface);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--color-accent-900);
+  --accent-foreground: var(--color-accent-300);
+  --destructive: var(--color-danger-500);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--color-primary-500);
   --chart-1: oklch(0.65 0.12 252);
   --chart-2: oklch(0.55 0.10 252);
   --chart-3: oklch(0.62 0.18 288);
   --chart-4: oklch(0.55 0.13 210);
   --chart-5: oklch(0.45 0.10 252);
   --radius: 1rem;
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.55 0.10 252);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.32 0.05 288);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.10 252);
+  --sidebar: var(--surface-card);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--color-primary-500);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--surface);
+  --sidebar-accent-foreground: var(--color-primary-500);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--color-primary-500);
+
+  /* Shadows — a black shadow at light-mode's 4-18% alpha is essentially
+     invisible against an already near-black surface, so cards/dropdowns/
+     the hero panel lose all sense of "lift." Same offsets/blur as light
+     (same elevation language), alpha raised ~3-4x so depth still reads. */
+  --shadow-card:
+    0 1px 2px rgb(0 0 0 / 20%),
+    0 2px 8px rgb(0 0 0 / 24%);
+  --shadow-dropdown:
+    0 4px 16px rgb(0 0 0 / 36%),
+    0 2px 6px rgb(0 0 0 / 24%);
+  --shadow-floating:
+    0 12px 32px rgb(0 0 0 / 45%),
+    0 4px 12px rgb(0 0 0 / 30%);
+  --shadow-hero:
+    0 24px 64px rgb(0 0 0 / 55%),
+    0 8px 24px rgb(0 0 0 / 35%);
+  --shadow-hover: 0 10px 24px rgb(0 0 0 / 40%);
 }
 
 /* RTL font switch — loaded via next/font and toggled by the `dir`
