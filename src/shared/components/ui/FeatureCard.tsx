@@ -17,7 +17,7 @@ function FeatureCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#DEEAFB]/60 bg-light-blue-bg/40 p-6 backdrop-blur-md before:pointer-events-none before:absolute before:-bottom-12 before:-end-12 before:content-[''] before:h-36 before:w-36 before:rounded-full before:bg-midnight before:opacity-[0.08] before:blur-[72px]",
+        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-light-blue-bg/60 bg-light-blue-bg/40 p-6 backdrop-blur-md before:pointer-events-none before:absolute before:-bottom-12 before:-end-12 before:content-[''] before:h-36 before:w-36 before:rounded-full before:bg-midnight before:opacity-[0.08] before:blur-[72px]",
         "transition-all duration-300 hover:-translate-y-1 hover:bg-light-blue-bg/60 hover:shadow-xl",
         "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:bg-light-blue-bg/40 motion-reduce:hover:shadow-none",
         className

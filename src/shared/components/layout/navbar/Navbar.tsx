@@ -166,8 +166,8 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
             "border rounded-2xl mx-3 sm:mx-0 transition-all duration-300 ease-out motion-reduce:transition-none",
             isScrolled || mobileOpen
               ? cn(
-                  "border-light-blue-bg/60 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(18,49,77,0.15)] dark:border-white/10",
-                  mobileOpen ? "bg-white/95 dark:bg-slate-900/95" : "bg-white/75 dark:bg-slate-900/75"
+                  "border-light-blue-bg/60 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(18,49,77,0.15)]",
+                  mobileOpen ? "bg-surface-elevated/95" : "bg-surface-elevated/75"
                 )
               : "border-transparent bg-transparent shadow-none backdrop-blur-0"
           )}

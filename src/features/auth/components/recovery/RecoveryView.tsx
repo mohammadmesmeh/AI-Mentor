@@ -47,7 +47,7 @@ function RecoveryView() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-primary px-6 py-2.5 text-primary-foreground shadow-none hover:bg-primary/80 hover:scale-100 hover:shadow-none"
+          className="px-6 py-2.5"
         >
           {isSubmitting ? t("requestingReset") : t("requestReset")}
         </Button>

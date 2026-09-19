@@ -90,7 +90,7 @@ export function Hero() {
               onClick={() => router.push("/auth")}
               className={cn(
                 ctaBase,
-                "dark bg-primary text-primary-foreground shadow-md hover:bg-primary/80"
+                "bg-primary text-primary-foreground shadow-md hover:bg-primary/80"
               )}
             >
               {t("ctaPrimary", "Generate Free Roadmap")}
@@ -101,7 +101,8 @@ export function Hero() {
               onClick={() => scrollToSection("#how-it-works")}
               className={cn(
                 ctaBase,
-                "bg-light-blue-bg text-light-blue-text hover:bg-light-blue-bg/90"
+                "border border-transparent bg-light-blue-bg text-light-blue-text hover:bg-light-blue-bg/90 " +
+                  "dark:border-white/15 dark:bg-white/8 dark:text-secondary-foreground dark:backdrop-blur-md dark:hover:bg-white/14"
               )}
             >
               {t("ctaSecondary", "Explore Curriculums")}
