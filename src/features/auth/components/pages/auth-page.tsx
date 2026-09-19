@@ -7,24 +7,16 @@ import { useRouter } from "@/i18n/navigation"
 import { Container } from "@/shared/components/ui/Container"
 import { AuthForm } from "../AuthForm"
 import { AuthBrandPanel } from "../AuthBrandPanel"
+import { useGetOnboardingStatusQuery } from "@/lib/api/apiSlice"
 import type { RootState } from "@/redux/store"
 
 function AuthPage() {
-  const router = useRouter()
-  const onboarding = useSelector((state: RootState) => state.onboarding)
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const t = useTranslations("footer")
 
-  useEffect(() => {
-    if (!isAuthenticated) return
-    if (onboarding.isComplete) {
-      router.push("/dashboard")
-    } else {
-      router.push("/onboarding")
-    }
-  }, [isAuthenticated, onboarding.isComplete, router])
-
-  if (isAuthenticated) return null
+  if (isAuthenticated) {
+    return <SessionRouter />
+  }
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden py-8 text-foreground md:py-12 lg:py-16">
@@ -42,6 +34,23 @@ function AuthPage() {
       </footer>
     </div>
   )
+}
+
+/**
+ * After a successful register/login the server's onboarding-status is the
+ * authoritative gate (FR-011): route to /onboarding until the learning profile
+ * is complete, then to the dashboard.
+ */
+function SessionRouter() {
+  const router = useRouter()
+  const { data: status, isLoading } = useGetOnboardingStatusQuery()
+
+  useEffect(() => {
+    if (isLoading) return
+    router.replace(status?.completed ? "/dashboard" : "/onboarding")
+  }, [status, isLoading, router])
+
+  return null
 }
 
 export { AuthPage }

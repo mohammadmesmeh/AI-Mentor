@@ -3,16 +3,15 @@
 import { useId, useState } from "react"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useDispatch, useSelector } from "react-redux"
 import { useTranslations } from "next-intl"
 import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/shared/components/ui/Button"
-import { login } from "@/redux/slices/authSlice"
+import { useLoginMutation } from "@/lib/api/apiSlice"
 import { loginSchema } from "../validation/loginSchema"
 import { FormField } from "./FormField"
 import { GoogleSignInButton } from "./social/GoogleSignInButton"
+import { authErrorKey } from "../lib/authErrorKey"
 import type { LoginFormValues, PasswordVisibility } from "../types/auth.types"
-import type { AppDispatch, RootState } from "@/redux/store"
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -26,9 +25,8 @@ const forgotLinkClass =
 function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
   const t = useTranslations("auth")
   const v = useTranslations("validation")
-  const dispatch = useDispatch<AppDispatch>()
-  const { isLoading } = useSelector((state: RootState) => state.auth)
-  const { error } = useSelector((state: RootState) => state.auth)
+  const [login, { isLoading }] = useLoginMutation()
+  const [errorKey, setErrorKey] = useState<string | null>(null)
   const [passwordVisibility, setPasswordVisibility] = useState<PasswordVisibility>("mask")
   const passwordId = useId()
   const passwordErrorId = `${passwordId}-error`
@@ -48,8 +46,14 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
   })
 
   const onSubmit = async (data: LoginFormValues) => {
-    const result = await dispatch(login({ email: data.email, password: data.password }))
-    if (login.fulfilled.match(result)) onSuccess?.()
+    setErrorKey(null)
+    try {
+      await login({ email: data.email, password: data.password }).unwrap()
+      // Session routing to /onboarding or /dashboard happens in the auth page.
+      onSuccess?.()
+    } catch (error) {
+      setErrorKey(authErrorKey(error, "login"))
+    }
   }
 
   return (
@@ -128,9 +132,9 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
 
       <GoogleSignInButton />
 
-      {error && (
+      {errorKey && (
         <p className="text-sm text-danger-500" aria-live="polite">
-          {t(`errors.${error}`)}
+          {t(`errors.${errorKey}`)}
         </p>
       )}
 

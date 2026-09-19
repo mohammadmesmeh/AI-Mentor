@@ -3,15 +3,14 @@
 import { useId, useState } from "react"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { useDispatch, useSelector } from "react-redux"
 import { useTranslations } from "next-intl"
 import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/shared/components/ui/Button"
-import { register as registerThunk } from "@/redux/slices/authSlice"
+import { useRegisterMutation } from "@/lib/api/apiSlice"
 import { registerSchema } from "../validation/registerSchema"
 import { FormField } from "./FormField"
+import { authErrorKey } from "../lib/authErrorKey"
 import type { PasswordVisibility, RegisterFormValues } from "../types/auth.types"
-import type { AppDispatch, RootState } from "@/redux/store"
 
 interface RegisterFormProps {
   onSuccess?: () => void
@@ -24,9 +23,8 @@ const passwordToggleClass =
 function RegisterForm({ onSuccess }: RegisterFormProps) {
   const t = useTranslations("auth")
   const v = useTranslations("validation")
-  const dispatch = useDispatch<AppDispatch>()
-  const { isLoading } = useSelector((state: RootState) => state.auth)
-  const { error } = useSelector((state: RootState) => state.auth)
+  const [registerUser, { isLoading }] = useRegisterMutation()
+  const [errorKey, setErrorKey] = useState<string | null>(null)
   const [passwordVisibility, setPasswordVisibility] = useState<PasswordVisibility>("mask")
   const [confirmPasswordVisibility, setConfirmPasswordVisibility] = useState<PasswordVisibility>("mask")
   const passwordId = useId()
@@ -53,8 +51,18 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
   })
 
   const onSubmit = async (data: RegisterFormValues) => {
-    const result = await dispatch(registerThunk({ name: data.name, email: data.email, password: data.password }))
-    if (registerThunk.fulfilled.match(result)) onSuccess?.()
+    setErrorKey(null)
+    try {
+      await registerUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        passwordConfirmation: data.confirmPassword,
+      }).unwrap()
+      onSuccess?.()
+    } catch (error) {
+      setErrorKey(authErrorKey(error, "register"))
+    }
   }
 
   return (
@@ -153,9 +161,9 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
         )}
       </div>
 
-      {error && (
+      {errorKey && (
         <p className="text-sm text-danger-500" aria-live="polite">
-          {t(`errors.${error}`)}
+          {t(`errors.${errorKey}`)}
         </p>
       )}
 

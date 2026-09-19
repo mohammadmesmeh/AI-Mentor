@@ -1,49 +1,65 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-
-export interface OnboardingData {
-  domain: string
-  level: string | null
-  timeCommitment: string
-  timeCustomDescription: string
-  successGoal: string
-  learningPreferences: string[]
-}
+import type {
+  LearningMethod,
+  LearningProfile,
+  OnboardingStatus,
+  Preferences,
+  ResourceLanguage,
+  SelfAssessedLevel,
+  UiLocale,
+} from "@/lib/api/types"
 
 export type SubmitStatus = "idle" | "submitting" | "succeeded" | "failed"
 
+export interface OnboardingFormState {
+  goal: string
+  selfAssessedLevel: SelfAssessedLevel | null
+  availableMinutesPerWeek: number | null
+  desiredOutcome: string
+  preferredLearningMethods: LearningMethod[]
+  preferences: {
+    uiLocale: UiLocale
+    resourceLanguage: ResourceLanguage
+    timezone: string
+  }
+}
+
+export const defaultPreferences = {
+  uiLocale: "en" as UiLocale,
+  resourceLanguage: "both" as ResourceLanguage,
+  timezone: "UTC",
+}
+
+export const initialForm = (): OnboardingFormState => ({
+  goal: "",
+  selfAssessedLevel: null,
+  availableMinutesPerWeek: null,
+  desiredOutcome: "",
+  preferredLearningMethods: [],
+  preferences: { ...defaultPreferences },
+})
+
+/**
+ * Reshaped from the old mock shape (domain/level/timeCommitment/…).
+ * Holds the real learning-profile schema plus the server-authoritative
+ * entities the onboarding screens surface (data-model.md "State ownership").
+ */
 interface OnboardingState {
   currentStep: number
-  domain: string
-  level: string | null
-  timeCommitment: string
-  timeCustomDescription: string
-  successGoal: string
-  learningPreferences: string[]
-  isComplete: boolean
-  roadmap: string[] | null
+  form: OnboardingFormState
+  preferences: Preferences | null
+  learningProfile: LearningProfile | null
+  onboardingStatus: OnboardingStatus | null
   submitStatus: SubmitStatus
   submitError: string | null
 }
 
-function loadOnboardingComplete(): boolean {
-  if (typeof window === "undefined") return false
-  try {
-    return localStorage.getItem("ai-mentor-onboarding-complete") === "true"
-  } catch {
-    return false
-  }
-}
-
 const initialState: OnboardingState = {
   currentStep: 1,
-  domain: "",
-  level: null,
-  timeCommitment: "",
-  timeCustomDescription: "",
-  successGoal: "",
-  learningPreferences: [],
-  isComplete: loadOnboardingComplete(),
-  roadmap: null,
+  form: initialForm(),
+  preferences: null,
+  learningProfile: null,
+  onboardingStatus: null,
   submitStatus: "idle",
   submitError: null,
 }
@@ -55,23 +71,47 @@ const onboardingSlice = createSlice({
     goToStep(state, action: PayloadAction<number>) {
       state.currentStep = action.payload
     },
-    setOnboardingData(
+    updateForm(state, action: PayloadAction<Partial<Omit<OnboardingFormState, "preferences">>>) {
+      state.form = { ...state.form, ...action.payload }
+    },
+    updatePreferences(
       state,
-      action: PayloadAction<
-        Partial<
-          Pick<
-            OnboardingState,
-            | "domain"
-            | "level"
-            | "timeCommitment"
-            | "timeCustomDescription"
-            | "successGoal"
-            | "learningPreferences"
-          >
-        >
-      >
+      action: PayloadAction<Partial<Pick<Preferences, "uiLocale" | "resourceLanguage" | "timezone">>>
     ) {
-      Object.assign(state, action.payload)
+      const patch = action.payload
+      if (patch.uiLocale) state.form.preferences.uiLocale = patch.uiLocale
+      if (patch.resourceLanguage) state.form.preferences.resourceLanguage = patch.resourceLanguage
+      if (patch.timezone) state.form.preferences.timezone = patch.timezone
+    },
+    hydrate(
+      state,
+      action: PayloadAction<{
+        preferences?: Preferences | null
+        learningProfile?: LearningProfile | null
+        onboardingStatus?: OnboardingStatus | null
+      }>
+    ) {
+      const { preferences, learningProfile, onboardingStatus } = action.payload
+      if (preferences !== undefined) state.preferences = preferences
+      if (learningProfile !== undefined) state.learningProfile = learningProfile
+      if (onboardingStatus !== undefined) state.onboardingStatus = onboardingStatus
+      if (learningProfile) {
+        state.form = {
+          goal: learningProfile.goal ?? "",
+          selfAssessedLevel: learningProfile.selfAssessedLevel ?? null,
+          availableMinutesPerWeek: learningProfile.availableMinutesPerWeek ?? null,
+          desiredOutcome: learningProfile.desiredOutcome ?? "",
+          preferredLearningMethods: learningProfile.preferredLearningMethods ?? [],
+          preferences: { ...state.form.preferences },
+        }
+      }
+      if (preferences) {
+        state.form.preferences = {
+          uiLocale: preferences.uiLocale,
+          resourceLanguage: preferences.resourceLanguage,
+          timezone: preferences.timezone,
+        }
+      }
     },
     setSubmitStatus(state, action: PayloadAction<SubmitStatus>) {
       state.submitStatus = action.payload
@@ -82,28 +122,16 @@ const onboardingSlice = createSlice({
     setSubmitError(state, action: PayloadAction<string | null>) {
       state.submitError = action.payload
     },
-    completeOnboarding(state) {
-      state.isComplete = true
-      try { localStorage.setItem("ai-mentor-onboarding-complete", "true") } catch {}
-    },
-    setRoadmap(state, action: PayloadAction<string[]>) {
-      state.roadmap = action.payload
-    },
-    resetOnboarding() {
-      try { localStorage.removeItem("ai-mentor-onboarding-complete") } catch {}
-      return initialState
-    },
   },
 })
 
 export const {
   goToStep,
-  setOnboardingData,
+  updateForm,
+  updatePreferences,
+  hydrate,
   setSubmitStatus,
   setSubmitError,
-  completeOnboarding,
-  setRoadmap,
-  resetOnboarding,
 } = onboardingSlice.actions
 
 export type { OnboardingState }

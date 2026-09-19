@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl"
 
 type TranslateValues = Record<string, string | number>
 
-type TranslateFn = (
+export type TranslateFn = (
   key: string,
   fallback?: string,
   values?: TranslateValues
