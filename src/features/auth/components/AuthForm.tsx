@@ -10,8 +10,9 @@ import { RecoveryView } from "./recovery/RecoveryView"
 import type { AuthViewMode } from "../types/auth.types"
 import type { AppDispatch } from "@/redux/store"
 
+// py-1 takes the touch target from 20px to 28px, clearing the 24px minimum.
 const linkClass =
-  "cursor-pointer rounded-sm text-sm font-semibold text-secondary-foreground underline-offset-4 hover:text-secondary-foreground/80 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+  "cursor-pointer rounded-sm py-1 text-sm font-semibold text-secondary-foreground underline-offset-4 hover:text-secondary-foreground/80 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 
 interface ViewHeader {
   title: string
