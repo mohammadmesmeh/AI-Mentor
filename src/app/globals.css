@@ -86,6 +86,16 @@
     max-width: 72ch;
   }
 
+  /* When that 72ch cap binds inside a centred block, the text is centred but
+     the *box* is not: it keeps zero margins and sits at the start edge, so the
+     copy drifts left in LTR and right in RTL (measured: 15px and 38px on the
+     how-it-works subtitle). Auto margins re-centre the box. Scoped to centred
+     containers so left-aligned body copy still hugs the start edge, and
+     wrapped in :where() so it carries no specificity and any utility wins. */
+  :where(.text-center) p {
+    margin-inline: auto;
+  }
+
   ::selection {
     background-color: var(--color-primary-300);
     color: var(--color-primary-950);

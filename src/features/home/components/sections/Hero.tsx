@@ -40,7 +40,14 @@ export function Hero() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-full h-32 dark-section"
       />
-      <div className="dark-section relative mx-3 max-w-(--container-content) overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.4)] px-6 pb-20 pt-24 sm:mx-6 sm:rounded-3xl sm:pb-24 sm:pt-28 lg:mx-auto">
+      {/* The gutter lives on this wrapper as padding, and centering on the card
+          below as mx-auto. Combining them on one element (mx-3 sm:mx-6
+          lg:mx-auto) broke between 1024-1240px: `lg:mx-auto` replaced the
+          gutter, and auto margins only resolve to a visible value once
+          max-width actually binds (1240px) — so the card sat flush against
+          both viewport edges with its 40px corner radius clipped. */}
+      <div className="px-3 sm:px-6">
+      <div className="dark-section relative mx-auto max-w-(--container-content) overflow-hidden rounded-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.4)] px-6 pb-20 pt-24 sm:rounded-3xl sm:pb-24 sm:pt-28">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="dot-grid absolute inset-0" aria-hidden="true" />
         <div
@@ -60,7 +67,7 @@ export function Hero() {
           <HeadingReveal
             as="h1"
             id="hero-heading"
-            className="justify-center text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-[56px]"
+            className="text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-[56px]"
             delay={0.1}
           >
             {t(
@@ -110,6 +117,7 @@ export function Hero() {
           </FadeInView>
         </div>
       </Container>
+      </div>
       </div>
 
       <SectionWave fillClassName="text-background" className="mt-8 sm:mt-12" />

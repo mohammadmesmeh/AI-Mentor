@@ -30,7 +30,7 @@ export function CTA() {
           <HeadingReveal
             as="h2"
             id="cta-heading"
-            className="justify-center text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
+            className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
             delay={0.1}
           >
             {t(
