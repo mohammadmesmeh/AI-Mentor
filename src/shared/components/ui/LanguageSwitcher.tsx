@@ -25,6 +25,8 @@ function LanguageSwitcher({ mobile = false }: { mobile?: boolean }) {
           <button
             key={value}
             type="button"
+            lang={value}
+            aria-pressed={currentLocale === value}
             onClick={() => switchLocale(value)}
             className={cn(
               "font-ui cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200",
@@ -46,6 +48,8 @@ function LanguageSwitcher({ mobile = false }: { mobile?: boolean }) {
         <button
           key={value}
           type="button"
+          lang={value}
+          aria-pressed={currentLocale === value}
           onClick={() => switchLocale(value)}
             className={cn(
               "font-ui cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-all duration-200",

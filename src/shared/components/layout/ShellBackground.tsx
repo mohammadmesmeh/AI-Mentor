@@ -42,8 +42,13 @@ function ShellBackground({ children, decor }: ShellBackgroundProps) {
   return (
     <SurfaceThemeContext.Provider value={surfaceTheme}>
       <div className={cn("flex flex-1 flex-col", authSurface)}>
+        {/* overflow-hidden contains the decor: its corner artwork is a fixed
+            384px square pinned to the physical right edge, which spills past
+            narrow viewports. Under dir="rtl" that spill is *leading*, so the
+            browser counts it as scrollable and the page gains a horizontal
+            scrollbar (64px of it at 320px wide) that LTR never shows. */}
         {decor && (
-          <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
             {decor}
           </div>
         )}

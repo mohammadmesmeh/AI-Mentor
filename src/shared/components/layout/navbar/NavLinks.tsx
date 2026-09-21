@@ -5,8 +5,11 @@ import { cn } from "@/lib/utils"
 import { motion } from "framer-motion"
 
 const navLinkStyles = {
+  // Arabic labels run longer than their English counterparts, so the desktop
+  // padding stays tight until xl — at lg the bar has ~944px to fit the logo,
+  // four links and the action cluster without wrapping or overflowing.
   desktop: {
-    base: "font-ui rounded-full px-4 py-1.5 text-sm font-medium",
+    base: "font-ui whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium xl:px-4",
     active: "text-foreground font-semibold",
     inactive: "text-muted-foreground",
   },
@@ -55,6 +58,7 @@ export const NavLinks = ({
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "group relative isolate inline-flex items-center",
+          "outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
           styles.base
         )}
       >
@@ -67,6 +71,7 @@ export const NavLinks = ({
               : cn(
                   styles.inactive,
                   "[@media(hover:hover)]:group-hover:text-primary",
+                  "group-focus-visible:text-primary",
                   "group-active:text-primary"
                 )
           )}
@@ -84,10 +89,11 @@ export const NavLinks = ({
           aria-hidden
           className={cn(
             "pointer-events-none absolute inset-x-3 -bottom-1 h-[2px] origin-center rounded-full transition-transform duration-300",
+            !mobile && "xl:inset-x-4",
             "bg-gradient-to-r from-primary/30 via-primary to-primary/30",
             isActive
               ? "scale-x-100"
-              : "scale-x-0 [@media(hover:hover)]:group-hover:scale-x-100 group-active:scale-x-100"
+              : "scale-x-0 [@media(hover:hover)]:group-hover:scale-x-100 group-focus-visible:scale-x-100 group-active:scale-x-100"
           )}
           style={{ transitionTimingFunction: "var(--ease-out-soft)" }}
         />
