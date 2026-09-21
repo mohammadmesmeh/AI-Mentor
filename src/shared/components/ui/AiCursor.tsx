@@ -51,11 +51,6 @@ const DEFAULT_VARS: CursorVars = {
   ringPointerOpacity: 0.7,
 }
 
-function getInitialState(): "loading" | "touch" | "ready" {
-  if (typeof window === "undefined") return "loading"
-  return window.matchMedia("(pointer: coarse)").matches ? "touch" : "ready"
-}
-
 function getInitialVars(): CursorVars {
   if (typeof document === "undefined") return DEFAULT_VARS
   return {
@@ -71,9 +66,9 @@ function getInitialVars(): CursorVars {
 
 function AiCursor() {
   const [hoverState, setHoverState] = useState<HoverState>("normal")
-  const [state] = useState<"loading" | "touch" | "ready">(getInitialState)
+  const [state, setState] = useState<"loading" | "touch" | "ready">("loading")
   const [inWindow, setInWindow] = useState(true)
-  const [vars] = useState<CursorVars>(getInitialVars)
+  const [vars, setVars] = useState<CursorVars>(DEFAULT_VARS)
   const prevHoverState = useRef<HoverState>("normal")
 
   const cursorX = useMotionValue(-200)
@@ -84,6 +79,13 @@ function AiCursor() {
 
   const dotX = useSpring(cursorX, { damping: 30, stiffness: 500, mass: 0.15 })
   const dotY = useSpring(cursorY, { damping: 30, stiffness: 500, mass: 0.15 })
+
+  useEffect(() => {
+    if (state !== "loading") return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional post-hydration detection: server and first client render both emit "loading" (null tree), so hydration always matches, then the real pointer state is applied after mount.
+    setState(window.matchMedia("(pointer: coarse)").matches ? "touch" : "ready")
+    setVars(getInitialVars())
+  }, [state])
 
   useEffect(() => {
     if (state !== "ready") return
@@ -149,7 +151,11 @@ function AiCursor() {
           width: ringWidth,
           height: ringWidth,
           opacity: inWindow ? ringOpacity : 0,
-          backgroundColor: isClickable ? "var(--cursor-color)" : "transparent",
+          // Motion cannot interpolate the `transparent` keyword and warns, then
+          // falls back to the computed value — which is rgba(0,0,0,0) anyway.
+          // Naming it explicitly keeps the identical visual result without the
+          // console warning on every hover transition.
+          backgroundColor: isClickable ? "var(--cursor-color)" : "rgba(0, 0, 0, 0)",
         }}
         transition={{
           width: { duration: 0.35, ease: easing },
