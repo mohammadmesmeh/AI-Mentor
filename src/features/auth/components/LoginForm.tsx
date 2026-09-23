@@ -19,8 +19,9 @@ interface LoginFormProps {
 }
 
 const labelClass = "text-sm font-semibold text-primary"
+// py-1 takes the touch target from 20px to 28px, clearing the 24px minimum.
 const forgotLinkClass =
-  "cursor-pointer rounded-sm text-sm font-medium text-secondary-foreground underline-offset-4 hover:text-secondary-foreground/80 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+  "cursor-pointer rounded-sm py-1 text-sm font-medium text-secondary-foreground underline-offset-4 hover:text-secondary-foreground/80 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 
 function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
   const t = useTranslations("auth")
@@ -119,7 +120,9 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
           defaultChecked
           className="size-4 cursor-pointer rounded border-input accent-primary"
         />
-        <label htmlFor={rememberId} className="text-sm text-muted-foreground">
+        {/* py-1 widens the clickable label — which is the real target for the
+            16px checkbox next to it — past the 24px minimum. */}
+        <label htmlFor={rememberId} className="py-1 text-sm text-muted-foreground">
           {t("rememberDevice")}
         </label>
       </div>
