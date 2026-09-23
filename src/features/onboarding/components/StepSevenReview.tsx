@@ -83,7 +83,7 @@ function StepSevenReview({
               aria-hidden="true"
             />
             <p className="text-muted-foreground" aria-live="polite">
-              {error}
+              {t(error)}
             </p>
           </CardContent>
         </Card>
