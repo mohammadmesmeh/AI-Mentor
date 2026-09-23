@@ -1,5 +1,3 @@
-"use client"
-
 import type { CSSProperties } from "react"
 
 interface DotGridStyle extends CSSProperties {
