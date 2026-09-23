@@ -43,9 +43,12 @@ function Footer() {
           <ul className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {footerLinks.map((link) => (
               <li key={link.key}>
+                {/* inline-block + py-1 lifts the touch target from 18px to
+                    26px, clearing the 24px minimum on phones. The row's
+                    existing gap-y-4 absorbs the extra height. */}
                 <Link
                   href={link.href}
-                  className="rounded-sm text-sm text-slate-300 transition-colors duration-300 hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/30"
+                  className="inline-block rounded-sm py-1 text-sm text-slate-300 transition-colors duration-300 hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/30"
                 >
                   {t(`links.${link.key}`, link.key)}
                   {link.key === "status" && (
