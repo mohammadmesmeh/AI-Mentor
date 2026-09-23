@@ -17,7 +17,6 @@ function ScrollStagger({
   children,
   className,
   delay = 0,
-  staggerDelay = 0.1,
   direction = "up",
   once = true,
 }: ScrollStaggerProps) {
