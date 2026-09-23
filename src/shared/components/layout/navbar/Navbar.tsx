@@ -6,7 +6,7 @@ import { Home, LayoutDashboard, LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
-import { cn } from "@/lib/utils"
+import { cn, scrollToElement } from "@/lib/utils"
 import { Logo } from "./Logo"
 import { MobileMenuButton } from "./MobileMenuButton"
 import { NavLinks } from "./NavLinks"
@@ -19,7 +19,6 @@ import type { RootState } from "@/redux/store"
 
 import { useSurfaceTheme, type SurfaceTheme } from "@/shared/components/layout/ShellBackground"
 
-const SCROLL_OFFSET = 88
 const MOBILE_MENU_BUTTON_ID = "mobile-menu-button"
 
 type NavLink = {
@@ -131,11 +130,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
       return
     }
     e.preventDefault()
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches
-    const y = target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET
-    window.scrollTo({ top: Math.max(y, 0), behavior: reduceMotion ? "auto" : "smooth" })
+    scrollToElement(target)
   }
 
   const handleKeyDown = useCallback(

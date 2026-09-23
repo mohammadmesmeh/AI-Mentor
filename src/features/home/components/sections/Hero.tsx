@@ -6,20 +6,14 @@ import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { useT } from "@/shared/hooks/useT"
-import { cn } from "@/lib/utils"
-
-const SCROLL_OFFSET = 88
+import { cn, scrollToElement } from "@/lib/utils"
 
 const scrollToSection = (selector: string) => {
   const target = document.querySelector(selector)
   if (!target) {
     return
   }
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches
-  const y = target.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET
-  window.scrollTo({ top: Math.max(y, 0), behavior: reduceMotion ? "auto" : "smooth" })
+  scrollToElement(target)
 }
 
 const ctaBase =
