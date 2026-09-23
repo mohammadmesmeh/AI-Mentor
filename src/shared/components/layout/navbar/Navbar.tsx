@@ -1,9 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { useSelector } from "react-redux"
 import { Home, LayoutDashboard, LogOut } from "lucide-react"
 import { useMobileMenu } from "@/shared/hooks/useMobileMenu"
+import { useScrolledPast } from "@/shared/hooks/useScrolledPast"
+import { useBodyScrollLock } from "@/shared/hooks/useBodyScrollLock"
 import { Container } from "@/shared/components/ui/Container"
 import { Button } from "@/shared/components/ui/Button"
 import { cn, scrollToElement } from "@/lib/utils"
@@ -45,18 +47,9 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
   const isOnboarding =
     typeof pathname === "string" && pathname.startsWith("/onboarding")
   const isFocused = isAuth || isOnboarding
-  const [isScrolled, setIsScrolled] = useState(false)
   const surfaceTheme = useSurfaceTheme()
   const activeSurfaceTheme = navbarTheme ?? surfaceTheme
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  const isScrolled = useScrolledPast(20)
 
   // Mirrors the section order actually rendered by the home page
   // (features/home/components/pages/home.tsx). Hrefs are page-qualified so the
@@ -75,17 +68,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
     router.push("/")
   }
 
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = ""
-    }
-
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [mobileOpen])
+  useBodyScrollLock(mobileOpen)
 
   // Escape listens on the document, not on the header's onKeyDown: once focus
   // leaves the header subtree (tapping the page behind the open panel blurs to
