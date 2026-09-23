@@ -1,3 +1,5 @@
+"use client"
+
 import { Activity, FlaskConical, Layers, RefreshCw } from "lucide-react"
 import { Container } from "@/shared/components/ui/Container"
 import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
