@@ -124,15 +124,13 @@ function PlanCard({ t, planKey, featureKeys, highlight, onFreeCta }: PlanCardPro
         {t(`${planKey}.name`, planKey)}
       </h3>
 
+      {/* `free.price` held the same word as `free.name` ("Free" / "مجاني"), so
+          the card rendered the plan name twice, three lines apart. The name
+          above already states the price; this row keeps only the qualifier. */}
       {isFree && (
-        <div className="relative mt-3 flex items-baseline gap-2">
-          <span className="font-display text-3xl font-extrabold text-primary">
-            {t("free.price", "Free")}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            {t("free.priceSuffix", "current plan")}
-          </span>
-        </div>
+        <p className="relative mt-1 text-sm text-muted-foreground">
+          {t("free.priceSuffix", "current plan")}
+        </p>
       )}
 
       <p className="relative mt-3 text-sm leading-relaxed text-muted-foreground">

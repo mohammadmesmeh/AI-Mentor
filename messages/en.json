@@ -363,7 +363,6 @@
     "subheading": "Start with the current Free plan. More features and community support are planned for Pro.",
     "free": {
       "name": "Free",
-      "price": "Free",
       "priceSuffix": "current plan",
       "description": "Get everything AI Mentor offers today — at no cost and with no commitment. It's not a limited trial: your roadmap, progress, and feedback are all included from day one.",
       "cta": "Start Learning Free",
