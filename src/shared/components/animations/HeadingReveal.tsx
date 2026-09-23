@@ -40,7 +40,14 @@ function HeadingReveal({
     <div ref={ref} className="reveal-mask overflow-hidden">
       <Tag
         id={id}
-        className={cn("inline-flex flex-wrap gap-x-[0.25em]", className)}
+        // The heading is a flex container (each word is its own masked flex
+        // item), and flex containers ignore `text-align`. Without an explicit
+        // justify-content, wrapped headings pack every flex line to
+        // flex-start — left in LTR, right in RTL — so a heading that fits on
+        // one line looks centred while the same heading wrapped looks off.
+        // Centring here rather than per-section; `cn` is twMerge, so a caller
+        // can still pass justify-start/justify-end to override.
+        className={cn("inline-flex flex-wrap justify-center gap-x-[0.25em]", className)}
         aria-label={children}
       >
         {words.map((word, i) => (
