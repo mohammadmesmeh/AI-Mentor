@@ -109,13 +109,10 @@ function toAuthData(data: {
   return { user: data.user ?? ({} as User), session }
 }
 
-export interface AuthData {
-  user: User
-  session: Session
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type OnStartedHandler = (arg: any, api: { dispatch: any; queryFulfilled: any }) => Promise<void>
+type OnStartedHandler = (
+  arg: unknown,
+  api: { dispatch: unknown; queryFulfilled: unknown }
+) => Promise<void>
 
 function authPersistHandler(
   _arg: unknown,
@@ -126,6 +123,9 @@ function authPersistHandler(
       setSession(data.session)
       dispatch(sessionEstablished(data.user))
     })
+    // A failed mutation is surfaced to the caller through the mutation's own
+    // result/unwrap(); swallowing it here only prevents an unhandled
+    // rejection from this side-channel promise.
     .catch(() => {})
 }
 
