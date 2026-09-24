@@ -26,7 +26,7 @@ function BrandPanel() {
   return (
     <aside className="relative flex w-full flex-col justify-between border-b border-border-default bg-gradient-to-b from-surface-card to-primary/[0.04] p-8 md:w-[42%] md:shrink-0 md:border-b-0 md:border-r md:p-11">
       <div>
-        <h2 className="mb-4 font-display text-2xl font-extrabold leading-[1.18] tracking-tight text-foreground uppercase sm:text-[26px]">
+        <h2 className="mb-4 font-display text-2xl font-extrabold leading-[1.18] tracking-tight text-foreground uppercase sm:text-[26px] rtl:leading-[1.5]">
           {t("brandTitle")}
         </h2>
         <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
