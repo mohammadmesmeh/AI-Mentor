@@ -226,14 +226,14 @@
   /* --- Fonts ---
      LTR display/headings: Nunito (rounded, high-contrast geometric — the
      brand voice for hero/display type). LTR body: Space Grotesk (geometric,
-     modern, pairs with awwwards/Linear-style product chrome). RTL: IBM Plex
-     Sans Arabic (legible, matching x-height) for both, switched via
-     html[dir="rtl"] in §3.5.
+     modern, pairs with awwwards/Linear-style product chrome). RTL: Noto Sans
+     Arabic for body/UI and Zain for h1/h2 (self-hosted via next/font/local),
+     switched via html[dir="rtl"] in §3.5.
      Code: Geist Mono for inline code and data.
      Load these via next/font in the root layout; this file only declares
      the stacks and safe fallbacks. */
-  --font-display: "Nunito", "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body:    "Space Grotesk", "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Nunito", "Space Grotesk", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body:    "Space Grotesk", "Noto Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-code:    "Geist Mono", "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* --- Type scale ---
@@ -595,13 +595,22 @@
    Tailwind's font-sans utility, etc.) picks up the Arabic font
    automatically without per-component overrides. */
 html[dir="rtl"] {
+  /* Noto Sans Arabic, chained with its Latin subset (see layout.tsx). */
+  --font-arabic:  var(--font-noto-arabic), var(--font-noto-arabic-latin);
   --font-default: var(--font-arabic);
   --font-nunito:  var(--font-arabic);
-  --font-ui:      var(--font-rubik);
+  --font-ui:      var(--font-arabic);
+  /* `@theme inline` compiles the `font-ui` class to var(--font-inter), so
+     overriding --font-ui alone never reached it: nav links, Button and the
+     other `font-ui` elements rendered Arabic text in a system fallback
+     (Arial). Overriding --font-inter — the same technique --font-nunito uses
+     above for the display class — routes them to the Arabic font. RTL only;
+     English keeps Inter. */
+  --font-inter:   var(--font-arabic);
 
   /* --- Arabic typography: line-height scale ---
-     IBM Plex Sans Arabic has a taller x-height and denser vertical
-     rhythm than Space Grotesk. These overrides keep Arabic text
+     Tuned for the previous Arabic fonts (IBM Plex Sans Arabic / Rubik) and
+     kept unchanged for Noto Sans Arabic / Zain. These overrides keep Arabic text
      as readable as the LTR equivalent without changing fonts, and keep
      every line box above the font's vertical extent (≥1.4em) so glyph
      ascenders/descenders are never clipped. */
@@ -622,6 +631,15 @@ html[dir="rtl"] {
   --text-overline--line-height:    1.4;
 
   --text-code--line-height:        1.7;
+}
+
+/* Zain for large headings (h1/h2) only; every other heading and all body/UI
+   text stays on Noto Sans Arabic. Unlayered, so it outranks the layered
+   `font-display` utility the section h2s carry — the same way the unlayered
+   RTL heading rules below outrank utilities. */
+[dir="rtl"] h1,
+[dir="rtl"] h2 {
+  font-family: var(--font-zain), var(--font-zain-latin);
 }
 
 /* Arabic letter-spacing: remove negative tracking for cursive Arabic script */
@@ -666,7 +684,8 @@ html[dir="rtl"] {
   letter-spacing: var(--tracking-normal);
 }
 
-/* Arabic vertical room for diacritic dots (نقاط). IBM Plex Sans Arabic's
+/* Arabic vertical room for diacritic dots (نقاط). Measured on the previous
+   Arabic fonts and kept for Noto Sans Arabic / Zain: IBM Plex Sans Arabic's
    content area is 1.5em (asc 1085 / desc −415) with a ~1.73em rendered box,
    and Rubik's used box is ~1.53em — both outgrow the 1.5–1.65 line heights,
    so top/bottom dots on ب ت ث ن ي ق ذ ض ظ were clipped inside tight line
@@ -719,9 +738,10 @@ html[dir="rtl"] {
 }
 
 /* Replace fixed line-height utilities with generous unitless ratios that
-   scale with the element's font-size (IBM Plex Sans Arabic / Rubik have a
-   taller x-height than Space Grotesk / Inter, so 1.25–1.375 feels cramped
-   and can clip tall glyphs inside overflow-hidden masks). */
+   scale with the element's font-size (Arabic fonts — originally IBM Plex
+   Sans Arabic / Rubik, now Noto Sans Arabic / Zain — have a taller x-height
+   than Space Grotesk / Inter, so 1.25–1.375 feels cramped and can clip tall
+   glyphs inside overflow-hidden masks). */
 [dir="rtl"] .leading-none { line-height: 1.5; }
 [dir="rtl"] .leading-tight { line-height: 1.5; }
 [dir="rtl"] .leading-snug { line-height: 1.6; }
@@ -736,8 +756,9 @@ html[dir="rtl"] {
 [dir="rtl"] .leading-10 { line-height: 1.9; }
 
 /* HeadingReveal masks: the per-word reveal uses overflow-hidden clips, and
-   IBM Plex Sans Arabic / Rubik extend far beyond the em box (their vertical
-   metrics are much larger than Latin fonts), so a tight line box inside the
+   Arabic fonts (tuned on IBM Plex Sans Arabic / Rubik) extend far beyond the
+   em box (their vertical metrics are much larger than Latin fonts), so a
+   tight line box inside the
    mask cuts Arabic ascenders/descenders. Growing the mask with padding and
    cancelling it with negative margin gives glyphs room while keeping the
    layout height byte-for-byte identical — English is untouched because this
@@ -876,7 +897,7 @@ html[dir="rtl"] {
    locale-adaptive tokens from §2/§3, so the same class reads correctly in
    Arabic ([dir="rtl"]) and English ([dir="ltr"]) with no per-component
    overrides. Fonts: English uses Space Grotesk (display/body) and Inter
-   (UI); Arabic uses IBM Plex Sans Arabic (display/body) and Rubik (UI) —
+   (UI); Arabic uses Noto Sans Arabic (display/body/UI) and Zain (h1/h2) —
    switched automatically via --font-default / --font-ui. */
 
 /* Headings — balanced line wrapping; tracking loosens for Arabic in the
@@ -916,7 +937,7 @@ html[dir="rtl"] {
   color: var(--text-muted);
 }
 
-/* Button text — UI font (Inter in LTR, Rubik in RTL), medium weight */
+/* Button text — UI font (Inter in LTR, Noto Sans Arabic in RTL), medium weight */
 @utility text-button {
   font-family: var(--font-ui);
   font-size: var(--text-body-sm);
@@ -1155,12 +1176,6 @@ html[dir="rtl"] {
 }
 @utility font-space-grotesk {
   font-family: var(--font-space);
-}
-@utility font-arabic {
-  font-family: var(--font-arabic);
-}
-@utility font-rubik {
-  font-family: var(--font-rubik);
 }
 
 /* Base chat bubble — promoted to @utility so the user/assistant variants
