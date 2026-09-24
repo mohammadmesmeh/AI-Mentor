@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -9,10 +9,14 @@ import { AuthForm } from "../AuthForm"
 import { AuthBrandPanel } from "../AuthBrandPanel"
 import { useGetOnboardingStatusQuery } from "@/lib/api/apiSlice"
 import type { RootState } from "@/redux/store"
+import type { AuthViewMode } from "../../types/auth.types"
 
 function AuthPage() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const t = useTranslations("footer")
+  // Lifted out of AuthForm so the brand panel can vary its copy with the
+  // view too, instead of always showing the sign-in marketing content.
+  const [viewMode, setViewMode] = useState<AuthViewMode>("sign-in")
 
   if (isAuthenticated) {
     return <SessionRouter />
@@ -22,9 +26,9 @@ function AuthPage() {
     <div className="relative flex flex-1 flex-col overflow-hidden py-8 text-foreground md:py-12 lg:py-16">
       <Container className="relative z-10 my-auto max-w-5xl">
         <div className="grid overflow-hidden rounded-[24px] border border-border bg-card/95 shadow-[0_30px_70px_-20px_rgba(2,32,71,0.25)] backdrop-blur-md md:min-h-[580px] md:grid-cols-12">
-          <AuthBrandPanel />
+          <AuthBrandPanel mode={viewMode} />
           <section className="p-8 sm:p-10 md:p-12 md:col-span-7">
-            <AuthForm />
+            <AuthForm viewMode={viewMode} onViewModeChange={setViewMode} />
           </section>
         </div>
       </Container>
