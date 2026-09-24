@@ -40,10 +40,10 @@ function OnboardingIncomplete({ missingFields }: OnboardingIncompleteProps) {
       </p>
 
       {missingFields.length > 0 && (
-        <Card className="mb-6 border-danger-500/20 bg-danger-500/[0.04] text-left">
+        <Card className="mb-6 border-danger-500/20 bg-danger-500/[0.04] text-start">
           <CardContent className="space-y-2 p-5">
             <p className="text-sm font-medium text-foreground">{t("missingFieldsLabel", "Missing information:")}</p>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            <ul className="list-disc space-y-1 ps-5 text-sm text-muted-foreground">
               {missingFields.map((field) => (
                 <li key={field}>{t(missingFieldKeyMap[field] ?? field)}</li>
               ))}
