@@ -1,8 +1,16 @@
 import { useTranslations } from "next-intl"
 import { Sun } from "lucide-react"
+import type { AuthViewMode } from "../types/auth.types"
 
-function AuthBrandPanel() {
+interface AuthBrandPanelProps {
+  mode: AuthViewMode
+}
+
+function AuthBrandPanel({ mode }: AuthBrandPanelProps) {
   const t = useTranslations("auth")
+  // The recovery view is a branch of sign-in, not its own destination, so it
+  // keeps the sign-in copy. Only "create-account" gets the marketing variant.
+  const isRegister = mode === "create-account"
 
   return (
     <aside className="flex flex-col justify-between gap-10 border-b border-border p-8 sm:p-10 md:col-span-5 md:border-b-0 md:border-e md:border-border md:p-12">
@@ -10,19 +18,21 @@ function AuthBrandPanel() {
         <div className="inline-flex items-center gap-2 rounded-full border border-light-blue-bg bg-light-blue-bg/60 px-4 py-1.5">
           <Sun className="h-3.5 w-3.5 text-light-blue-text" aria-hidden="true" />
           <span className="text-xs font-semibold uppercase tracking-wider text-light-blue-text">
-            {t("accessTitle")}
+            {t(isRegister ? "registerAccessTitle" : "accessTitle")}
           </span>
         </div>
         {/* The panel is full-width until md, then narrows to 5/12 of the grid
             (~207px of content at 768px) before widening again — so the type
             scale dips at md rather than climbing with the viewport. Without
             this the last word of the English title ("WORKSPACE", 304px at
-            text-5xl) is unbreakable and overflows the panel between 768-1023px. */}
-        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-primary sm:text-5xl md:text-3xl lg:text-4xl xl:text-5xl rtl:leading-[1.5]">
-          {t("portalTitle")}
+            text-5xl) is unbreakable and overflows the panel between 768-1023px.
+            The register variant's longest word was sized against the same
+            constraint. */}
+        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-primary sm:text-5xl md:text-3xl lg:text-4xl xl:text-4xl rtl:leading-[1.5]">
+          {t(isRegister ? "registerPortalTitle" : "portalTitle")}
         </h1>
         <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-          {t("welcomeDescription")}
+          {t(isRegister ? "registerWelcomeDescription" : "welcomeDescription")}
         </p>
       </div>
 

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useDispatch } from "react-redux"
 import { useTranslations } from "next-intl"
 import { clearError } from "@/redux/slices/authSlice"
@@ -19,13 +18,17 @@ interface ViewHeader {
   description?: string
 }
 
-function AuthForm() {
+interface AuthFormProps {
+  viewMode: AuthViewMode
+  onViewModeChange: (mode: AuthViewMode) => void
+}
+
+function AuthForm({ viewMode, onViewModeChange }: AuthFormProps) {
   const t = useTranslations("auth")
   const dispatch = useDispatch<AppDispatch>()
-  const [viewMode, setViewMode] = useState<AuthViewMode>("sign-in")
 
   const switchView = (mode: AuthViewMode) => {
-    setViewMode(mode)
+    onViewModeChange(mode)
     dispatch(clearError())
   }
 
@@ -66,7 +69,7 @@ function AuthForm() {
           <p className="text-muted-foreground">{t("noEnterpriseCredentials")}</p>
           <button type="button" onClick={() => switchView("create-account")} className={linkClass}>
             {t("applyEarlyAccess")}
-            <span aria-hidden="true">→</span>
+           
           </button>
         </div>
       ) : (
