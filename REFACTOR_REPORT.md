@@ -1,6 +1,8 @@
 # Refactor Report — AI Mentor (frontend)
 
-Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · 7 commits · **not pushed**
+Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · دفعتان: 7 commits في الأولى + 9 في الثانية، إضافة إلى commit للتقرير بعد كل دفعة · **not pushed**
+
+> الأقسام من "Executive Summary" حتى "Recommendations" توثّق **الدفعة الأولى**، مع تحديث حالة البنود التي حسمتها الدفعة الثانية في مكانها. تفاصيل الدفعة الثانية كاملة في القسم الأخير: [Batch 2 — Follow-up Decisions](#batch-2--follow-up-decisions).
 
 ## Executive Summary
 
@@ -8,8 +10,8 @@ Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · 7 commit
 
 أهم 3 findings:
 1. **`HowItWork.tsx` كان يستخدم hook (`useT`) بدون `"use client"`** — كان يعمل فقط لأن `home.tsx` "يسرّب" حدوده إليه. استيراده من أي Server Component كان سيكسره. تم إصلاحه (بدون تغيير مكان التنفيذ)، وأصبحت صفحة الـhome نفسها Server Component.
-2. **كسر RTL فعلي في `OnboardingIncomplete.tsx`** (`text-left` و`pl-5`) — مُسجَّل ولم يُصلح لأن إصلاحه تغيير مرئي.
-3. **8 ملفات بلا أي استخدام في الكود لكنها مذكورة في الـspecs** (منها `SpecularButton.tsx`، أكبر ملف في المشروع، 378 سطرًا) — انحراف بين الـspecs والكود يحتاج قرارًا.
+2. **كسر RTL فعلي في `OnboardingIncomplete.tsx`** (`text-left` و`pl-5`) — سُجّل في الدفعة الأولى، و**أُصلح في الدفعة الثانية** (`7458c73`) بعد موافقة المراجع.
+3. **8 ملفات بلا أي استخدام في الكود لكنها مذكورة في الـspecs** (منها `SpecularButton.tsx`، أكبر ملف في المشروع، 378 سطرًا) — **حُسمت وحُذفت في الدفعة الثانية**، بعد التحقق من أن الـspec قديم في كل حالة.
 
 **مستوى الثقة في حفظ السلوك: مرتفع.** الأساس: typecheck/lint/tests/build نظيفة قبل وبعد، و`next build` يفرض قواعد server/client، إضافة إلى **تحقق runtime في متصفح حقيقي** بـ30 فحصًا موجّهًا لكل سلوك تم لمسه + مجموعات regression سابقة (152 فحصًا)، بكلا اللغتين. تنبيه: هذا التحقق الـruntime تم بسكربتات Playwright مؤقتة غير مضافة للـrepo — راجع Recommendations.
 
@@ -133,14 +135,16 @@ Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · 7 commit
 
 | Severity | Location | Description | Risk | Recommendation | Status |
 |---|---|---|---|---|---|
-| Medium | `src/features/onboarding/components/OnboardingIncomplete.tsx:43,46` | `text-left` و`pl-5` (خصائص فيزيائية) | في `ar`: نص عربي مُجبر على اليسار، والـpadding في الجهة الخاطئة من علامات القائمة | `text-start` و`ps-5` | Not Fixed — behavior change (مرئي في RTL) |
-| Medium | 8 ملفات — راجع Potentially Unused Code | كود بلا أي استخدام لكنه مذكور في الـspecs | صيانة كود ميت، وspecs تصف واقعًا غير موجود | قرار منتج: حذف أو تحديث الـspecs | Not Fixed — needs approval |
-| Low | `src/app/[locale]/(main)/dashboard/loading.tsx:3`، `src/shared/components/layout/Footer.tsx:42` | `aria-label` إنجليزي hardcoded (`"Loading dashboard"`، `"Footer navigation"`) | قارئ الشاشة يقرأها بالإنجليزية في `ar` | إضافة مفاتيح ترجمة لكلا اللغتين | Not Fixed — needs approval (لا توجد مفاتيح، ولا تُخترع ترجمات) |
-| Low | `src/shared/components/layout/Footer.tsx:8-11` | روابط placeholder `href: "#"` (privacy/terms/trust/status) | روابط ميتة تقفز لأعلى الصفحة | ربطها بصفحات حقيقية أو إخفاؤها | Not Fixed — behavior change |
+| Medium | `src/features/onboarding/components/OnboardingIncomplete.tsx:43,46` | `text-left` و`pl-5` (خصائص فيزيائية) | في `ar`: نص عربي مُجبر على اليسار، والـpadding في الجهة الخاطئة من علامات القائمة | `text-start` و`ps-5` | **Fixed — الدفعة الثانية (`7458c73`)** |
+| Medium | 8 ملفات — راجع Potentially Unused Code | كود بلا أي استخدام لكنه مذكور في الـspecs | صيانة كود ميت، وspecs تصف واقعًا غير موجود | قرار منتج: حذف أو تحديث الـspecs | **Fixed — حُذفت في الدفعة الثانية** (تحديث الـspecs ما زال معلّقًا) |
+| Low | `src/app/[locale]/(main)/dashboard/loading.tsx:3`، `src/shared/components/layout/Footer.tsx:42` | `aria-label` إنجليزي hardcoded (`"Loading dashboard"`، `"Footer navigation"`) | قارئ الشاشة يقرأها بالإنجليزية في `ar` | إضافة مفاتيح ترجمة لكلا اللغتين | **Pending content from the responsible team** |
+| Low | `src/features/dashboard/components/pages/dashboard-page.tsx:75`، `src/features/onboarding/components/pages/onboarding-page.tsx:202` | نص `Loading…` إنجليزي hardcoded ظاهر للمستخدم (اكتُشف في الدفعة الثانية) | يظهر بالإنجليزية في الواجهة العربية | مفتاح ترجمة بصياغة معتمدة | **Pending content from the responsible team** |
+| Low | `src/shared/components/layout/Footer.tsx:8-11` | روابط placeholder `href: "#"` (privacy/terms/trust/status) | روابط ميتة تقفز لأعلى الصفحة | ربطها بصفحات حقيقية أو إخفاؤها | **Pending content from the responsible team** (وجهات الروابط) |
+| Informational | `messages/en.json`، `messages/ar.json` — namespace `aiLearningPath` | مفاتيح ترجمة يتيمة: تخص `AiLearningPathCard` الذي أُسقط، ولا يستخدمها أي كود | صيانة نصوص ميتة | حذفها بعد تأكيد فريق المحتوى | Not Fixed — needs approval (قاعدة الـskill: مفاتيح الترجمة تُسجَّل فقط) |
 | Low | 24 ملفًا تستخدم `useT`، 17 تستخدم `useTranslations` مباشرة | عدم اتساق | `useT` يعيد fallback عند مفتاح ناقص بينما `useTranslations` يرمي — نفس الخطأ يتصرف بشكل مختلف حسب الـcomponent | توحيد على أحدهما | Not Fixed — behavior change عند المفاتيح الناقصة |
 | Low | `src/features/onboarding/components/components/` | تداخل مكرر في التسمية | التباس بسيط | إعادة تسمية المجلد | Not Fixed — out of scope (تغيير في المسارات بلا فائدة سلوكية) |
 | Low | `src/shared/components/layout/navbar/Navbar.tsx` | 355 سطرًا، Escape وfocus trap ما زالا inline | متوسط التعقيد | استخراج `useMenuKeyboard` إن احتاجه overlay آخر | Not Fixed — insufficient benefit |
-| Informational | `docs/05-api-integration.md` | الوثيقة تقول إن الـauth في Redux + `localStorage` والإرسال عبر `onboardingService` | docs قديمة: الكود يستخدم in-memory token store وRTK Query | تحديث الوثيقة | Not Fixed — out of scope |
+| Informational | `docs/05-api-integration.md` | الوثيقة تقول إن الـauth في Redux + `localStorage` والإرسال عبر `onboardingService` | docs قديمة: الكود يستخدم in-memory token store وRTK Query | تحديث الوثيقة، مع specs/001 و005 (راجع Batch 2) | Not Fixed — out of scope |
 | Informational | `next build` | يعتمد على جلب Google Fonts عبر الشبكة وقت البناء | فشل بناء عابر لوحظ مرتين أو أكثر في هذه الجلسة | `next/font/local` | Not Fixed — needs approval (تغيير infra) |
 
 ## Clean Code Improvements
@@ -160,56 +164,153 @@ Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · 7 commit
 ## Accessibility Findings
 
 - **لم يُصلح شيء** في هذا الـrefactor.
-- **الموجود:** `aria-label` إنجليزي hardcoded في موضعين (راجع Technical Debt)؛ روابط الـFooter الميتة.
+- **الموجود — Pending content from the responsible team:** `aria-label` إنجليزي hardcoded في موضعين، وروابط الـFooter الميتة (راجع Technical Debt).
 - **نظيف:** لا `div`/`span` بـ`onClick`، ولا صور بلا `alt`.
 
 ## i18n / RTL / LTR Findings
 
-- **كسر RTL:** `OnboardingIncomplete.tsx:43,46` — مُسجَّل فقط لأن إصلاحه تغيير مرئي.
+- **كسر RTL:** `OnboardingIncomplete.tsx:43,46` — سُجّل في الدفعة الأولى، و**أُصلح في الدفعة الثانية** (`7458c73`). لم يعد في `src/` أي `text-left` أو `pl-*` فيزيائي.
 - **خصائص فيزيائية مقصودة (ليست أخطاء):** `AiCursor.tsx` (إحداثيات الماوس فيزيائية بطبيعتها)، `AuthAmbientDecor.tsx` (موثّق بتعليق داخل الملف)، `Hero.tsx` (`left-1/2 -translate-x-1/2` توسيط متماثل).
 - **عدم اتساق** `useT` / `useTranslations` — مُسجَّل.
-- **ترجمات ناقصة** لـ`aria-label` في موضعين — مُسجَّل.
+- **ترجمات ناقصة** لـ`aria-label` في موضعين، ولـ`Loading…` في موضعين — Pending content from the responsible team.
 
 ## Potentially Unused Code
 
-| العنصر | الموقع | سبب الشك | لماذا لم يُحذف |
-|---|---|---|---|
-| `onboardingService` | `src/features/onboarding/services/onboardingService.ts` | لا يستورده أي ملف؛ الكود يستخدم RTK Query مباشرة | **contract في spec رسمي** (`specs/005-onboarding-ux-redesign/contracts/onboarding-service.md`)، وT004 مُعلَّم منجزًا، و`docs/05` يصفه كمسار الإرسال |
-| `SpecularButton` | `src/shared/components/ui/SpecularButton.tsx` (378 سطرًا — الأكبر) | لا يستورده أي ملف | `specs/001` يصفه بأنه "Hero and CTA primary buttons"، والـHero يستخدم `<button>` عاديًا الآن |
-| `TextReveal`، `ScrollStagger`، `MagneticBehavior`، `Card3D`، `AnimatedProgressBar` | `src/shared/components/animations/` | لا يستوردها أي ملف | مُدرجة في جدول components لـ`specs/001` |
-| `AnimatedNumber` | `src/shared/components/animations/AnimatedNumber.tsx` | لا يستورده أي ملف | مُدرج في `specs/001`، لكن `specs/003/research.md` **رفضه صراحةً** ("AnimatedNumber/donut variants rejected") — أقوى مرشح للحذف |
+لا يوجد بعد الدفعة الثانية. الملفات الثمانية التي كانت مسجّلة هنا حُسمت كلها وحُذفت، ولكل ملف خلاصة موثّقة في commit الحذف الخاص به وفي [Batch 2](#batch-2--follow-up-decisions).
 
 ## Warnings
 
-1. **انحراف الـspecs عن الكود.** ثمانية ملفات تصفها الـspecs بأنها مستخدمة أو جزء من contract بينما لا يستوردها شيء. `CLAUDE.md` ينص على أن الـspecs هي "the authoritative design"، لذلك حذفها قرار منتج لا قرار refactor.
-   - **الخطر:** كود ميت يُصان، وspecs تضلّل من يقرأها.
-   - **الحل المقترح:** إما حذف الملفات وتحديث الـspecs، أو إعادة ربطها (مثل `SpecularButton` في الـHero).
-   - **لماذا لم يُنفَّذ:** يحتاج موافقة، والـskill يمنع حذف ما لم يُتأكد أنه unused.
-2. **التحقق الـruntime غير محفوظ في الـrepo.** سلوك الـscroll والـhooks وحدود server/client تم التحقق منه بسكربتات Playwright مؤقتة. الـ19 test الموجودة تغطي طبقة الـAPI/auth فقط، ولا شيء منها يحمي هذه السلوكيات من regression مستقبلي.
+1. ~~**انحراف الـspecs عن الكود.**~~ **حُسم في الدفعة الثانية:** الملفات الثمانية حُذفت. المتبقي أن الـspecs والـdocs نفسها لم تُحدَّث بعد (راجع "Specs / docs now out of date" في Batch 2).
+2. **التحقق الـruntime غير محفوظ في الـrepo.** سلوك الـscroll والـhooks وحدود server/client، ثم إصلاح RTL في الدفعة الثانية، كلها تم التحقق منها بسكربتات Playwright مؤقتة. الـ19 test الموجودة تغطي طبقة الـAPI/auth فقط، ولا شيء منها يحمي هذه السلوكيات من regression مستقبلي.
 
 ## Bugs Observed (Not Fixed)
 
-1. **`ScrollStagger` يقبل `staggerDelay` ولا يطبّقه** — الـprop في الـinterface لكن لا أثر له. (الـcomponent غير مستخدم حاليًا.)
-2. **كسر RTL في `OnboardingIncomplete.tsx`** — راجع Technical Debt.
-3. **روابط ميتة في الـFooter** (`href: "#"`).
-4. **`aria-label` إنجليزي في الواجهة العربية** — موضعان.
+1. ~~**`ScrollStagger` يقبل `staggerDelay` ولا يطبّقه.**~~ زال مع حذف الـcomponent في الدفعة الثانية (`990bc4c`).
+2. ~~**كسر RTL في `OnboardingIncomplete.tsx`.**~~ **أُصلح في الدفعة الثانية** (`7458c73`).
+3. **روابط ميتة في الـFooter** (`href: "#"`) — Pending content from the responsible team.
+4. **نصوص إنجليزية في الواجهة العربية:** `aria-label` في موضعين و`Loading…` في موضعين — Pending content from the responsible team.
 
 ## Remaining Technical Debt
 
-1. RTL في `OnboardingIncomplete.tsx` (Medium)
-2. قرار بشأن 8 ملفات spec-referenced غير مستخدمة (Medium)
-3. ترجمات `aria-label` الناقصة (Low)
-4. روابط الـFooter الميتة (Low)
-5. توحيد `useT` / `useTranslations` (Low)
-6. تحديث `docs/05-api-integration.md` (Informational)
-7. self-hosting للخطوط لاستقرار الـbuild (Informational)
+1. تحديث الـspecs والـdocs المتأخرة عن الكود: `specs/001`، `specs/005`، `docs/05`، `docs/00`، `docs/03` (Medium)
+2. **Pending content from the responsible team:** ترجمات `aria-label` و`Loading…`، ووجهات روابط الـFooter (Low)
+3. حذف namespace الترجمة اليتيم `aiLearningPath` بعد تأكيد فريق المحتوى (Informational)
+4. توحيد `useT` / `useTranslations` (Low)
+5. self-hosting للخطوط لاستقرار الـbuild (Informational)
 
 ## Recommendations
 
 لم يُنفَّذ أي منها:
 
-- **إضافة Playwright e2e specs** في `tests/e2e/` تغطي: الـscroll إلى الأقسام، قفل الـscroll في قائمة الموبايل، ظهور الأقسام الستة، وغياب أخطاء hydration — بكلا اللغتين. الـtooling موجود أصلًا (`pnpm test:e2e`).
-- **إصلاح RTL** في `OnboardingIncomplete.tsx` في commit مستقل مع مراجعة بصرية.
-- **مراجعة الـspecs مقابل الكود** وحسم مصير الملفات الثمانية.
-- **`next/font/local`** لإزالة اعتماد الـbuild على الشبكة.
+- **إضافة Playwright e2e specs** في `tests/e2e/` تغطي: الـscroll إلى الأقسام، قفل الـscroll في قائمة الموبايل، ظهور الأقسام الستة، غياب أخطاء hydration، واتجاه قائمة `OnboardingIncomplete` في `ar`، بكلا اللغتين. الـtooling موجود أصلًا (`pnpm test:e2e`).
+- **تحديث الـspecs والـdocs** لتعكس الكود الحالي (القائمة في Batch 2).
+- **`next/font/local`** لإزالة اعتماد الـbuild على الشبكة؛ فشل البناء العابر تكرر في الدفعة الثانية أيضًا (مرتان).
 - **توحيد استخدام الترجمة** بعد قرار صريح حول سلوك المفاتيح الناقصة.
+
+---
+
+## Batch 2 — Follow-up Decisions
+
+### Summary
+
+طُبّقت قرارات المراجع على نفس الـbranch في 9 commits مستقلة: حذف 8 ملفات غير مستخدمة (كل ملف في commit بخلاصته عن حالة الـspec)، وإصلاح كسر RTL في `OnboardingIncomplete.tsx`. النتيجة: 9 ملفات، **+2 / −829 سطرًا**. حُذف أكبر ملف في المشروع (`SpecularButton.tsx`، 379 سطرًا)، ولم يعد في `src/` أي خاصية اتجاه فيزيائية. بنود المحتوى (ترجمات `aria-label` وروابط الـFooter) لم تُلمس كما طُلب، وعُلّمت "Pending content from the responsible team".
+
+**السؤال الحاكم لكل حذف:** هل الـspec قديم (الميزة أُسقطت فعلًا)، أم الكود ناقص (الـspec لم يُنفَّذ)؟ الجواب في الحالات الثماني: **الـspec قديم**. الدليل الحاسم لسبعة منها في `specs/001` نفسه: قرار التوضيح **Q24** ("Follow the Prototype Hero exactly") أسقط `AiLearningPathCard` والـHero القديم الذي كانت هذه الـcomponents تخدمه، ومتطلبات الـHero والـCTA الحالية (الأسطر 236-238، 256-257، 422، 439) تصف أزرار pill عادية تطابق الكود المنفَّذ حرفيًا. جدول "Existing Components to Reuse" هو inventory لم يُحدَّث بعد Q24، وفيه أصلًا مسار `Navbar` الميت. الملف الثامن `onboardingService` لم يُحسم من الـspecs وحدها، فسُئل المراجع قبل حذفه.
+
+### Metrics (Before → After)
+
+"قبل" = نهاية الدفعة الأولى.
+
+| المقياس | قبل | بعد |
+|---|---|---|
+| ملفات TS/TSX في `src/` | 107 | 99 |
+| ملفات `"use client"` | 54 | 47 |
+| أكبر ملف (أسطر) | `SpecularButton.tsx` 378 | `Navbar.tsx` 355 |
+| ملفات `shared/components/animations/` | 8 | 2 (`FadeInView`، `HeadingReveal`، وكلاهما مستخدم) |
+| خصائص اتجاه فيزيائية (`text-left`، `pl-*`) | 2 | 0 |
+| استخدامات `any` | 0 | 0 |
+| `eslint-disable` | 2 | 2 |
+| أخطاء TypeScript | 0 | 0 |
+| أخطاء/تحذيرات ESLint | 0 / 0 | 0 / 0 |
+
+### Validation
+
+| Check | Before (نهاية الدفعة 1) | After (نهاية الدفعة 2) | ملاحظة |
+|---|---|---|---|
+| TypeScript | Passed | Passed | |
+| ESLint | Passed (0 problems) | Passed (0 problems) | |
+| Tests (Vitest) | Passed 19/19 | Passed 19/19 | |
+| Build | Passed | Passed | نجح في المحاولة الثانية بعد خطأ شبكة عابر في `next/font/google` |
+
+**بعد كل حذف** شُغّل typecheck + lint + build قبل الـcommit: 8/8 نجحت. بناء `TextReveal` احتاج إعادة محاولة واحدة لنفس خطأ الخطوط العابر.
+
+### Commits
+
+1. `c830c7e`: refactor(cleanup): remove unused AnimatedNumber
+2. `8b0e5fd`: refactor(cleanup): remove unused AnimatedProgressBar
+3. `493bf54`: refactor(cleanup): remove unused TextReveal
+4. `990bc4c`: refactor(cleanup): remove unused ScrollStagger
+5. `d464c81`: refactor(cleanup): remove unused MagneticBehavior
+6. `98bde61`: refactor(cleanup): remove unused Card3D
+7. `c49a25a`: refactor(cleanup): remove unused SpecularButton
+8. `465e521`: refactor(cleanup): remove onboardingService tombstone
+9. `7458c73`: fix(onboarding): use logical text-start/ps-5 in OnboardingIncomplete
+
+### Removed Code: spec conclusion per file
+
+قبل كل حذف تحقّق ما يلي: لا يستورد الملفَ أي كود في `src/` أو `tests/`، ولا يوجد barrel ولا استيراد ديناميكي يصل إليه، ولا يستورد أي مرشح مرشحًا آخر.
+
+| الملف | أسطر | حالة الـspec | الدليل |
+|---|---|---|---|
+| `AnimatedNumber.tsx` | 49 | **قديم** | حذف مباشر بقرار المراجع. `specs/003/research.md` يرفضه صراحةً؛ `specs/001` يضعه "(if used)"؛ مستهلكه الوحيد `AiLearningPathCard` أُسقط في Q24 |
+| `AnimatedProgressBar.tsx` | 53 | **قديم** | "(if used)" في `specs/001`؛ مستهلكه الوحيد `AiLearningPathCard` أُسقط في Q24. أسطر الـspec 601 و634 و887 تصف تلك البطاقة الساقطة |
+| `TextReveal.tsx` | 79 | **قديم** | مستهلكوه: البطاقة الساقطة، و`Features`/`HowItWork` اللذان أُعيد بناؤهما على `HeadingReveal`/`FadeInView` في `34b5027`. الـplan يصفه "optional"، ولا يوجد متطلب وظيفي لتأثير text-reveal |
+| `ScrollStagger.tsx` | 66 | **قديم** | مستهلكه الوحيد الـHero القديم الذي استبدله Q24، ومتطلبات الـHero لا تذكر stagger. (كان يحمل bug: `staggerDelay` لا يُطبَّق) |
+| `MagneticBehavior.tsx` | 69 | **قديم** | مستهلكاه أزرار الـHero والـCTA القديمة. المتطلبات الحالية لكليهما أزرار `rounded-full` عادية بلا تأثير مغناطيسي (236-238، 256-257، 422، 439)\* |
+| `Card3D.tsx` | 130 | **قديم** | مستهلكه الوحيد الـHero القديم (كان يغلّف البطاقة الساقطة). تفاعل البطاقات في الـspec هو lift (السطر 311)، ومنفَّذ في `FeatureCard`/`StepCard` بدونه |
+| `SpecularButton.tsx` | 379 | **قديم** | الحالة الأدق: جدول الـreuse وT007 يسبقان Q24. بعد Q24 تحدد المتطلبات أزرار pill صلبة (primary `#12314D`، secondary `#DEEAFB`/`#1D4E89`) لا زر WebGL shader، والـplan يقول "Button.tsx **or** SpecularButton.tsx". الـHero والـCTA المنفَّذان يطابقان المتطلبات حرفيًا، فالكود غير ناقص |
+| `onboardingService.ts` | 2 | **قديم** | لم يُحسم من الـspecs وحدها فسُئل المراجع، ووافق على الحذف. ثم تبيّن أن الملف نفسه **tombstone** من سطرين: `Removed as part of 006-frontend-api-integration. Onboarding now submits via RTK Query mutations`، وهذا دليل مباشر على أن الإسقاط كان مقصودًا |
+
+\* رسالة commit `MagneticBehavior` تشير إلى "CTA section items 11 and 28"، وهذه أرقام نسبية داخل القسم؛ السطران الفعليان في `specs/001/spec.md` هما **422 و439**.
+
+### RTL fix: `OnboardingIncomplete.tsx`
+
+**التغيير:** `text-left` ← `text-start` على الـCard، و`pl-5` ← `ps-5` على القائمة. يطابق نمط المشروع الموجود (`text-start` ×8، `ps-`/`pe-` ×3). كانتا الخاصيتين الفيزيائيتين الوحيدتين في كامل `src/`.
+
+**طريقة التحقق:** عُرض الـcomponent فعليًا في production build (صفحة `/dashboard` مع اعتراض `GET /me/onboarding-status` عبر Playwright ليعيد `completed: false`)، وقيست المواقع بالبكسل قبل الإصلاح وبعده، مع لقطات شاشة.
+
+| Locale @ width | label (L / R) قبل ← بعد | ul padding (L / R) قبل ← بعد | أول عنصر (L / R) قبل ← بعد |
+|---|---|---|---|
+| en @ 375 | 21 / 230 ← 21 / 230 | 20 / 0 ← 20 / 0 | 20 / 244 ← 20 / 244 |
+| en @ 1280 | 21 / 407 ← 21 / 407 | 20 / 0 ← 20 / 0 | 20 / 421 ← 20 / 421 |
+| ar @ 375 | 21 / 243 ← **243 / 21** | 20 / 0 ← **0 / 20** | 20 / 239 ← **239 / 20** |
+| ar @ 1280 | 21 / 420 ← **420 / 21** | 20 / 0 ← **0 / 20** | 20 / 416 ← **416 / 20** |
+
+- **الإنجليزية: الـgeometry مطابقة حرفيًا قبل وبعد.** يتغير فقط `text-align` المحسوب من `left` إلى `start`، وهما متطابقان في LTR.
+- **العربية: أصبحت مرآة دقيقة للإنجليزية.** قبل الإصلاح كان النص ملتصقًا باليسار والنقاط (•) عالقة على الحافة اليمنى منفصلة عن نصها؛ بعده أصبح النص والنقاط والـpadding كلها في الجهة اليمنى (inline-start).
+
+### Pending content from the responsible team
+
+لم تُلمس في هذه الدفعة بقرار المراجع، ولم يُخترع أي نص عربي أو وجهة رابط:
+
+| الموقع | البند |
+|---|---|
+| `src/app/[locale]/(main)/dashboard/loading.tsx:3` | `aria-label="Loading dashboard"`: يحتاج ترجمة |
+| `src/shared/components/layout/Footer.tsx:42` | `aria-label="Footer navigation"`: يحتاج ترجمة |
+| `src/features/dashboard/components/pages/dashboard-page.tsx:75` | نص `Loading…` ظاهر: يحتاج ترجمة (**جديد** في هذه الدفعة) |
+| `src/features/onboarding/components/pages/onboarding-page.tsx:202` | نص `Loading…` ظاهر: يحتاج ترجمة (**جديد** في هذه الدفعة) |
+| `src/shared/components/layout/Footer.tsx:8-11` | روابط privacy/terms/trust/status تشير إلى `#`: تحتاج وجهات حقيقية |
+
+### New findings (recorded only)
+
+- **Namespace ترجمة يتيم `aiLearningPath`** في `messages/en.json` و`messages/ar.json`: نصوص `AiLearningPathCard` الساقطة، ولا يستخدمها أي كود. لم يُحذف لأن قاعدة الـskill تسجّل مفاتيح الترجمة فقط، وحذفها قرار محتوى.
+- **نصّا `Loading…` hardcoded**: مدرجان في الجدول أعلاه.
+
+### Specs / docs now out of date
+
+لم تُعدَّل هنا لأنها خارج نطاق refactor الكود، لكنها الآن تصف كودًا لم يعد موجودًا:
+
+- `specs/001-home-page-specification/spec.md`: جدول "Existing Components to Reuse" (~الأسطر 727-737) يذكر الـcomponents المحذوفة ومسار `Navbar` الميت؛ والأسطر 601 و634 و887 تخص البطاقة الساقطة.
+- `specs/001-home-page-specification/plan.md` و`tasks.md`: ملاحظات `SpecularButton`/T007 و`TextReveal`.
+- `specs/005-onboarding-ux-redesign/`: `contracts/onboarding-service.md` و`plan.md` و`research.md` وT004 في `tasks.md`.
+- `docs/05-api-integration.md` و`docs/00-project-overview.md` و`docs/03-dashboard.md`: تذكر `onboardingService`.
