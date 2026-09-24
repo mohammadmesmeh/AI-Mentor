@@ -314,3 +314,63 @@ Branch: `refactor/code-quality-review` (based on `main` @ `c28e030`) · دفعت
 - `specs/001-home-page-specification/plan.md` و`tasks.md`: ملاحظات `SpecularButton`/T007 و`TextReveal`.
 - `specs/005-onboarding-ux-redesign/`: `contracts/onboarding-service.md` و`plan.md` و`research.md` وT004 في `tasks.md`.
 - `docs/05-api-integration.md` و`docs/00-project-overview.md` و`docs/03-dashboard.md`: تذكر `onboardingService`.
+
+---
+
+## Investigation — reported 404 on `/en/auth` (not a code bug)
+
+### البلاغ
+
+بعد الدفعتين وصل بلاغ بأن `/en/auth` يعيد 404، وأن `Test-Path` على `src/app/[locale]/(main)/auth/page.tsx` يعيد `False` رغم أن `git status` نظيف. الفرضية المطروحة: أن فحص الـunused code في دفعة الحذف صنّف `page.tsx` (ملف framework مرتبط بالـrouting) خطأً كملف غير مستخدم وحذفه.
+
+### ما وُجد فعلًا
+
+الفرضية **لم تتحقق**. لم يُحذف الملف ولم يُنقل، والصفحة تعمل:
+
+| الفحص | النتيجة |
+|---|---|
+| الملف على القرص (`find src/app -name page.tsx`) | موجود (306 bytes) |
+| الملف متتبَّع في `HEAD` (`git ls-tree`) | نعم |
+| محتواه مقارنةً بـ`main` | مطابق حرفيًا |
+| أي commit من الـ18 على الـbranch لمس `src/app/` | لا (`git log main..HEAD -- src/app` فارغ) |
+| production build — جدول الـroutes | يضم `/[locale]/auth` |
+| `pnpm start`: `/en/auth` و`/ar/auth` | **200** و**200** (و`/en`، `/en/onboarding`، `/en/dashboard`: 200) |
+| `pnpm dev`: `/en/auth` و`/ar/auth` | **200** و**200** |
+
+### السبب الجذري لنتيجة `Test-Path`
+
+في PowerShell، يُفسَّر المسار في `Test-Path` كـ**wildcard pattern**، والأقواس المربعة فيه هي character class. لذلك يُقرأ `[locale]` كـ"حرف واحد من l-o-c-a-e"، لا كمجلد اسمه حرفيًا `[locale]`، فلا يطابق شيئًا:
+
+```powershell
+Test-Path "src\app\[locale]\(main)\auth\page.tsx"               # False
+Test-Path -LiteralPath "src\app\[locale]\(main)\auth\page.tsx"  # True
+```
+
+كل مسارات الـApp Router في هذا المشروع تمر بمجلد `[locale]`، لذلك سيعطي أي فحص PowerShell عليها بدون `-LiteralPath` نتيجة سالبة كاذبة. ينطبق الأمر نفسه على `Get-Item` و`Get-ChildItem` و`Copy-Item` وغيرها.
+
+### السبب المرجّح للـ404
+
+لم يتكرر الـ404 في أي من الوضعين. سبق أن ظهر في هذه الجلسة 404 مماثل على `/en` من `pnpm dev`، وكان السبب cache قديمًا لـTurbopack داخل `.next` بعد عدة builds فشل بعضها في منتصفها (خطأ Google Fonts العابر). هذا هو التفسير الأرجح هنا أيضًا، لكنه **غير مُثبت** لأن الحالة لم تتكرر. إن عاد: `rm -rf .next` ثم `pnpm dev`.
+
+### إعادة فحص كل الملفات المحذوفة
+
+لأن الفرضية كانت أن فحص الـunused صنّف ملف framework خطأً، أُعيد فحص الملفات الـ11 المحذوفة على الـbranch كلها:
+
+- **ولا واحد منها تحت `src/app/`.** كلها في `src/shared/components/animations/`، و`src/shared/components/ui/SpecularButton.tsx`، و`src/features/onboarding/services/onboardingService.ts`.
+- **ولا واحد منها يحمل اسم ملف framework** (`page`، `layout`، `loading`، `error`، `not-found`، `route`، `default`، `middleware`/`proxy`، `template`، `icon`، `sitemap`، `robots`، `manifest`، ...).
+- **لا يوجد أي rename أو move** على الـbranch (`--diff-filter=R` فارغ).
+
+قاعدة الـskill التي تستثني ملفات الـframework من فحص الـunused طُبّقت فعلًا: لم يُلمس أي شيء داخل `app/`.
+
+### Validation
+
+| Check | النتيجة |
+|---|---|
+| TypeScript | Passed |
+| ESLint | Passed (0 problems) |
+| Build | Passed؛ جدول الـroutes يضم `/[locale]/auth` |
+| `/en/auth`، `/ar/auth` (prod + dev) | 200 |
+
+### Action
+
+**لا تغيير في الكود.** لا يوجد ما يُستعاد، والملف سليم ومطابق لـ`main`. التوصية: استخدام `-LiteralPath` في أي سكربت أو فحص PowerShell يتعامل مع مسارات `src/app/[locale]/...`.
