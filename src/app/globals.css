@@ -640,6 +640,16 @@ html[dir="rtl"] {
 [dir="rtl"] h1,
 [dir="rtl"] h2 {
   font-family: var(--font-zain), var(--font-zain-latin);
+  /* Zain's ink runs up to ~1.45em tall (tall alef/shadda over deep
+     descenders/kasra), but many headings inherit Tailwind's built-in
+     text-3xl/4xl/5xl line-heights (1.2 / 1.111 / 1.0), so wrapped lines
+     collided. For the flex-wrap HeadingReveal headings, lift the row pitch to
+     1.5em — the value the hero h1 / CTA h2 already use — with row-gap, which
+     only exists *between* wrapped rows: single-line headings keep their exact
+     height, and headings already at >=1.5em get max(0px, …) = 0. No effect on
+     block headings (row-gap needs a flex container); the two block ones that
+     wrap set rtl:leading-[1.5] at the component. */
+  row-gap: max(0px, 1.5em - 1lh);
 }
 
 /* Arabic letter-spacing: remove negative tracking for cursive Arabic script */

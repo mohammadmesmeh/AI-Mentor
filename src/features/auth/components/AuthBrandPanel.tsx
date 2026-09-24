@@ -18,7 +18,7 @@ function AuthBrandPanel() {
             scale dips at md rather than climbing with the viewport. Without
             this the last word of the English title ("WORKSPACE", 304px at
             text-5xl) is unbreakable and overflows the panel between 768-1023px. */}
-        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-primary sm:text-5xl md:text-3xl lg:text-4xl xl:text-5xl">
+        <h1 className="mt-6 whitespace-pre-line text-4xl font-extrabold uppercase tracking-tight text-primary sm:text-5xl md:text-3xl lg:text-4xl xl:text-5xl rtl:leading-[1.5]">
           {t("portalTitle")}
         </h1>
         <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
