@@ -13,9 +13,12 @@ import type { GenerationPhase } from "../hooks/useRoadmapGenerationPolling"
  *
  * Invariant (FR-002): `start` is only reachable when the server reported no
  * request or a cancelled one — a failed load always resolves to `load-error`.
+ * That includes the onboarding-status gate: a failed gate check is an error
+ * state with a retry, never a fall-through to the generation screen.
  */
 
 export type DashboardView =
+  | { view: "signed-out" }
   | { view: "loading" }
   | { view: "onboarding-incomplete"; missingFields: MissingField[] }
   | { view: "start" }
@@ -35,7 +38,12 @@ interface QueryState<T> {
 }
 
 export interface DashboardViewInput {
-  onboarding: { isLoading: boolean; data: OnboardingStatus | undefined }
+  /**
+   * Whether an in-memory session exists. Tokens are never persisted (FR-007),
+   * so a full page load starts signed out even right after a login.
+   */
+  authenticated: boolean
+  onboarding: QueryState<OnboardingStatus>
 
   startError: ApiError | null
   /** Set once the learner clicks Generate in this session; takes precedence over `latest`. */
@@ -90,10 +98,12 @@ function fromRoadmap({ isLoading, isError, data }: DashboardViewInput["roadmap"]
 }
 
 export function resolveDashboardView(input: DashboardViewInput): DashboardView {
-  const { onboarding, startError, sessionRequestId, polling, latest, roadmap } = input
+  const { authenticated, onboarding, startError, sessionRequestId, polling, latest, roadmap } = input
 
-  if (onboarding.isLoading) return { view: "loading" }
-  if (onboarding.data && !onboarding.data.completed) {
+  if (!authenticated) return { view: "signed-out" }
+  if (onboarding.isError) return { view: "load-error" }
+  if (onboarding.isLoading || !onboarding.data) return { view: "loading" }
+  if (!onboarding.data.completed) {
     return { view: "onboarding-incomplete", missingFields: onboarding.data.missingFields }
   }
   if (startError) return { view: "start-error" }
