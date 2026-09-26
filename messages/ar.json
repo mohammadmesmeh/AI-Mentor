@@ -232,7 +232,26 @@
     "title": "AI Mentor — مرشدك الشخصي للتعلم بالذكاء الاصطناعي"
   },
   "home": {
-    "welcome ": "مرحبًا، أنا AI Mentor"
+    "welcome ": "مرحبًا، أنا AI Mentor",
+    "domains": {
+      "title": "تعلّم أياً من هذا، وأكثر",
+      "items": {
+        "webDevelopment": "برمجة الويب",
+        "uiUxDesign": "تصميم UI/UX",
+        "digitalMarketing": "التسويق الرقمي",
+        "languages": "الإنجليزية",
+        "entrepreneurship": "ريادة الأعمال",
+        "cybersecurity": "الأمن السيبراني",
+        "videoEditing": "تحرير الفيديو",
+        "dataScience": "علم البيانات",
+        "professionalWriting": "الكتابة الاحترافية",
+        "photography": "التصوير الفوتوغرافي",
+        "leadership": "القيادة والإدارة",
+        "publicSpeaking": "التحدث أمام الجمهور",
+        "aiMachineLearning": "الذكاء الاصطناعي وتعلم الآلة",
+        "mobileApps": "تطبيقات الموبايل"
+      }
+    }
   },
   "loading": {
     "text": "جارٍ التحميل"
