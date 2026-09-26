@@ -40,9 +40,18 @@ export const TEST_MESSAGES = {
   },
 } as const
 
-export function IntlWrapper({ children }: { children: ReactNode }) {
+export function IntlWrapper({
+  children,
+  locale = "en",
+  messages = TEST_MESSAGES,
+}: {
+  children: ReactNode
+  /** Override to render against the real `messages/<locale>.json` in locale-aware tests. */
+  locale?: string
+  messages?: Record<string, unknown>
+}) {
   return (
-    <NextIntlClientProvider locale="en" messages={TEST_MESSAGES}>
+    <NextIntlClientProvider locale={locale} messages={messages}>
       {children}
     </NextIntlClientProvider>
   )

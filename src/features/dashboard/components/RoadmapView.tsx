@@ -1,25 +1,14 @@
 "use client"
 
-import { BookOpen, CheckCircle2, GraduationCap, PlayCircle, PencilRuler, Video } from "lucide-react"
+import { CheckCircle2, ExternalLink, PlayCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useT, type TranslateFn } from "@/shared/hooks/useT"
-import type { Roadmap, RoadmapStage, RoadmapTask, StageStatus, TaskStatus, TaskType } from "@/lib/api/types"
+import type { Resource, Roadmap, RoadmapStage, RoadmapTask, StageStatus, TaskStatus } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
-
-function taskIcon(type: TaskType) {
-  switch (type) {
-    case "read":
-      return <BookOpen className="h-4 w-4" aria-hidden="true" />
-    case "watch":
-      return <Video className="h-4 w-4" aria-hidden="true" />
-    case "project":
-    case "coding_challenge":
-    case "assignment":
-      return <PencilRuler className="h-4 w-4" aria-hidden="true" />
-    case "quiz":
-      return <GraduationCap className="h-4 w-4" aria-hidden="true" />
-  }
-}
+import { orderedStages } from "../lib/roadmapProgress"
+import { safeExternalUrl } from "../lib/safeExternalUrl"
+import { taskAnchorId } from "../lib/focusTask"
+import { taskIcon } from "../lib/taskIcon"
 
 function stageBadge(status: StageStatus, t: TranslateFn) {
   if (status === "completed") {
@@ -70,17 +59,21 @@ interface RoadmapViewProps {
 function RoadmapStageView({ stage, t }: { stage: RoadmapStage; t: TranslateFn }) {
   return (
     <Card>
-      <div className="flex items-center justify-between gap-3 border-b border-border/50 p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+      {/* flex-wrap: on narrow screens the badge drops under the title rather
+          than squeezing it into mid-word breaks. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-5">
+        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <span className="font-display text-sm font-bold text-primary">
               {String(stage.position).padStart(2, "0")}
             </span>
           </div>
-          <div>
-            <h2 className="text-heading-sm font-semibold text-foreground">{stage.title}</h2>
+          <div className="min-w-0">
+            <h3 dir="auto" className="wrap-break-word text-heading-sm font-semibold text-foreground">
+              {stage.title}
+            </h3>
             {stage.description && (
-              <p className="text-sm text-muted-foreground">{stage.description}</p>
+              <p dir="auto" className="text-sm text-muted-foreground">{stage.description}</p>
             )}
           </div>
         </div>
@@ -95,9 +88,47 @@ function RoadmapStageView({ stage, t }: { stage: RoadmapStage; t: TranslateFn })
   )
 }
 
-function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
+/**
+ * AI-found resources are untrusted: only http(s) URLs become links, and they
+ * open in a new tab without handing the page an opener (spec 007 FR-017).
+ */
+function ResourceItem({ resource, t }: { resource: Resource; t: TranslateFn }) {
+  const href = safeExternalUrl(resource.url)
+  if (!href) {
+    return (
+      <li className="text-xs text-muted-foreground">
+        <span dir="auto" className="wrap-break-word">{resource.title}</span>{" "}
+        <span className="italic">({t("resourceLinkUnavailable")})</span>
+      </li>
+    )
+  }
   return (
-    <div className="flex items-center gap-3 px-5 py-4" aria-disabled={task.status === "upcoming"}>
+    <li className="text-xs">
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 rounded-sm text-secondary-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <span dir="auto" className="wrap-break-word">{resource.title}</span>
+        <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+        <span className="sr-only"> {t("resourceOpensNewTab")}</span>
+      </a>
+    </li>
+  )
+}
+
+function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
+  const actionable = task.status === "available" || task.status === "current"
+  const actionsNoteId = `${taskAnchorId(task.id)}-actions-note`
+
+  return (
+    <div
+      id={taskAnchorId(task.id)}
+      tabIndex={-1}
+      className="flex scroll-mt-24 flex-wrap items-center gap-3 px-5 py-4 outline-none transition-colors duration-200 target:bg-primary/5 target:ring-2 target:ring-inset target:ring-primary/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
+      aria-disabled={task.status === "upcoming"}
+    >
       <div
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
@@ -108,8 +139,9 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
       </div>
       <div className="min-w-0 flex-1">
         <p
+          dir="auto"
           className={cn(
-            "text-sm font-medium",
+            "wrap-break-word text-sm font-medium",
             task.status === "upcoming" && "text-muted-foreground"
           )}
         >
@@ -117,9 +149,11 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
         </p>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{t(`taskType.${task.type}`, task.type)}</span>
-          {task.estimatedMinutes > 0 && <span>· {task.estimatedMinutes} min</span>}
+          {task.estimatedMinutes > 0 && (
+            <span>· {t("taskMinutes", undefined, { count: task.estimatedMinutes })}</span>
+          )}
           {task.resources.length > 0 && (
-            <span aria-label={`resources: ${task.resources.length}`}>
+            <span>
               · {task.resources.length} {t("taskResources", "resources")}
             </span>
           )}
@@ -127,30 +161,37 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
         {task.resources.length > 0 && (
           <ul className="mt-1.5 space-y-0.5">
             {task.resources.map((resource) => (
-              <li key={resource.url} className="text-xs text-muted-foreground">
-                {resource.title}
-              </li>
+              <ResourceItem key={resource.id} resource={resource} t={t} />
             ))}
           </ul>
         )}
       </div>
       {taskStatusBadge(task.status, t)}
-      {task.status === "available" || task.status === "current" ? (
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            disabled
-            className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 ring-1 ring-border"
-          >
-            {t("taskComplete", "Mark Complete")}
-          </button>
-          <button
-            type="button"
-            disabled
-            className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 ring-1 ring-border"
-          >
-            {t("taskSkip", "Skip")}
-          </button>
+      {actionable ? (
+        // Task actions have no backend endpoint yet (spec 007 FR-014): the
+        // controls stay disabled and say so — no handler, no local change.
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled
+              aria-describedby={actionsNoteId}
+              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t("taskComplete", "Mark Complete")}
+            </button>
+            <button
+              type="button"
+              disabled
+              aria-describedby={actionsNoteId}
+              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {t("taskSkip", "Skip")}
+            </button>
+          </div>
+          <span id={actionsNoteId} className="text-xs text-muted-foreground">
+            {t("taskActionUnavailable")}
+          </span>
         </div>
       ) : null}
     </div>
@@ -159,27 +200,33 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
 
 function RoadmapView({ roadmap }: RoadmapViewProps) {
   const t = useT("dashboard")
-  const version = roadmap.currentVersion
+  const stages = orderedStages(roadmap.currentVersion)
 
-  if (!version || version.stages.length === 0) {
+  if (stages.length === 0) {
     return (
       <p className="py-16 text-center text-muted-foreground">{t("roadmapNotFound")}</p>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <section id="roadmap" aria-labelledby="roadmap-heading" className="scroll-mt-20 space-y-6">
       <header className="space-y-1">
         <p className="text-sm font-medium uppercase tracking-wide text-primary">
-          {t("roadmapReady")}
+          {t("yourRoadmap", "Your Learning Roadmap")}
         </p>
-        <h1 className="text-heading-md font-semibold text-foreground">{roadmap.goal}</h1>
+        <h2
+          id="roadmap-heading"
+          dir="auto"
+          className="wrap-break-word text-heading-md font-semibold text-foreground"
+        >
+          {roadmap.goal}
+        </h2>
       </header>
-      {version.stages.map((stage) => (
+      {stages.map((stage) => (
         <RoadmapStageView key={stage.id} stage={stage} t={t} />
       ))}
-    </div>
+    </section>
   )
 }
 
-export { RoadmapView, type RoadmapViewProps }
+export { RoadmapView }

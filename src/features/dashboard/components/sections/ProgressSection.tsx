@@ -1,20 +1,42 @@
-import { BookOpen, Lock, Map } from "lucide-react"
+import { Map } from "lucide-react"
+import { useLocale } from "next-intl"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
+import type { RoadmapProgress } from "../../lib/roadmapProgress"
 
 interface ProgressSectionProps {
-  stageTitles: string[]
-  stageCount: number
-  currentStageIndex: number
+  progress: RoadmapProgress
 }
 
-function ProgressSection({ stageTitles, stageCount, currentStageIndex }: ProgressSectionProps) {
+const STAGE_SEGMENT_CLASS = {
+  completed: "bg-primary",
+  active: "bg-accent-700",
+  upcoming: "bg-muted",
+} as const
+
+const STAGE_STATUS_KEY = {
+  completed: "stageCompleted",
+  active: "stageActive",
+  upcoming: "stageUpcoming",
+} as const
+
+/**
+ * Real progress derived from the roadmap's own statuses (spec 007 FR-009).
+ * Stage titles are listed visibly only in the full roadmap below; here they are
+ * exposed to assistive technology alone. No streak/accuracy/time figures exist
+ * to show (FR-010).
+ */
+function ProgressSection({ progress }: ProgressSectionProps) {
   const t = useT("dashboard")
+  const locale = useLocale()
+  const percentLabel = new Intl.NumberFormat(locale, { style: "percent" }).format(
+    progress.percent / 100
+  )
 
   return (
-    <section id="roadmap" aria-labelledby="progress-heading" className="scroll-mt-20">
+    <section aria-labelledby="progress-heading">
       <Card>
         <div className="flex items-center justify-between gap-3 border-b border-border/50 p-5">
           <div className="flex items-center gap-3">
@@ -29,57 +51,55 @@ function ProgressSection({ stageTitles, stageCount, currentStageIndex }: Progres
                 {t("progressTitle", "Progress")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {t("progressStageLabel", "Stage {current} of {total}", {
-                  current: currentStageIndex + 1,
-                  total: stageCount,
+                {t("stageOfTotal", undefined, {
+                  current: progress.stageNumber,
+                  total: progress.stageCount,
                 })}
               </p>
             </div>
           </div>
-          <span className="badge-base bg-primary/10 text-xs text-primary">
-            {t("inProgress", "In Progress")}
-          </span>
+          <span className="badge-base bg-primary/10 text-xs text-primary">{percentLabel}</span>
         </div>
-        <CardContent className="space-y-3 p-5">
-          {stageTitles.map((item, index) => (
+        <CardContent className="space-y-5 p-5">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">
+              {t("tasksCompletedOfTotal", undefined, {
+                done: progress.completedTasks,
+                total: progress.countedTasks,
+              })}
+            </p>
             <div
-              key={item}
-              className={cn(
-                "flex items-center gap-4 rounded-lg border p-4 transition-colors duration-200",
-                index === currentStageIndex
-                  ? "border-primary/30"
-                  : "border-border/50 opacity-60"
-              )}
+              className="progress-track"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progress.percent}
+              aria-valuetext={percentLabel}
+              aria-label={t("progressBarLabel")}
             >
-              <div
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-                  index === currentStageIndex ? "bg-primary/10" : "bg-muted"
-                )}
-              >
-                {index === currentStageIndex ? (
-                  <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
-                ) : (
-                  <Lock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p
-                  className={cn(
-                    "font-medium",
-                    index !== currentStageIndex && "text-muted-foreground"
-                  )}
-                >
-                  {t(`milestones.${item}`, item)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {index === currentStageIndex
-                    ? t("currentMilestone", "Current Milestone")
-                    : t("upcomingMilestone", "Up Next")}
-                </p>
-              </div>
+              <div className="progress-fill" style={{ width: `${progress.percent}%` }} />
             </div>
-          ))}
+          </div>
+
+          {progress.stageStatuses.length > 0 && (
+            <>
+              <div className="flex gap-1.5" aria-hidden="true">
+                {progress.stageStatuses.map((stage) => (
+                  <span
+                    key={stage.id}
+                    className={cn("h-1.5 flex-1 rounded-full", STAGE_SEGMENT_CLASS[stage.status])}
+                  />
+                ))}
+              </div>
+              <ul className="sr-only">
+                {progress.stageStatuses.map((stage) => (
+                  <li key={stage.id}>
+                    {stage.title} — {t(STAGE_STATUS_KEY[stage.status])}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </CardContent>
       </Card>
     </section>

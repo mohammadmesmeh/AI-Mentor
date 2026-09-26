@@ -1,14 +1,23 @@
 import { PlayCircle } from "lucide-react"
 
 import { useT } from "@/shared/hooks/useT"
-import { Button } from "@/shared/components/ui/Button"
+import { buttonVariants } from "@/shared/components/ui/Button"
+import { cn } from "@/lib/utils"
 import { SectionState } from "../states/SectionState"
+import type { CurrentTaskRef } from "../../lib/roadmapProgress"
+import { focusTaskAnchor, taskAnchorId } from "../../lib/focusTask"
+import { taskIcon } from "../../lib/taskIcon"
 
 interface ContinueLearningSectionProps {
-  status?: "unavailable"
+  current: CurrentTaskRef | null
+  allCompleted: boolean
 }
 
-function ContinueLearningSection({ status = "unavailable" }: ContinueLearningSectionProps) {
+// Plain in-page anchors (not the locale-aware Link) so a hash never triggers
+// a route change.
+const primaryLinkClass = cn(buttonVariants({ size: "lg" }), "shrink-0")
+
+function ContinueLearningSection({ current, allCompleted }: ContinueLearningSectionProps) {
   const t = useT("dashboard")
 
   return (
@@ -28,18 +37,53 @@ function ContinueLearningSection({ status = "unavailable" }: ContinueLearningSec
           </div>
         </div>
         <div className="flex flex-col gap-6 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          {status === "unavailable" && (
+          {current ? (
+            <>
+              <div className="flex min-w-0 items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-700/10 text-accent-700">
+                  {taskIcon(current.task.type, "h-5 w-5")}
+                </div>
+                <div className="min-w-0 space-y-1">
+                  <p dir="auto" className="wrap-break-word text-lg font-semibold text-foreground">
+                    {current.task.title}
+                  </p>
+                  <p className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                    <span>{t(`taskType.${current.task.type}`, current.task.type)}</span>
+                    {current.task.estimatedMinutes > 0 && (
+                      <span>
+                        {t("taskMinutes", undefined, { count: current.task.estimatedMinutes })}
+                      </span>
+                    )}
+                    <span className="wrap-break-word">
+                      {t("currentTaskStage", undefined, { stage: current.stage.title })}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              <a
+                href={`#${taskAnchorId(current.task.id)}`}
+                onClick={() => focusTaskAnchor(current.task.id)}
+                className={primaryLinkClass}
+              >
+                {t("goToTask", "Go to task")}
+              </a>
+            </>
+          ) : allCompleted ? (
             <SectionState
-              title={t("noCurrentLessonTitle", "No current lesson")}
-              description={t(
-                "noCurrentLessonDescription",
-                "There's no active lesson right now. Review your roadmap to see what's next."
-              )}
+              title={t("allTasksCompletedTitle")}
+              description={t("allTasksCompletedDescription")}
             />
+          ) : (
+            <>
+              <SectionState
+                title={t("nothingToStartTitle")}
+                description={t("nothingToStartDescription")}
+              />
+              <a href="#roadmap" className={primaryLinkClass}>
+                {t("reviewRoadmap", "Review your roadmap")}
+              </a>
+            </>
           )}
-          <Button href="#roadmap" size="lg" className="shrink-0">
-            {t("reviewRoadmap", "Review your roadmap")}
-          </Button>
         </div>
       </div>
     </section>

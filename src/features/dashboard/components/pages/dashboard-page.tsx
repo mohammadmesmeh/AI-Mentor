@@ -1,21 +1,15 @@
 "use client"
 
-import { useCallback, useEffect } from "react"
-import { skipToken } from "@reduxjs/toolkit/query"
-
+import { useMemo } from "react"
 import { useSelector } from "react-redux"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import type { RootState } from "@/redux/store"
-import {
-  useGetOnboardingStatusQuery,
-  useGetLearningProfileQuery,
-  useGetRoadmapQuery,
-} from "@/lib/api/apiSlice"
+import { useGetLearningProfileQuery } from "@/lib/api/apiSlice"
 import type { Roadmap } from "@/lib/api/types"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
-import { useGenerateRoadmap } from "../../hooks/useGenerateRoadmap"
-import { useRoadmapGenerationPolling } from "../../hooks/useRoadmapGenerationPolling"
+import { useDashboardRoadmap } from "../../hooks/useDashboardRoadmap"
+import { findCurrentTask, focusTasks, orderedStages, roadmapProgress } from "../../lib/roadmapProgress"
 import { RoadmapView } from "../RoadmapView"
 import { RoadmapGenerationFailure } from "../RoadmapGenerationFailure"
 import { RoadmapGenerating } from "../RoadmapGenerating"
@@ -26,16 +20,24 @@ import { TodayFocusSection } from "../sections/TodayFocusSection"
 import { MentorInsightSection } from "../sections/MentorInsightSection"
 import { RecentActivitySection } from "../sections/RecentActivitySection"
 
-function RoadmapGenerationStart({ onGenerate }: { onGenerate: () => void }) {
-  const t = useT("dashboard")
+/** Centered title + description + one action, shared by the non-workspace states. */
+function DashboardNotice({
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  title: string
+  description: string
+  actionLabel: string
+  onAction: () => void
+}) {
   return (
     <div className="mx-auto max-w-md py-12 text-center">
-      <h1 className="mb-2 text-heading-md font-semibold text-foreground">
-        {t("roadmapGenerationTitle")}
-      </h1>
-      <p className="mb-6 text-muted-foreground">{t("roadmapGenerationDescription")}</p>
-      <Button variant="primary" onClick={onGenerate}>
-        {t("generateRoadmap")}
+      <h1 className="mb-2 text-heading-md font-semibold text-foreground">{title}</h1>
+      <p className="mb-6 text-muted-foreground">{description}</p>
+      <Button variant="primary" onClick={onAction}>
+        {actionLabel}
       </Button>
     </div>
   )
@@ -43,127 +45,108 @@ function RoadmapGenerationStart({ onGenerate }: { onGenerate: () => void }) {
 
 function DashboardPage() {
   const t = useT("dashboard")
-  const auth = useSelector((state: RootState) => state.auth)
+  const { view, generate, retryGeneration, checkAgain, reset, retryLoad, refetchRoadmap } =
+    useDashboardRoadmap()
 
-  const { data: onboardingStatus, isLoading: statusLoading } = useGetOnboardingStatusQuery()
-  const { data: profile } = useGetLearningProfileQuery()
-
-  const { requestId, startError, generate, reset } = useGenerateRoadmap()
-  const { phase, request, checkAgain } = useRoadmapGenerationPolling(requestId)
-
-  const roadmapId = phase === "ready" || phase === "failed" ? request?.roadmapId ?? null : null
-  const { data: roadmap, isLoading: roadmapLoading, isError } = useGetRoadmapQuery(
-    roadmapId ?? skipToken
-  )
-
-  // A cancelled generation returns the user to the generation screen (contract
-  // §15) — clear the local request so the effect can restart cleanly.
-  useEffect(() => {
-    if (phase === "cancelled") {
-      reset()
-    }
-  }, [phase, reset])
-
-  const handleRetry = useCallback(() => {
-    reset()
-    void generate()
-  }, [reset, generate])
-
-  if (statusLoading) {
-    return (
-      <div className="py-16 text-center text-muted-foreground" aria-live="polite">
-        Loading…
-      </div>
-    )
-  }
-
-  if (onboardingStatus && !onboardingStatus.completed) {
-    return <OnboardingIncomplete missingFields={onboardingStatus.missingFields} />
-  }
-
-  if (startError) {
-    return <RoadmapGenerationFailure failureCode={null} onRetry={handleRetry} />
-  }
-
-  if (phase === "starting" || phase === "in_progress" || phase === "timed_out") {
-    return (
-      <RoadmapGenerating
-        timedOut={phase === "timed_out"}
-        onCheckAgain={checkAgain}
-        onReset={reset}
-      />
-    )
-  }
-
-  if (phase === "failed" && request) {
-    return <RoadmapGenerationFailure failureCode={request.failureCode} onRetry={handleRetry} />
-  }
-
-  if (phase === "ready") {
-    if (roadmapLoading) {
+  switch (view.view) {
+    case "loading":
       return (
         <div className="py-16 text-center text-muted-foreground" aria-live="polite">
-          {t("generationInProgress")}
+          {t("loadingWorkspace")}
         </div>
       )
-    }
-    if (isError || !roadmap) {
+    case "onboarding-incomplete":
+      return <OnboardingIncomplete missingFields={view.missingFields} />
+    case "start":
       return (
-        <div className="py-16 text-center">
-          <p className="mb-6 text-muted-foreground">{t("roadmapNotFound")}</p>
-          <Button variant="primary" onClick={handleRetry}>
-            {t("retryGeneration")}
-          </Button>
-        </div>
+        <DashboardNotice
+          title={t("roadmapGenerationTitle")}
+          description={t("roadmapGenerationDescription")}
+          actionLabel={t("generateRoadmap")}
+          onAction={generate}
+        />
       )
-    }
-    return (
-      <div className="space-y-8">
-        <RoadmapView roadmap={roadmap} />
-        <DashboardSections roadmap={roadmap} learnerName={auth.user?.name} learningGoal={profile?.goal} />
-      </div>
-    )
+    case "start-error":
+      return <RoadmapGenerationFailure failureCode={null} onRetry={retryGeneration} />
+    case "failed":
+      return <RoadmapGenerationFailure failureCode={view.failureCode} onRetry={retryGeneration} />
+    case "generating":
+    case "timed-out":
+      return (
+        <RoadmapGenerating
+          timedOut={view.view === "timed-out"}
+          onCheckAgain={checkAgain}
+          onReset={reset}
+        />
+      )
+    case "roadmap-not-ready":
+      return (
+        <DashboardNotice
+          title={t("roadmapNotReadyTitle")}
+          description={t("roadmapNotReadyDescription")}
+          actionLabel={t("checkAgain")}
+          onAction={refetchRoadmap}
+        />
+      )
+    case "roadmap-inactive":
+      return (
+        <DashboardNotice
+          title={t("roadmapInactiveTitle")}
+          description={t("roadmapInactiveDescription")}
+          actionLabel={t("generateRoadmap")}
+          onAction={retryGeneration}
+        />
+      )
+    case "load-error":
+      return (
+        <DashboardNotice
+          title={t("dashboardLoadErrorTitle")}
+          description={t("dashboardLoadErrorDescription")}
+          actionLabel={t("retryLoad")}
+          onAction={retryLoad}
+        />
+      )
+    case "ready":
+      return <DashboardWorkspace roadmap={view.roadmap} />
   }
-
-  return <RoadmapGenerationStart onGenerate={generate} />
 }
 
-function DashboardSections({
-  roadmap,
-  learnerName,
-  learningGoal,
-}: {
-  roadmap: Roadmap
-  learnerName?: string
-  learningGoal?: string
-}) {
+/**
+ * spec 007 FR-015 order: greeting (the page's only h1) → Continue Learning →
+ * Today's Focus / Progress grid → the full roadmap, whose stage titles are the
+ * only visible stage listing.
+ */
+function DashboardWorkspace({ roadmap }: { roadmap: Roadmap }) {
   const t = useT("dashboard")
+  const learnerName = useSelector((state: RootState) => state.auth.user?.name)
+  const { data: profile } = useGetLearningProfileQuery()
 
-  const stageTitles = roadmap.currentVersion?.stages?.map((s) => s.title) ?? []
-  const currentStageIndex = roadmap.currentVersion?.stages?.findIndex((s) => s.status === "active") ?? 0
+  const { current, focus, progress } = useMemo(() => {
+    const stages = orderedStages(roadmap.currentVersion)
+    return {
+      current: findCurrentTask(stages),
+      focus: focusTasks(stages),
+      progress: roadmapProgress(stages),
+    }
+  }, [roadmap])
 
   return (
-    <>
-      <WelcomeSection learnerName={learnerName} learningGoal={learningGoal} />
-      <ContinueLearningSection status="unavailable" />
+    <div className="space-y-8">
+      <WelcomeSection learnerName={learnerName} learningGoal={profile?.goal} />
+      <ContinueLearningSection current={current} allCompleted={progress.allCompleted} />
       <div className="grid gap-6 md:grid-cols-5">
         <div className="space-y-6 md:col-span-3">
-          <TodayFocusSection status="unavailable" />
+          <TodayFocusSection tasks={focus} />
           <MentorInsightSection status="unavailable" />
         </div>
         <div className="space-y-6 md:col-span-2">
-          {stageTitles.length > 0 && (
-            <ProgressSection
-              stageTitles={stageTitles}
-              stageCount={stageTitles.length}
-              currentStageIndex={Math.max(currentStageIndex, 0)}
-            />
-          )}
+          <ProgressSection progress={progress} />
           <RecentActivitySection status="unavailable" />
         </div>
       </div>
+      <RoadmapView roadmap={roadmap} />
       <span className="sr-only">{t("roadmapReady")}</span>
-    </>
+    </div>
   )
 }
 
