@@ -8,6 +8,7 @@ import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
 import authReducer, { clearLocalSession, sessionEstablished } from "@/redux/slices/authSlice"
 import generationReducer from "@/redux/slices/generationSlice"
+import workspaceReducer from "@/redux/slices/workspaceSlice"
 import onboardingReducer, { goToStep, updateForm } from "@/redux/slices/onboardingSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession, setSession } from "@/lib/api/auth"
@@ -34,7 +35,7 @@ function makeStore({ signedIn }: { signedIn: boolean }) {
   const store = configureStore({
     reducer: {
       auth: authReducer,
-      generation: generationReducer,
+      generation: generationReducer, workspace: workspaceReducer,
       onboarding: onboardingReducer,
       [apiSlice.reducerPath]: apiSlice.reducer,
     },

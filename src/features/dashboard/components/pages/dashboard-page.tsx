@@ -1,17 +1,16 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useSelector } from "react-redux"
+import { AlertTriangle, Hourglass, Map as MapIcon, RefreshCw, Sparkles } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import type { RootState } from "@/redux/store"
-import { useCompleteTaskMutation, useGetLearningProfileQuery } from "@/lib/api/apiSlice"
+import { useGetLearningProfileQuery } from "@/lib/api/apiSlice"
 import type { Roadmap } from "@/lib/api/types"
-import { asApiError } from "@/lib/api/errors"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
 import { useDashboardRoadmap } from "../../hooks/useDashboardRoadmap"
 import { findCurrentTask, focusTasks, orderedStages, roadmapProgress } from "../../lib/roadmapProgress"
-import { RoadmapView, type TaskCompletion } from "../RoadmapView"
 import { RoadmapGenerationFailure } from "../RoadmapGenerationFailure"
 import { RoadmapGenerating } from "../RoadmapGenerating"
 import { WelcomeSection } from "../sections/WelcomeSection"
@@ -20,72 +19,37 @@ import { ProgressSection } from "../sections/ProgressSection"
 import { TodayFocusSection } from "../sections/TodayFocusSection"
 import { MentorInsightSection } from "../sections/MentorInsightSection"
 import { RecentActivitySection } from "../sections/RecentActivitySection"
+import { SignedOutState } from "../learning/shared"
+import { LoadingRegion, PageState, Skeleton } from "../ui/workspace"
 
-/** Centered title + description + one action, shared by the non-workspace states. */
-function DashboardNotice({
-  title,
-  description,
-  actionLabel,
-  onAction,
-  href,
-}: {
-  title: string
-  description: string
-  actionLabel: string
-  onAction?: () => void
-  href?: string
-}) {
+/** One primary action for a full-page state (a real <button>, 44px tall). */
+function StateAction({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <div className="mx-auto max-w-md py-12 text-center">
-      <h1 className="mb-2 text-heading-md font-semibold text-foreground">{title}</h1>
-      <p className="mb-6 text-muted-foreground">{description}</p>
-      <Button variant="primary" onClick={onAction} href={href}>
-        {actionLabel}
-      </Button>
-    </div>
+    <Button variant="primary" size="lg" className="min-h-11" onClick={onClick}>
+      {label}
+    </Button>
   )
 }
 
 function DashboardPage() {
   const t = useT("dashboard")
-  const {
-    view,
-    generate,
-    retryGeneration,
-    checkAgain,
-    retryLoad,
-    refetchRoadmap,
-    retryActivation,
-    pinRoadmap,
-  } = useDashboardRoadmap()
+  const { view, generate, retryGeneration, checkAgain, retryLoad, refetchRoadmap, retryActivation } =
+    useDashboardRoadmap()
 
   switch (view.view) {
     case "signed-out":
-      // Tokens live only in memory (FR-007): a reload or a typed URL starts
-      // without a session, so ask for sign-in instead of firing calls that 401.
-      return (
-        <DashboardNotice
-          title={t("signedOutTitle")}
-          description={t("signedOutDescription")}
-          actionLabel={t("signInAgain")}
-          href="/auth"
-        />
-      )
+      return <SignedOutState />
     case "loading":
-      return (
-        <div className="py-16 text-center text-muted-foreground" aria-live="polite">
-          {t("loadingWorkspace")}
-        </div>
-      )
+      return <OverviewSkeleton />
     case "onboarding-incomplete":
       return <OnboardingIncomplete missingFields={view.missingFields} />
     case "start":
       return (
-        <DashboardNotice
+        <PageState
+          icon={Sparkles}
           title={t("roadmapGenerationTitle")}
           description={t("roadmapGenerationDescription")}
-          actionLabel={t("generateRoadmap")}
-          onAction={generate}
+          action={<StateAction label={t("generateRoadmap")} onClick={generate} />}
         />
       )
     case "start-error":
@@ -106,82 +70,63 @@ function DashboardPage() {
       return <RoadmapGenerationFailure failureCode={view.failureCode} onRetry={retryGeneration} />
     case "generating":
     case "timed-out":
-      return (
-        <RoadmapGenerating timedOut={view.view === "timed-out"} onCheckAgain={checkAgain} />
-      )
+      return <RoadmapGenerating timedOut={view.view === "timed-out"} onCheckAgain={checkAgain} />
     case "roadmap-not-ready":
       return (
-        <DashboardNotice
+        <PageState
+          icon={Hourglass}
           title={t("roadmapNotReadyTitle")}
           description={t("roadmapNotReadyDescription")}
-          actionLabel={t("checkAgain")}
-          onAction={refetchRoadmap}
+          action={<StateAction label={t("checkAgain")} onClick={refetchRoadmap} />}
         />
       )
     case "roadmap-inactive":
       return (
-        <DashboardNotice
+        <PageState
+          icon={MapIcon}
+          tone="muted"
           title={t("roadmapInactiveTitle")}
           description={t("roadmapInactiveDescription")}
-          actionLabel={t("generateRoadmap")}
-          onAction={retryGeneration}
+          action={<StateAction label={t("generateRoadmap")} onClick={retryGeneration} />}
         />
       )
     case "activating":
       return (
-        <div className="mx-auto max-w-md py-16 text-center" aria-live="polite">
-          <h1 className="mb-2 text-heading-md font-semibold text-foreground">{t("activatingTitle")}</h1>
-          <p className="text-muted-foreground">{t("activatingDescription")}</p>
-        </div>
+        <PageState role="status" icon={RefreshCw} title={t("activatingTitle")} description={t("activatingDescription")} />
       )
     case "activation-failed":
       return (
-        <div role="alert">
-          <DashboardNotice
-            title={t("activationFailedTitle")}
-            description={t(view.conflict ? "activationConflictDescription" : "activationFailedDescription")}
-            actionLabel={t("retryActivation")}
-            onAction={retryActivation}
-          />
-        </div>
+        <PageState
+          role="alert"
+          icon={AlertTriangle}
+          tone="muted"
+          title={t("activationFailedTitle")}
+          description={t(view.conflict ? "activationConflictDescription" : "activationFailedDescription")}
+          action={<StateAction label={t("retryActivation")} onClick={retryActivation} />}
+        />
       )
     case "load-error":
       return (
-        <DashboardNotice
+        <PageState
+          role="alert"
+          icon={AlertTriangle}
+          tone="muted"
           title={t("dashboardLoadErrorTitle")}
           description={t("dashboardLoadErrorDescription")}
-          actionLabel={t("retryLoad")}
-          onAction={retryLoad}
+          action={<StateAction label={t("retryLoad")} onClick={retryLoad} />}
         />
       )
     case "ready":
-      return (
-        <DashboardWorkspace
-          roadmap={view.roadmap}
-          onRoadmapUpdated={pinRoadmap}
-          onStale={refetchRoadmap}
-        />
-      )
+      return <Overview roadmap={view.roadmap} />
   }
 }
 
 /**
- * spec 007 FR-015 order: greeting (the page's only h1) → Continue Learning →
- * Today's Focus / Progress grid → the full roadmap, whose stage titles are the
- * only visible stage listing.
+ * The Overview: greeting (the page's only h1) → Continue learning (the main
+ * action) → Today's focus / Progress → insight and activity. The full roadmap
+ * lives on its own page (/roadmap), linked from Progress.
  */
-function DashboardWorkspace({
-  roadmap,
-  onRoadmapUpdated,
-  onStale,
-}: {
-  roadmap: Roadmap
-  /** Called with the roadmap id the server returned after a completion. */
-  onRoadmapUpdated: (roadmapId: string) => void
-  /** Called when the server says the tree on screen is out of date (409). */
-  onStale: () => void
-}) {
-  const t = useT("dashboard")
+function Overview({ roadmap }: { roadmap: Roadmap }) {
   const learnerName = useSelector((state: RootState) => state.auth.user?.name)
   const { data: profile } = useGetLearningProfileQuery()
 
@@ -194,59 +139,51 @@ function DashboardWorkspace({
     }
   }, [roadmap])
 
-  // Contract §20: the server re-checks eligibility and returns the updated
-  // roadmap, which the mutation writes into the cache — the page only shows it.
-  const [completeTask] = useCompleteTaskMutation()
-  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null)
-  const [completionError, setCompletionError] = useState<TaskCompletion["error"]>(null)
-  const [announcement, setAnnouncement] = useState("")
-
-  const onComplete = useCallback(
-    async (taskId: string) => {
-      if (pendingTaskId) return
-      setPendingTaskId(taskId)
-      setCompletionError(null)
-      setAnnouncement("")
-      try {
-        const updated = await completeTask(taskId).unwrap()
-        onRoadmapUpdated(updated.id)
-        setAnnouncement(t("taskCompletedAnnouncement"))
-      } catch (error) {
-        const conflict = asApiError(error).code === "task_completion_conflict"
-        setCompletionError({ taskId, kind: conflict ? "conflict" : "failed" })
-        // The tree on screen disagrees with the server — re-read it.
-        if (conflict) onStale()
-      } finally {
-        setPendingTaskId(null)
-      }
-    },
-    [pendingTaskId, completeTask, onRoadmapUpdated, onStale, t]
-  )
-
   return (
-    <div className="space-y-8">
-      <WelcomeSection learnerName={learnerName} learningGoal={profile?.goal} />
+    <div className="animate-fade-in space-y-8">
+      <WelcomeSection learnerName={learnerName} learningGoal={profile?.goal ?? roadmap.goal} />
       <ContinueLearningSection current={current} allCompleted={progress.allCompleted} />
-      <div className="grid gap-6 md:grid-cols-5">
-        <div className="space-y-6 md:col-span-3">
+      {/* Flat grid: on phones Progress comes right after Today's focus. */}
+      <div className="grid items-start gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
           <TodayFocusSection tasks={focus} />
-          <MentorInsightSection status="unavailable" />
         </div>
-        <div className="space-y-6 md:col-span-2">
+        <div className="lg:col-span-2">
           <ProgressSection progress={progress} />
-          <RecentActivitySection status="unavailable" />
+        </div>
+        <div className="lg:col-span-3">
+          <MentorInsightSection />
+        </div>
+        <div className="lg:col-span-2">
+          <RecentActivitySection />
         </div>
       </div>
-      <RoadmapView
-        roadmap={roadmap}
-        completion={{ pendingTaskId, error: completionError, onComplete: (id) => void onComplete(id) }}
-      />
-      <span className="sr-only">{t("roadmapReady")}</span>
-      <p className="sr-only" aria-live="polite">
-        {announcement}
-      </p>
     </div>
   )
 }
 
-export { DashboardPage }
+function OverviewSkeleton() {
+  const t = useT("workspace")
+  return (
+    <LoadingRegion label={t("loading")}>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-9 w-72 max-w-full" />
+        <Skeleton className="h-5 w-56 max-w-full" />
+      </div>
+      <Skeleton className="h-44 rounded-lg" />
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="space-y-6 lg:col-span-3">
+          <Skeleton className="h-56 rounded-lg" />
+          <Skeleton className="h-40 rounded-lg" />
+        </div>
+        <div className="space-y-6 lg:col-span-2">
+          <Skeleton className="h-56 rounded-lg" />
+          <Skeleton className="h-40 rounded-lg" />
+        </div>
+      </div>
+    </LoadingRegion>
+  )
+}
+
+export { DashboardPage, OverviewSkeleton }

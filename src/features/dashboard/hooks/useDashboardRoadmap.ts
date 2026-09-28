@@ -26,12 +26,6 @@ export interface DashboardRoadmapState {
   refetchRoadmap: () => void
   /** Tries the automatic activation again after it failed. */
   retryActivation: () => void
-  /**
-   * Keep showing this roadmap for the rest of the session. Used after a task
-   * completion returns the updated tree: a roadmap that becomes completed
-   * leaves the active slot (contract §17), and must not vanish from the page.
-   */
-  pinRoadmap: (roadmapId: string) => void
 }
 
 type TrackedActivation = ActivationState & { roadmapId: string | null }
@@ -53,7 +47,9 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   const { requesting, requestId, startError, generate, reset } = useGenerateRoadmap()
   const { phase, request, checkAgain } = useRoadmapGenerationPolling(requestId)
 
-  const [pinnedRoadmapId, setPinnedRoadmapId] = useState<string | null>(null)
+  // A completed roadmap leaves the active slot (§17); useTaskCompletion pins it
+  // so it doesn't vanish. Shared with the other workspace pages.
+  const pinnedRoadmapId = useSelector((state: RootState) => state.workspace.pinnedRoadmapId)
   const sessionRoadmapId = requestId && phase === "ready" ? request?.roadmapId ?? null : null
   const roadmapId = sessionRoadmapId ?? pinnedRoadmapId
   const roadmap = useGetRoadmapQuery(roadmapId ?? skipToken)
@@ -92,7 +88,6 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
         if (!current) await activateRoadmap(id).unwrap()
         dispatch(apiSlice.util.invalidateTags(["ActiveRoadmap"]))
         reset()
-        setPinnedRoadmapId(null)
         // Remember the id so a render with the stale `ready` copy can't start it again.
         setActivation({ phase: "idle", error: null, roadmapId: id })
       } catch (error) {
@@ -135,7 +130,6 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     if (activation.roadmapId) void activate(activation.roadmapId)
   }, [activation.roadmapId, activate])
 
-  const pinRoadmap = useCallback((id: string) => setPinnedRoadmapId(id), [])
 
   const view = resolveDashboardView({
     authenticated,
@@ -160,6 +154,5 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     retryLoad,
     refetchRoadmap,
     retryActivation,
-    pinRoadmap,
   }
 }

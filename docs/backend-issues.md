@@ -57,9 +57,11 @@ The request only returns after the whole generation has run (`QUEUE_CONNECTION=s
 
 **What the contract says** — §23: "AI mentor chat" and "Evidence uploads, certificates, streaks, analytics, notifications, gamification" do not exist. There is no activity or event endpoint either (task completion only returns the roadmap).
 
+Also, the roadmap tree (`GET /me/active-roadmap`, `GET /roadmaps/{id}`) has no `completed_at` on its tasks. It exists only on `GET /tasks/{id}` (§19), so even a simple "recently completed" list would need one request per completed task. Checked on 2026-09-28: task keys in the active roadmap are `id, type, title, instructions, position, status, is_required, estimated_minutes, depends_on_task_ids, resources`.
+
 **User impact** — two of the dashboard's six sections are always empty.
 
-**Suggested change** — when planned: an activity endpoint (e.g. `GET /me/activity?limit=10` with task completions and stage changes, each with a timestamp), and an insight endpoint (or a field on the active roadmap).
+**Suggested change** — when planned: an activity endpoint (e.g. `GET /me/activity?limit=10` with task completions and stage changes, each with a timestamp), and an insight endpoint (or a field on the active roadmap). In the meantime, adding `completed_at` to tasks in the roadmap resource would let the frontend show recent completions without extra requests.
 
 ---
 

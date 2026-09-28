@@ -8,6 +8,7 @@ import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
 import authReducer, { sessionEstablished } from "@/redux/slices/authSlice"
 import generationReducer, { generationAccepted } from "@/redux/slices/generationSlice"
+import workspaceReducer from "@/redux/slices/workspaceSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession, setSession } from "@/lib/api/auth"
 import type { User } from "@/lib/api/types"
@@ -99,7 +100,7 @@ function counters() {
 
 function signedInStore() {
   const store = configureStore({
-    reducer: { auth: authReducer, generation: generationReducer, [apiSlice.reducerPath]: apiSlice.reducer },
+    reducer: { auth: authReducer, generation: generationReducer, workspace: workspaceReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
   setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000 })
@@ -129,16 +130,16 @@ describe("language switch and leftover generation state", () => {
     const store = signedInStore()
 
     const first = renderIn(store, "en")
-    expect(await screen.findByRole("heading", { level: 2, name: "Learn Git" })).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: enMessages.workspace.openTask })).toBeInTheDocument()
     first.unmount() // what a [locale] change does to the tree
 
     const second = renderIn(store, "ar")
     expect(await screen.findByRole("heading", { level: 1, name: /أهلًا بعودتك/ })).toBeInTheDocument()
-    expect(screen.getByRole("heading", { level: 2, name: "Learn Git" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: arMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
     second.unmount()
 
     renderIn(store, "en")
-    expect(await screen.findByRole("heading", { level: 2, name: "Learn Git" })).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: enMessages.workspace.openTask })).toBeInTheDocument()
 
     expect(calls.generationPosts).toBe(0)
     expect(calls.activeGets).toBe(1) // served from the cache after the first load
@@ -153,7 +154,7 @@ describe("language switch and leftover generation state", () => {
 
     renderIn(store, "en")
 
-    expect(await screen.findByRole("heading", { level: 2, name: "Learn Git" })).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: enMessages.workspace.openTask })).toBeInTheDocument()
     expect(screen.queryByText(enMessages.dashboard.pollingTimedOut)).toBeNull()
     expect(screen.queryByRole("heading", { name: enMessages.dashboard.generatingTitle })).toBeNull()
     expect(store.getState().generation.requestId).toBeNull()

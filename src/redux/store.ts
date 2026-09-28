@@ -3,6 +3,7 @@ import appReducer from "./slices/appSlice";
 import onboardingReducer from "./slices/onboardingSlice";
 import authReducer from "./slices/authSlice";
 import generationReducer from "./slices/generationSlice";
+import workspaceReducer from "./slices/workspaceSlice";
 import { apiSlice } from "@/lib/api/apiSlice";
 
 const store = configureStore({
@@ -11,6 +12,7 @@ const store = configureStore({
     onboarding: onboardingReducer,
     auth: authReducer,
     generation: generationReducer,
+    workspace: workspaceReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>

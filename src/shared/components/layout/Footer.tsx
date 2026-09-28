@@ -3,6 +3,7 @@
 import { Link, usePathname } from "@/i18n/navigation"
 import { Terminal } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
+import { isWorkspacePath } from "@/lib/workspaceRoutes"
 
 const footerLinks = [
   { key: "privacy", href: "#" },
@@ -17,7 +18,7 @@ function Footer() {
 
   if (
     typeof pathname === "string" &&
-    (pathname.startsWith("/auth") || pathname.startsWith("/dashboard"))
+    (pathname.startsWith("/auth") || isWorkspacePath(pathname))
   ) {
     return null
   }
