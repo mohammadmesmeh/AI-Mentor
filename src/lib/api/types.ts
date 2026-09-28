@@ -10,12 +10,14 @@ export interface User {
   createdAt: string
 }
 
+/**
+ * The in-memory part of a session: the access token only. The refresh token
+ * lives in the HttpOnly cookie of the session route (contract §3 rule 4).
+ */
 export interface Session {
   tokenType: string
   accessToken: string
   expiresAt: number
-  refreshToken: string
-  refreshExpiresAt: number
 }
 
 export type UiLocale = "ar" | "en"

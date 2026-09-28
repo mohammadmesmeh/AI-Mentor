@@ -1,5 +1,5 @@
 import { createApi, type BaseQueryFn, type FetchArgs } from "@reduxjs/toolkit/query/react"
-import { baseQueryWithReauth, setSession, clearSession, getSession } from "./auth"
+import { baseQueryWithReauth, endSession, setSession, clearSession, getSession, storeRefreshToken } from "./auth"
 import { isRetryableCategory, type ApiError } from "./errors"
 import type {
   LearningMethod,
@@ -52,9 +52,9 @@ export interface RoadmapGenerationArg {
   idempotencyKey: string
 }
 
+/** What login/register resolve with. No token ever enters Redux (FR-007). */
 export interface AuthData {
   user: User
-  session: Session
 }
 
 function isReadRequest(args: unknown): boolean {
@@ -91,43 +91,42 @@ const apiBaseQuery: BaseQueryFn<string | FetchArgs, unknown, ApiError> = async (
   return result
 }
 
-function toAuthData(data: {
+interface WireAuthResponse {
   tokenType?: string
+  accessToken?: string
   expiresIn?: number
+  refreshToken?: string
   refreshExpiresIn?: number
   user?: User
-  accessToken?: string
-  refreshToken?: string
-}): AuthData {
-  const now = Date.now()
+}
+
+/**
+ * Login/register go from the browser to the backend (so its per-IP limits see
+ * the learner's own IP). The access token is kept in memory; the refresh token
+ * is handed straight to the session route, which stores it in an HttpOnly
+ * cookie so a reload can restore the session (contract §3 rule 4). Neither token
+ * is returned into the Redux cache.
+ */
+const establishSession = async (
+  args: FetchArgs,
+  api: Parameters<BaseQueryFn>[1],
+  extraOptions: Parameters<BaseQueryFn>[2]
+): Promise<{ data: AuthData } | { error: ApiError }> => {
+  const result = await baseQueryWithReauth(args, api, extraOptions)
+  if (result.error) return { error: result.error }
+  const data = result.data as WireAuthResponse
   const session: Session = {
     tokenType: data.tokenType ?? "Bearer",
     accessToken: data.accessToken ?? "",
-    expiresAt: now + (data.expiresIn ?? 0) * 1000,
-    refreshToken: data.refreshToken ?? "",
-    refreshExpiresAt: now + (data.refreshExpiresIn ?? 0) * 1000,
+    expiresAt: Date.now() + (data.expiresIn ?? 0) * 1000,
   }
-  return { user: data.user ?? ({} as User), session }
-}
-
-type OnStartedHandler = (
-  arg: unknown,
-  api: { dispatch: unknown; queryFulfilled: unknown }
-) => Promise<void>
-
-function authPersistHandler(
-  _arg: unknown,
-  { dispatch, queryFulfilled }: { dispatch: (action: unknown) => unknown; queryFulfilled: Promise<{ data: AuthData }> }
-): Promise<void> {
-  return queryFulfilled
-    .then(({ data }) => {
-      setSession(data.session)
-      dispatch(sessionEstablished(data.user))
-    })
-    // A failed mutation is surfaced to the caller through the mutation's own
-    // result/unwrap(); swallowing it here only prevents an unhandled
-    // rejection from this side-channel promise.
-    .catch(() => {})
+  setSession(session)
+  // If the cookie can't be stored, this tab still works; only a reload would
+  // sign the learner out.
+  if (data.refreshToken) await storeRefreshToken(data.refreshToken, data.refreshExpiresIn)
+  const user = data.user ?? ({} as User)
+  api.dispatch(sessionEstablished(user))
+  return { data: { user } }
 }
 
 export const apiSlice = createApi({
@@ -136,54 +135,40 @@ export const apiSlice = createApi({
   tagTypes: ["Me", "Preferences", "LearningProfile", "OnboardingStatus", "Roadmap", "ActiveRoadmap", "Task"],
   endpoints: (build) => ({
     register: build.mutation<AuthData, RegisterArg>({
-      query: (body) => ({
-        url: "/auth/register",
-        method: "POST",
-        body: {
-          name: body.name,
-          email: body.email,
-          password: body.password,
-          password_confirmation: body.passwordConfirmation,
-        },
-      }),
-      transformResponse: (data: unknown) => toAuthData(data as Parameters<typeof toAuthData>[0]),
-      onQueryStarted: authPersistHandler as unknown as OnStartedHandler,
+      queryFn: (body, api, extraOptions) =>
+        establishSession(
+          {
+            url: "/auth/register",
+            method: "POST",
+            body: {
+              name: body.name,
+              email: body.email,
+              password: body.password,
+              password_confirmation: body.passwordConfirmation,
+            },
+          },
+          api,
+          extraOptions
+        ),
     }),
 
     login: build.mutation<AuthData, LoginArg>({
-      query: (body) => ({
-        url: "/auth/login",
-        method: "POST",
-        body,
-      }),
-      transformResponse: (data: unknown) => toAuthData(data as Parameters<typeof toAuthData>[0]),
-      onQueryStarted: authPersistHandler as unknown as OnStartedHandler,
+      queryFn: (body, api, extraOptions) =>
+        establishSession({ url: "/auth/login", method: "POST", body }, api, extraOptions),
     }),
 
     logout: build.mutation<null, void>({
-      // The tokens are captured before the local session is cleared: the
-      // backend needs both the bearer and the refresh token to revoke the
-      // session (contract §9). Clearing first (as onQueryStarted used to) sent
-      // an unauthenticated request with `refresh_token: null`.
-      queryFn: async (_arg, api, extraOptions) => {
+      queryFn: async (_arg, api) => {
+        // The bearer is captured before the local session is cleared: the
+        // backend needs it (plus the cookie's refresh token) to revoke the
+        // session (contract §9).
         const current = getSession()
         // FR-006 / contract §3 rule 7: local sign-out never waits on the network.
         clearSession()
         api.dispatch(clearLocalSession())
-        if (current) {
-          await baseQueryWithReauth(
-            {
-              url: "/auth/logout",
-              method: "POST",
-              body: { refresh_token: current.refreshToken },
-              headers: { Authorization: `${current.tokenType} ${current.accessToken}` },
-            },
-            api,
-            extraOptions
-          )
-        }
-        // The outcome of the revoke call doesn't change anything for the user.
-        // (RTK Query needs a defined `data`, hence null.)
+        // The route revokes on the backend and clears the cookie even if that fails.
+        await endSession(current)
+        // RTK Query needs a defined `data`, hence null.
         return { data: null }
       },
       // Drop every cached server response once the call has settled —

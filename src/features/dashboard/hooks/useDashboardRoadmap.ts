@@ -42,6 +42,7 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   // Without an in-memory session every authenticated call would go out with no
   // Authorization header and 401 (e.g. after a full page load) — don't fire it.
   const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const restoring = useSelector((state: RootState) => state.auth.restoring)
   const onboarding = useGetOnboardingStatusQuery(authenticated ? undefined : skipToken)
 
   // Contract §22: only once onboarding is complete, ask for the active roadmap —
@@ -131,6 +132,7 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
 
   const view = resolveDashboardView({
     authenticated,
+    restoring,
     onboarding: { isLoading: onboarding.isLoading, isError: onboarding.isError, data: onboarding.data },
     startError,
     requesting,

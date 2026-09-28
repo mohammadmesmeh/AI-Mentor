@@ -17,15 +17,9 @@ function makeStore() {
   })
 }
 
-function sessionWith(token: string, refreshToken: string) {
-  const now = Date.now()
-  return {
-    tokenType: "Bearer",
-    accessToken: token,
-    expiresAt: now - 1000,
-    refreshToken,
-    refreshExpiresAt: now + 2592000000,
-  }
+// The refresh token lives in the session route's cookie; only the access token is in memory.
+function sessionWith(token: string) {
+  return { tokenType: "Bearer", accessToken: token, expiresAt: Date.now() - 1000 }
 }
 
 async function flushWithTimeout(ms = 10) {
@@ -38,7 +32,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
     vi.clearAllMocks()
   })
 
-  it("T012: concurrent 401s trigger exactly one /auth/refresh call", async () => {
+  it("T012: concurrent 401s trigger exactly one refresh through the session route", async () => {
     let meAttempts = 0
     let prefsAttempts = 0
     let refreshCalls = 0
@@ -70,7 +64,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
           { status: 200 }
         )
       }),
-      http.post(`${API_BASE}/auth/refresh`, () => {
+      http.post("*/api/session/refresh", () => {
         refreshCalls += 1
         return HttpResponse.json(
           {
@@ -78,8 +72,6 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
               token_type: "Bearer",
               access_token: "new-access",
               expires_in: 900,
-              refresh_token: "new-refresh",
-              refresh_expires_in: 2592000,
               user: { id: "u1" },
             },
             meta: { request_id: "r5" },
@@ -89,7 +81,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
       })
     )
 
-    setSession(sessionWith("old-access", "old-refresh"))
+    setSession(sessionWith("old-access"))
     const store = makeStore()
 
     const me = store.dispatch(apiSlice.endpoints.getMe.initiate(undefined, { forceRefetch: true }))
@@ -100,9 +92,8 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
     expect(refreshCalls).toBe(1)
     expect(meResult).toMatchObject({ name: "A" })
     expect(prefsResult).toMatchObject({ uiLocale: "en" })
-    // Token store holds the fresh pair.
+    // The memory store holds the fresh access token (the route rotated the cookie).
     expect(getSession()?.accessToken).toBe("new-access")
-    expect(getSession()?.refreshToken).toBe("new-refresh")
 
     await flushWithTimeout()
     store.dispatch(apiSlice.util.resetApiState())
@@ -128,7 +119,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
           { status: 200 }
         )
       }),
-      http.post(`${API_BASE}/auth/refresh`, () => {
+      http.post("*/api/session/refresh", () => {
         refreshCalls += 1
         return HttpResponse.json(
           {
@@ -136,8 +127,6 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
               token_type: "Bearer",
               access_token: `fresh-access-${refreshCalls}`,
               expires_in: 900,
-              refresh_token: `fresh-refresh-${refreshCalls}`,
-              refresh_expires_in: 2592000,
               user: { id: "u1" },
             },
             meta: { request_id: "r5" },
@@ -147,7 +136,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
       })
     )
 
-    setSession(sessionWith("old-access", "old-refresh"))
+    setSession(sessionWith("old-access"))
     const store = makeStore()
 
     const result = await store.dispatch(apiSlice.endpoints.getMe.initiate(undefined, { forceRefetch: true })).unwrap()
@@ -157,7 +146,6 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
     expect(refreshCalls).toBe(1)
     // Retried request carried the newly issued access token.
     expect(lastAuthHeader).toBe("Bearer fresh-access-1")
-    expect(getSession()?.refreshToken).toBe("fresh-refresh-1")
     expect(result).toMatchObject({ name: "fresh" })
 
     await flushWithTimeout()
@@ -177,7 +165,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
           { status: 401 }
         )
       }),
-      http.post(`${API_BASE}/auth/refresh`, () => {
+      http.post("*/api/session/refresh", () => {
         refreshCalls += 1
         return HttpResponse.json(
           {
@@ -185,8 +173,6 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
               token_type: "Bearer",
               access_token: "still-bad",
               expires_in: 900,
-              refresh_token: "still-bad",
-              refresh_expires_in: 2592000,
               user: { id: "u1" },
             },
             meta: { request_id: "r5" },
@@ -196,7 +182,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
       })
     )
 
-    setSession(sessionWith("bad-access", "bad-refresh"))
+    setSession(sessionWith("bad-access"))
     const store = makeStore()
 
     const outcome = await store.dispatch(

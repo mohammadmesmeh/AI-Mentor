@@ -3,7 +3,7 @@ import { configureStore } from "@reduxjs/toolkit"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
 import { apiSlice } from "@/lib/api/apiSlice"
-import { clearSession, getSession, setSession } from "@/lib/api/auth"
+import { clearSession } from "@/lib/api/auth"
 import { asApiError, toApiError } from "@/lib/api/errors"
 import { authErrorKey } from "@/features/auth/lib/authErrorKey"
 
@@ -89,50 +89,5 @@ describe("auth form errors (contract §6, §7)", () => {
   it("429 is tooManyRequests", async () => {
     const error = await loginError(() => failure("too_many_requests", 429))
     expect(authErrorKey(error, "login")).toBe("tooManyRequests")
-  })
-})
-
-describe("refresh failure signs out (contract §8)", () => {
-  beforeEach(() => clearSession())
-
-  it("regression: a 401 from /auth/refresh clears the session (the raw error used to be misread)", async () => {
-    setSession({ tokenType: "Bearer", accessToken: "old", expiresAt: 0, refreshToken: "rt", refreshExpiresAt: 0 })
-    server.use(
-      http.get(`${API_BASE}/me`, () => failure("unauthenticated", 401)),
-      http.post(`${API_BASE}/auth/refresh`, () => failure("unauthenticated", 401))
-    )
-    const result = await makeStore().dispatch(apiSlice.endpoints.getMe.initiate())
-    expect(result.error).toMatchObject({ code: "unauthenticated" })
-    expect(getSession()).toBeNull()
-  })
-
-  it("a 503 from /auth/refresh keeps the tokens", async () => {
-    setSession({ tokenType: "Bearer", accessToken: "old", expiresAt: 0, refreshToken: "rt", refreshExpiresAt: 0 })
-    server.use(
-      http.get(`${API_BASE}/me`, () => failure("unauthenticated", 401)),
-      http.post(`${API_BASE}/auth/refresh`, () => failure("authentication_service_unavailable", 503))
-    )
-    await makeStore().dispatch(apiSlice.endpoints.getMe.initiate())
-    expect(getSession()?.refreshToken).toBe("rt")
-  })
-})
-
-describe("logout (contract §9)", () => {
-  beforeEach(() => clearSession())
-
-  it("regression: sends the bearer and the refresh token, then clears the session", async () => {
-    setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: 0, refreshToken: "rt-1", refreshExpiresAt: 0 })
-    let seen: { auth: string | null; body: unknown } | null = null
-    server.use(
-      http.post(`${API_BASE}/auth/logout`, async ({ request }) => {
-        seen = { auth: request.headers.get("authorization"), body: await request.json() }
-        return new HttpResponse(null, { status: 204 })
-      })
-    )
-    const result = await makeStore().dispatch(apiSlice.endpoints.logout.initiate())
-    // regression: returning { data: undefined } made RTK Query report an error
-    expect("error" in result ? result.error : undefined).toBeUndefined()
-    expect(seen).toEqual({ auth: "Bearer acc", body: { refresh_token: "rt-1" } })
-    expect(getSession()).toBeNull()
   })
 })

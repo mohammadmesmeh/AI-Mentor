@@ -27,7 +27,19 @@ function errorResponse(code: string, message: string, status = 400) {
   )
 }
 
+/**
+ * Our own session route (src/app/api/session). Default: storing works, there
+ * is no cookie session to restore, logout succeeds.
+ */
+const sessionRouteHandlers = [
+  http.post("*/api/session/store", () => new HttpResponse(null, { status: 204 })),
+  http.post("*/api/session/refresh", () => errorResponse("unauthenticated", "No session.", 401)),
+  http.post("*/api/session/logout", () => new HttpResponse(null, { status: 204 })),
+]
+
 export const handlers = [
+  ...sessionRouteHandlers,
+
   http.post(`${API_BASE}/auth/register`, async ({ request }) => {
     const body = (await request.json()) as Record<string, string>
     if (!body.name || !body.email || !body.password || !body.password_confirmation) {

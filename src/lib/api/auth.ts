@@ -1,27 +1,26 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from "@reduxjs/toolkit/query/react"
 import type { ApiError } from "./errors"
-import { asApiError, toApiError } from "./errors"
-import type { Session } from "./types"
+import { toApiError } from "./errors"
+import type { Session, User } from "./types"
 import { clearLocalSession } from "@/redux/slices/authSlice"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
 
+/** What the session route returns: never the refresh token. */
 interface WireAuthData {
   token_type?: string
   access_token?: string
   expires_in?: number
-  refresh_token?: string
-  refresh_expires_in?: number
   user?: unknown
-}
-
-interface WireAuthEnvelope {
-  data?: WireAuthData
 }
 
 let session: Session | null = null
 
-/** Module-level in-memory token store — never Redux, never storage (FR-007). */
+/**
+ * Module-level in-memory store for the access token — never Redux, never
+ * storage (FR-007). The refresh token isn't here at all: it lives in the
+ * HttpOnly cookie set by the session route (src/app/api/session).
+ */
 export function getSession(): Session | null {
   return session
 }
@@ -39,13 +38,10 @@ export function isSessionActive(): boolean {
 }
 
 function mapAuthData(wire: WireAuthData): Session {
-  const now = Date.now()
   return {
     tokenType: wire.token_type ?? "Bearer",
     accessToken: wire.access_token ?? "",
-    expiresAt: now + (wire.expires_in ?? 0) * 1000,
-    refreshToken: wire.refresh_token ?? "",
-    refreshExpiresAt: now + (wire.refresh_expires_in ?? 0) * 1000,
+    expiresAt: Date.now() + (wire.expires_in ?? 0) * 1000,
   }
 }
 
@@ -61,15 +57,6 @@ const rawBaseQuery = fetchBaseQuery({
     if (current) {
       headers.set("Authorization", `Bearer ${current.accessToken}`)
     }
-    return headers
-  },
-})
-
-/** Auth-free fetch used only by the single-flight refresh (contract §8). */
-const refreshBaseQuery = fetchBaseQuery({
-  baseUrl: API_BASE_URL,
-  prepareHeaders: (headers) => {
-    headers.set("Accept", "application/json")
     return headers
   },
 })
@@ -128,65 +115,106 @@ const unwrappedBaseQuery: BaseQueryFn<string | FetchArgs, unknown, ApiError> = a
   return { data: snakeToCamel(body) }
 }
 
-type RefreshOutcome = { ok: boolean; signOut: boolean }
+export type RefreshOutcome = { ok: boolean; signOut: boolean; user?: User }
 
-let refreshPromise: Promise<RefreshOutcome> | null = null
+type RouteResult = { ok: true; data: unknown } | { ok: false; error: ApiError }
 
 /**
- * The refresh call uses a raw fetchBaseQuery, so its error is a
- * FetchBaseQueryError ({status, data}), not an ApiError — normalize it, or a
- * 401 from /auth/refresh would never be recognized as "sign out".
+ * Calls our own session route (src/app/api/session), which holds the refresh
+ * token in an HttpOnly cookie (contract §3 rule 4). Same origin, so the cookie
+ * is sent; the custom header is the route's CSRF guard. Errors come back in the
+ * backend's envelope and are normalized like any other API error.
  */
-function normalizedError(result: { error?: unknown }): ApiError {
-  return asApiError(result.error)
+async function sessionRoute(
+  action: "store" | "refresh" | "logout",
+  { body, authorization }: { body?: unknown; authorization?: string } = {}
+): Promise<RouteResult> {
+  const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost"
+  const headers: Record<string, string> = { Accept: "application/json", "X-Masar-Session": "1" }
+  if (body !== undefined) headers["Content-Type"] = "application/json"
+  if (authorization) headers.Authorization = authorization
+  try {
+    const response = await fetch(`${origin}/api/session/${action}`, {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    })
+    if (response.status === 204) return { ok: true, data: undefined }
+    const json = (await response.json().catch(() => null)) as { data?: unknown } | null
+    if (!response.ok) {
+      return { ok: false, error: toApiError(json ?? "", { headers: response.headers }, response.status) }
+    }
+    return { ok: true, data: json?.data }
+  } catch (error) {
+    return { ok: false, error: toApiError(error instanceof Error ? error.message : "", undefined, "FETCH_ERROR") }
+  }
+}
+
+/**
+ * After login/register: hand the refresh token to the session route, which
+ * keeps it in the HttpOnly cookie. It is not kept anywhere in JavaScript.
+ */
+export async function storeRefreshToken(refreshToken: string, refreshExpiresIn?: number): Promise<boolean> {
+  const result = await sessionRoute("store", {
+    body: { refresh_token: refreshToken, refresh_expires_in: refreshExpiresIn },
+  })
+  return result.ok
+}
+
+/**
+ * Logout (contract §9, §3 rule 7): the route revokes the session on the
+ * backend with this bearer and the cookie's refresh token, then clears the
+ * cookie even if the backend call fails.
+ */
+export async function endSession(current: Session | null): Promise<void> {
+  await sessionRoute("logout", {
+    authorization: current ? `${current.tokenType} ${current.accessToken}` : undefined,
+  })
+}
+
+/**
+ * Contract §3 rule 5 across tabs: tabs share the cookie, so a refresh in one tab
+ * must not overlap a refresh in another (reuse detection would revoke the whole
+ * token family). The Web Locks API serializes them where available.
+ */
+function acrossTabs<T>(run: () => Promise<T>): Promise<T> {
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined
+  // request() resolves with the callback's own resolved value.
+  return locks ? (locks.request("masar-session-refresh", run) as unknown as Promise<T>) : run()
 }
 
 async function runRefresh(): Promise<RefreshOutcome> {
-  const current = getSession()
-  if (!current?.refreshToken) {
-    return { ok: false, signOut: true }
-  }
+  const result = await acrossTabs(() => sessionRoute("refresh"))
 
-  try {
-    const result = await refreshBaseQuery(
-      {
-        url: "/auth/refresh",
-        method: "POST",
-        body: { refresh_token: current.refreshToken },
-      } as FetchArgs,
-      {} as Parameters<typeof refreshBaseQuery>[1],
-      {} as Parameters<typeof refreshBaseQuery>[2]
-    )
-
-    if (result.error) {
-      const apiError = normalizedError(result as { error?: unknown })
-      if (apiError.category === "access_denied" || apiError.code === "validation_failed") {
-        clearSession()
-        return { ok: false, signOut: true }
-      }
-      // unavailable, rate_limited, network: keep tokens; do not sign the user out.
-      return { ok: false, signOut: false }
-    }
-
-    const envelope = result.data as WireAuthEnvelope
-    const wire = envelope?.data
-    if (!wire?.access_token || !wire?.refresh_token) {
+  if (!result.ok) {
+    // 401 (no cookie, or an invalid/expired/revoked/reused token) and 422 end
+    // the session. unavailable, rate_limited and network failures keep it: the
+    // cookie stays and a later attempt can still succeed.
+    if (result.error.category === "access_denied" || result.error.code === "validation_failed") {
       clearSession()
       return { ok: false, signOut: true }
     }
-    setSession(mapAuthData(wire))
-    return { ok: true, signOut: false }
-  } catch {
     return { ok: false, signOut: false }
   }
+
+  const wire = result.data as WireAuthData | undefined
+  if (!wire?.access_token) {
+    clearSession()
+    return { ok: false, signOut: true }
+  }
+  setSession(mapAuthData(wire))
+  return { ok: true, signOut: false, user: snakeToCamel(wire.user) as User }
 }
 
 /**
  * Keeps exactly one refresh in flight at a time: any request that fails with an
- * expired-session 401 awaits the same promise (FR-003). On success both tokens
- * are replaced atomically before the original request is retried exactly once
- * (FR-004). On a credential failure the token store is cleared and the caller
- * is reported unauthenticated (FR-005).
+ * expired-session 401 awaits the same promise (FR-003). On success the access
+ * token is replaced (the route rotated the refresh token in the cookie) before
+ * the original request is retried exactly once (FR-004). On a credential
+ * failure the token store is cleared and the caller is reported
+ * unauthenticated (FR-005).
  */
 function refreshSession(): Promise<RefreshOutcome> {
   if (!refreshPromise) {
@@ -195,6 +223,16 @@ function refreshSession(): Promise<RefreshOutcome> {
     })
   }
   return refreshPromise
+}
+
+let refreshPromise: Promise<RefreshOutcome> | null = null
+
+/**
+ * App load: get a fresh access token from the cookie session, if there is one.
+ * Shares the single in-flight refresh with any request that 401s meanwhile.
+ */
+export function restoreSession(): Promise<RefreshOutcome> {
+  return refreshSession()
 }
 
 export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, ApiError> = async (

@@ -11,11 +11,16 @@ import { useGetOnboardingStatusQuery } from "@/lib/api/apiSlice"
 import type { RootState } from "@/redux/store"
 
 function AuthPage() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated, restoring } = useSelector((state: RootState) => state.auth)
   const t = useTranslations("footer")
 
   if (isAuthenticated) {
     return <SessionRouter />
+  }
+  // A reload may still have a cookie session being restored: don't offer the
+  // form yet — an established session routes onward instead.
+  if (restoring) {
+    return <div className="flex-1" aria-busy="true" />
   }
 
   return (

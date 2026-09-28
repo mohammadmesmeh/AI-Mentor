@@ -80,7 +80,7 @@ function signedInStore() {
     reducer: { auth: authReducer, generation: generationReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
-  setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000, refreshToken: "rt", refreshExpiresAt: 0 })
+  setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000})
   store.dispatch(sessionEstablished({ id: "u1", name: "Learner", email: "l@example.com" } as User))
   return store
 }

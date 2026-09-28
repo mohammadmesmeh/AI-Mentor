@@ -6,7 +6,7 @@ import { configureStore } from "@reduxjs/toolkit"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
-import authReducer, { sessionEstablished } from "@/redux/slices/authSlice"
+import authReducer, { clearLocalSession, sessionEstablished } from "@/redux/slices/authSlice"
 import generationReducer from "@/redux/slices/generationSlice"
 import onboardingReducer, { goToStep, updateForm } from "@/redux/slices/onboardingSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
@@ -40,8 +40,9 @@ function makeStore({ signedIn }: { signedIn: boolean }) {
     },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
+  if (!signedIn) store.dispatch(clearLocalSession())
   if (signedIn) {
-    setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000, refreshToken: "rt", refreshExpiresAt: 0 })
+    setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000})
     store.dispatch(sessionEstablished({ id: "u1", name: "Learner", email: "l@example.com" } as User))
   }
   // A filled-in form on the review step.
@@ -101,7 +102,7 @@ describe("onboarding session handling", () => {
   it("a 401 on submit (refresh unavailable) is a session message — never a roadmap failure", async () => {
     server.use(
       http.put(`${API_BASE}/me/learning-profile`, () => failure("unauthenticated", 401)),
-      http.post(`${API_BASE}/auth/refresh`, () => failure("authentication_service_unavailable", 503))
+      http.post("*/api/session/refresh", () => failure("authentication_service_unavailable", 503))
     )
     renderOnboarding(makeStore({ signedIn: true }))
 
@@ -115,7 +116,7 @@ describe("onboarding session handling", () => {
   it("a 401 whose refresh fails signs out and shows sign-in", async () => {
     server.use(
       http.put(`${API_BASE}/me/learning-profile`, () => failure("unauthenticated", 401)),
-      http.post(`${API_BASE}/auth/refresh`, () => failure("unauthenticated", 401))
+      http.post("*/api/session/refresh", () => failure("unauthenticated", 401))
     )
     renderOnboarding(makeStore({ signedIn: true }))
 

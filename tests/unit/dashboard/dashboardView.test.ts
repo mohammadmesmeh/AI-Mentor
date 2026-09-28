@@ -11,6 +11,7 @@ const readyRoadmap = makeRoadmap({ status: "ready" }, [makeStage()])
 function input(overrides: Partial<DashboardViewInput> = {}): DashboardViewInput {
   return {
     authenticated: true,
+    restoring: false,
     onboarding: { isLoading: false, isError: false, data: { completed: true, missingFields: [] } },
     startError: null,
     requesting: false,
@@ -37,6 +38,10 @@ describe("resolveDashboardView", () => {
       resolveDashboardView(input({ authenticated: false, active: { isLoading: false, isError: true, data: undefined } }))
         .view
     ).toBe("signed-out")
+  })
+
+  it("restoring the cookie session after a reload is loading — never signed-out or start", () => {
+    expect(resolveDashboardView(input({ restoring: true, authenticated: false })).view).toBe("loading")
   })
 
   it("regression: a failed onboarding-status gate is load-error, never start or blank", () => {

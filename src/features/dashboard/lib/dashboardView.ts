@@ -61,10 +61,12 @@ interface QueryState<T> {
 
 export interface DashboardViewInput {
   /**
-   * Whether an in-memory session exists. Tokens are never persisted (FR-007),
-   * so a full page load starts signed out even right after a login.
+   * Whether a session exists. After a reload it is restored from the session
+   * route's cookie; until then `restoring` is true.
    */
   authenticated: boolean
+  /** The cookie session is still being checked on app load (SessionRestorer). */
+  restoring: boolean
   onboarding: QueryState<OnboardingStatus>
 
   startError: ApiError | null
@@ -139,6 +141,7 @@ function fromStartError(error: ApiError, onboarding: OnboardingStatus): Dashboar
 export function resolveDashboardView(input: DashboardViewInput): DashboardView {
   const { authenticated, onboarding, startError, requesting, sessionRequestId, pinnedRoadmap, active, roadmap } = input
 
+  if (input.restoring) return { view: "loading" }
   if (!authenticated) return { view: "signed-out" }
   if (onboarding.isError) return { view: "load-error" }
   if (onboarding.isLoading || !onboarding.data) return { view: "loading" }

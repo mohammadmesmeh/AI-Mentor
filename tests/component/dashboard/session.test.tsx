@@ -6,7 +6,7 @@ import { configureStore } from "@reduxjs/toolkit"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
-import authReducer from "@/redux/slices/authSlice"
+import authReducer, { clearLocalSession } from "@/redux/slices/authSlice"
 import generationReducer from "@/redux/slices/generationSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession } from "@/lib/api/auth"
@@ -28,10 +28,13 @@ const TOKEN = "fresh-login-token"
 const t = enMessages.dashboard
 
 function makeStore() {
-  return configureStore({
+  const store = configureStore({
     reducer: { auth: authReducer, generation: generationReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
+  // App load finished and found no cookie session (what SessionRestorer does).
+  store.dispatch(clearLocalSession())
+  return store
 }
 
 function envelope(data: unknown, status = 200) {

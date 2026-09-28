@@ -40,8 +40,21 @@ function OnboardingPage() {
   // Tokens live only in memory (FR-007): without a session every call below
   // would go out unauthenticated and 401 — ask for sign-in instead.
   const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const restoring = useSelector((state: RootState) => state.auth.restoring)
+  if (restoring) return <OnboardingRestoring />
   if (!authenticated) return <OnboardingSignedOut />
   return <OnboardingFlow />
+}
+
+function OnboardingRestoring() {
+  const t = useTranslations("onboarding")
+  return (
+    <OnboardingLayout currentStep={1} totalSteps={TOTAL_STEPS}>
+      <p className="py-8 text-center text-muted-foreground" aria-live="polite">
+        {t("loadingProfile")}
+      </p>
+    </OnboardingLayout>
+  )
 }
 
 function OnboardingSignedOut() {
