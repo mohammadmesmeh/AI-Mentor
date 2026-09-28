@@ -148,6 +148,11 @@ export function resolveDashboardView(input: DashboardViewInput): DashboardView {
   if (!onboarding.data.completed) {
     return { view: "onboarding-incomplete", missingFields: onboarding.data.missingFields }
   }
+  // The server's active roadmap always wins over leftover in-session state —
+  // a stale generation request, a polling timeout or a start error (e.g. after
+  // back/forward navigation or a language switch). The learner has one roadmap.
+  if (active.data) return fromRoadmap({ isLoading: false, isError: false, data: active.data }, input.activation)
+
   if (startError) return fromStartError(startError, onboarding.data)
   if (requesting) return { view: "generating" }
 
@@ -157,6 +162,5 @@ export function resolveDashboardView(input: DashboardViewInput): DashboardView {
 
   if (active.isError) return { view: "load-error" }
   if (active.isLoading || active.data === undefined) return { view: "loading" }
-  if (active.data === null) return { view: "start" }
-  return fromRoadmap({ isLoading: false, isError: false, data: active.data }, input.activation)
+  return { view: "start" }
 }

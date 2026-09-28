@@ -58,6 +58,13 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   const roadmapId = sessionRoadmapId ?? pinnedRoadmapId
   const roadmap = useGetRoadmapQuery(roadmapId ?? skipToken)
 
+  // Leftover generation state never outlives an active roadmap (it would
+  // otherwise resurface after back/forward navigation or a locale switch).
+  const activeRoadmapId = active.data?.id ?? null
+  useEffect(() => {
+    if (activeRoadmapId && (requestId || startError) && !requesting) reset()
+  }, [activeRoadmapId, requestId, startError, requesting, reset])
+
   // A cancelled generation returns the learner to the generation screen
   // (contract §15) — clear the local request so a new attempt starts cleanly.
   useEffect(() => {

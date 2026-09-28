@@ -94,6 +94,30 @@ Measured from the frontend's region (Render, warm instance):
 
 ---
 
+## 7. "Watch" tasks never get a video, and many resources are site homepages
+
+**What happened** — we checked every resource of five generated roadmaps (Git ×4, React ×1; 45 resources). Every URL loads (HTTP 200), so no link is broken. But:
+
+- **No resource has `type: "video"`.** Tasks of type `watch` get `documentation` resources pointing at pages that are not videos. This happened even for a learner whose only preferred method is `video_walkthroughs` (React roadmap generated 2026-09-28).
+
+  | Task type | Resource type | URL |
+  | --- | --- | --- |
+  | `watch` | `documentation` | `https://git-scm.com/downloads` (a download page) |
+  | `watch` | `documentation` | `https://docs.github.com/` |
+  | `watch` | `documentation` | `https://git-scm.com/doc` |
+  | `watch` | `documentation` | `https://react.dev/learn` |
+
+- **Many resources are homepages, not the material the task names:** `https://github.com/` for a "Publishing a Small Project" project task, `https://git-scm.com/` for an assignment, `https://react.dev/` for a reading task. The same URL is often reused for several unrelated tasks in one roadmap (`https://react.dev/learn` appears 4 times out of 9).
+- `https://guides.github.com/` redirects to `https://docs.github.com/en` (an outdated link).
+
+**What the contract says** — §16 lists resource types `documentation`, `article`, `video`, `course` and task types including `watch`. It says nothing about matching them, but a `watch` task implies a video.
+
+**User impact** — learners report that "video links don't work": the link opens, but it's a download page or a docs index, not a video. The frontend shows the resource's real type ("Documentation"), so the mismatch is visible but confusing.
+
+**Suggested change** — in generation validation, require at least one `video` resource for `watch` tasks (or don't generate `watch` tasks without one). Reject bare homepages as resources, and prefer deep links specific to the task. If videos can't be guaranteed, don't generate `watch` tasks.
+
+---
+
 ## Note: rate limits and the frontend's session route
 
 To keep learners signed in across reloads, the frontend now follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser.

@@ -13,20 +13,30 @@ import { clearLocalSession, sessionEstablished } from "@/redux/slices/authSlice"
  *
  * If the backend is temporarily unreachable the cookie is kept (a later reload
  * can still restore) but this load continues signed out.
+ *
+ * Once per page load. The providers live under the `[locale]` layout, so a
+ * language switch remounts this component; the store (and the session in it)
+ * survives, and restoring again would only rotate the refresh token for nothing.
  */
+let restoreStarted = false
+
+/** Tests only: allow a fresh "page load". */
+export function resetSessionRestorerForTests() {
+  restoreStarted = false
+}
+
 function SessionRestorer() {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    let active = true
+    if (restoreStarted) return
+    restoreStarted = true
+    // Always report the outcome: the store outlives this component, and a
+    // remount mid-restore must not leave `restoring` stuck on true.
     void restoreSession().then((outcome) => {
-      if (!active) return
       if (outcome.ok && outcome.user) dispatch(sessionEstablished(outcome.user))
       else dispatch(clearLocalSession())
     })
-    return () => {
-      active = false
-    }
   }, [dispatch])
 
   return null

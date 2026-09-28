@@ -116,7 +116,7 @@ describe("roadmap view (FR-017)", () => {
     expect(screen.getByText("· 2 resources")).toBeInTheDocument()
   })
 
-  it("T033b: every task-level action control renders disabled", () => {
+  it("T033b: without a completion handler Mark complete is disabled, and there is no Skip control (no endpoint)", () => {
     render(
       <IntlWrapper>
         <RoadmapView roadmap={FIXTURE} />
@@ -124,18 +124,15 @@ describe("roadmap view (FR-017)", () => {
     )
 
     const completeButtons = screen.getAllByRole("button", { name: "Mark Complete" })
-    const skipButtons = screen.getAllByRole("button", { name: "Skip" })
     expect(completeButtons.length).toBeGreaterThan(0)
-    expect(skipButtons.length).toBeGreaterThan(0)
-    for (const button of [...completeButtons, ...skipButtons]) {
-      expect(button).toBeDisabled()
-    }
+    for (const button of completeButtons) expect(button).toBeDisabled()
+    expect(screen.queryByRole("button", { name: "Skip" })).toBeNull()
   })
 })
 describe("roadmap view — spec 007", () => {
   const LOCALES = [
-    { locale: "en", messages: enMessages, linkUnavailable: "Link unavailable", skipSoon: "Skipping is coming soon." },
-    { locale: "ar", messages: arMessages, linkUnavailable: "الرابط غير متاح", skipSoon: "التخطي سيتوفر قريبًا." },
+    { locale: "en", messages: enMessages, linkUnavailable: "Link unavailable" },
+    { locale: "ar", messages: arMessages, linkUnavailable: "الرابط غير متاح" },
   ] as const
 
   function renderIn(
@@ -180,7 +177,7 @@ describe("roadmap view — spec 007", () => {
     }),
   ])
 
-  for (const { locale, messages, linkUnavailable, skipSoon } of LOCALES) {
+  for (const { locale, messages, linkUnavailable } of LOCALES) {
     describe(locale, () => {
       it("has no h1 and titles the section with the goal as h2#roadmap-heading", () => {
         const { container } = renderIn(locale, messages, roadmap)
@@ -211,15 +208,9 @@ describe("roadmap view — spec 007", () => {
         expect(screen.getByText(`(${linkUnavailable})`)).toBeInTheDocument()
       })
 
-      it("keeps Skip disabled (no endpoint) and says so", () => {
+      it("offers no Skip control — there is no skip endpoint (contract §23)", () => {
         renderIn(locale, messages, roadmap)
-        const skips = screen.getAllByRole("button", { name: messages.dashboard.taskSkip })
-        expect(skips).toHaveLength(2) // 2 actionable tasks
-        for (const button of skips) {
-          expect(button).toBeDisabled()
-          const noteId = button.getAttribute("aria-describedby")
-          expect(noteId && document.getElementById(noteId)?.textContent).toBe(skipSoon)
-        }
+        expect(screen.queryByRole("button", { name: messages.dashboard.taskSkip })).toBeNull()
       })
     })
   }

@@ -171,7 +171,7 @@ function OnboardingFlow() {
       // success screen promises it. The thunk keeps running after the redirect
       // and the dashboard polls the request. A learner has one roadmap, so
       // nothing is generated when one is already active.
-      void dispatch(startRoadmapGeneration({ unlessActive: true }))
+      void dispatch(startRoadmapGeneration())
     } catch (error) {
       // unwrap() rejects with the normalized ApiError. A 401 whose refresh
       // failed is a session problem, never "couldn't save" (or a generation

@@ -142,7 +142,6 @@ function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
   const actionable = task.status === "available" || task.status === "current"
   const anchor = taskAnchorId(task.id)
   const completeNoteId = `${anchor}-complete-note`
-  const skipNoteId = `${anchor}-skip-note`
 
   const canComplete = !!completion && canCompleteTask(roadmap, task)
   const pending = completion?.pendingTaskId === task.id
@@ -218,15 +217,6 @@ function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
             >
               {pending ? t("taskCompleting") : t("taskComplete", "Mark Complete")}
             </button>
-            {/* No skip endpoint exists (contract §21/§23): stays disabled. */}
-            <button
-              type="button"
-              disabled
-              aria-describedby={skipNoteId}
-              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {t("taskSkip", "Skip")}
-            </button>
           </div>
           {error ? (
             <span id={completeNoteId} role="alert" className="text-xs text-danger-500">
@@ -237,9 +227,6 @@ function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
               {lockedReason}
             </span>
           ) : null}
-          <span id={skipNoteId} className="text-xs text-muted-foreground">
-            {t("taskSkipUnavailable")}
-          </span>
         </div>
       ) : null}
     </div>

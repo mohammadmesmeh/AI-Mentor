@@ -127,6 +127,18 @@ describe("resolveDashboardView", () => {
       })
     })
 
+    it("Phase 1 bug: the active roadmap always wins over leftover generation state", () => {
+      const data = makeRoadmap({ status: "active" }, [makeStage()])
+      const active = { isLoading: false, isError: false, data }
+      for (const phase of ["timed_out", "in_progress", "failed", "starting"] as const) {
+        expect(
+          resolveDashboardView(input({ active, sessionRequestId: "old-req", polling: { phase, request: null } }))
+        ).toEqual({ view: "ready", roadmap: data })
+      }
+      expect(resolveDashboardView(input({ active, startError: apiError }))).toEqual({ view: "ready", roadmap: data })
+      expect(resolveDashboardView(input({ active, requesting: true }))).toEqual({ view: "ready", roadmap: data })
+    })
+
     it("a pinned roadmap (after a completion) wins over the active query", () => {
       const completed = makeRoadmap({ status: "completed" }, [makeStage()])
       const view = resolveDashboardView(

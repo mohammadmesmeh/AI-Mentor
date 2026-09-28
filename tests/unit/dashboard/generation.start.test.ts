@@ -61,7 +61,7 @@ describe("startRoadmapGeneration (contract §14)", () => {
     expect(store.getState().generation.requestId).toBe("gen-1")
   })
 
-  it("unlessActive: generates nothing when the learner already has an active roadmap", async () => {
+  it("never POSTs when the learner already has an active roadmap — whoever calls it", async () => {
     let posts = 0
     server.use(
       http.get(`${API_BASE}/me/active-roadmap`, () =>
@@ -73,15 +73,30 @@ describe("startRoadmapGeneration (contract §14)", () => {
       })
     )
     const store = makeStore()
-    await store.dispatch(startRoadmapGeneration({ unlessActive: true }))
+    await store.dispatch(startRoadmapGeneration())
     expect(posts).toBe(0)
     expect(store.getState().generation).toEqual({ requesting: false, requestId: null, startError: null })
   })
 
-  it("unlessActive: generates when there is no active roadmap (404)", async () => {
+  it("generates when there is no active roadmap (404)", async () => {
     server.use(http.post(`${API_BASE}/roadmap-generation-requests`, () => accepted("gen-2")))
     const store = makeStore()
-    await store.dispatch(startRoadmapGeneration({ unlessActive: true }))
+    await store.dispatch(startRoadmapGeneration())
     expect(store.getState().generation.requestId).toBe("gen-2")
+  })
+
+  it("sends nothing when it can't tell whether a roadmap is active, and reports it", async () => {
+    let posts = 0
+    server.use(
+      http.get(`${API_BASE}/me/active-roadmap`, () => failure("internal_error", 500)),
+      http.post(`${API_BASE}/roadmap-generation-requests`, () => {
+        posts += 1
+        return accepted("gen-3")
+      })
+    )
+    const store = makeStore()
+    await store.dispatch(startRoadmapGeneration())
+    expect(posts).toBe(0)
+    expect(store.getState().generation.startError).toMatchObject({ code: "internal_error" })
   })
 })

@@ -41,7 +41,7 @@ export function inProgressRequestId(error: ApiError): string | null {
  * A thunk, not component state, so it survives navigation: onboarding starts
  * it and the dashboard polls the result.
  */
-export function startRoadmapGeneration({ unlessActive = false } = {}): ThunkAction<
+export function startRoadmapGeneration(): ThunkAction<
   Promise<void>,
   GenerationRoot,
   unknown,
@@ -51,20 +51,20 @@ export function startRoadmapGeneration({ unlessActive = false } = {}): ThunkActi
     if (getState().generation.requesting) return
     // Set before any await, so a second click can't start a second request.
     dispatch(generationRequested())
+    // Never POST while an active roadmap exists: the backend accepts a new
+    // request and creates a second roadmap (docs/backend-issues.md #2). Always
+    // ask the server, not the cache — whatever triggered this call.
     try {
-      if (unlessActive) {
-        const active = await dispatch(
-          apiSlice.endpoints.getActiveRoadmap.initiate(undefined, { forceRefetch: true, subscribe: false })
-        ).unwrap()
-        if (active) {
-          dispatch(generationReset())
-          return
-        }
+      const active = await dispatch(
+        apiSlice.endpoints.getActiveRoadmap.initiate(undefined, { forceRefetch: true, subscribe: false })
+      ).unwrap()
+      if (active) {
+        dispatch(generationReset())
+        return
       }
-    } catch {
-      // Couldn't tell — leave it to the dashboard, which re-reads the active
-      // roadmap and offers generation itself.
-      dispatch(generationReset())
+    } catch (error) {
+      // Couldn't tell: don't risk a second roadmap — report it, the learner can retry.
+      dispatch(generationRejected(asApiError(error)))
       return
     }
     const idempotencyKey = createIdempotencyKey()
