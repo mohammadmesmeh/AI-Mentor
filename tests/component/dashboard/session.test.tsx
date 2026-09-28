@@ -7,6 +7,7 @@ import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
 import authReducer from "@/redux/slices/authSlice"
+import generationReducer from "@/redux/slices/generationSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession } from "@/lib/api/auth"
 import { DashboardPage } from "@/features/dashboard/components/pages/dashboard-page"
@@ -28,7 +29,7 @@ const t = enMessages.dashboard
 
 function makeStore() {
   return configureStore({
-    reducer: { auth: authReducer, [apiSlice.reducerPath]: apiSlice.reducer },
+    reducer: { auth: authReducer, generation: generationReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
 }

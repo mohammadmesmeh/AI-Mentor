@@ -113,7 +113,7 @@
     "welcomeTitle": "Welcome Back",
     "yourRoadmap": "Your Learning Roadmap",
     "roadmapGenerationTitle": "Create Your Learning Roadmap",
-    "roadmapGenerationDescription": "Answer a few quick questions about your goals, experience, and schedule. AI Mentor will turn your answers into a personalized learning path.",
+    "roadmapGenerationDescription": "Your learning profile is complete. AI Mentor will turn it into a personalized learning path.",
     "generateRoadmap": "Create My Roadmap",
     "generationStarting": "Getting started...",
     "generationInProgress": "We're building your personalized roadmap. This may take a moment.",
@@ -386,7 +386,9 @@
     "missingFieldsLabel": "Still needed:",
     "onboardingIncompleteTitle": "A few details are still missing",
     "onboardingIncompleteDescription": "Complete these details to create your personalized roadmap:",
-    "video": "Video"
+    "video": "Video",
+    "loadingProfile": "Loading your details…",
+    "submitSessionExpired": "Your session has ended. Sign in again, then submit your answers."
   },
   "pricing": {
     "badge": "Plans",

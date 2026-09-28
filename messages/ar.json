@@ -113,7 +113,7 @@
     "welcomeTitle": "أهلًا بعودتك",
     "yourRoadmap": "مسار تعلمك",
     "roadmapGenerationTitle": "أنشئ مسار تعلمك",
-    "roadmapGenerationDescription": "أجب عن بضعة أسئلة سريعة حول أهدافك وخبرتك وجدولك الزمني، وسيحوّل AI Mentor إجاباتك إلى مسار تعلم مخصص.",
+    "roadmapGenerationDescription": "اكتمل ملفك التعليمي. سيحوّله AI Mentor إلى مسار تعلّم مخصص لك.",
     "generateRoadmap": "أنشئ مساري",
     "generationStarting": "جارٍ البدء...",
     "generationInProgress": "نبني الآن مسار تعلمك المخصص. قد يستغرق ذلك لحظة.",
@@ -386,7 +386,9 @@
     "missingFieldsLabel": "لا يزال ناقصًا:",
     "onboardingIncompleteTitle": "لا تزال بعض التفاصيل ناقصة",
     "onboardingIncompleteDescription": "أكمل هذه التفاصيل لإنشاء مسار تعلمك المخصص:",
-    "video": "فيديو"
+    "video": "فيديو",
+    "loadingProfile": "جارٍ تحميل بياناتك…",
+    "submitSessionExpired": "انتهت جلستك. سجّل الدخول مجددًا ثم أرسل إجاباتك."
   },
   "pricing": {
     "badge": "الخطط",
