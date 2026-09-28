@@ -174,7 +174,9 @@
     "activationFailedTitle": "تعذّر فتح مسار تعلّمك",
     "activationFailedDescription": "أُنشئ مسارك لكن تعذّر جعله مسارك النشط. حاول مرة أخرى.",
     "activationConflictDescription": "تغيّرت حالة مسارك أثناء فتحه. حاول مرة أخرى للتحقق منه.",
-    "retryActivation": "حاول مرة أخرى"
+    "retryActivation": "حاول مرة أخرى",
+    "generationFailedTitle": "تعذّر إنشاء مسارك",
+    "timedOutTitle": "يستغرق الأمر وقتًا أطول من المعتاد"
   },
   "features": {
     "aiAnswers": {

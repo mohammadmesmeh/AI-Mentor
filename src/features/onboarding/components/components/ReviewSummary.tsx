@@ -82,7 +82,7 @@ function ReviewSummary({ rows, onEdit }: ReviewSummaryProps) {
   const t = useT("onboarding")
 
   return (
-    <dl className="divide-y rounded-xl border border-border bg-card">
+    <dl className="divide-y rounded-lg border border-border bg-card">
       {rows.map((row) => (
         <div
           key={row.step}

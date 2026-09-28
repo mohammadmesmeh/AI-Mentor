@@ -26,13 +26,15 @@ function StepNavigation({
     <div className="mt-6 flex items-center justify-between gap-4 border-t border-border-default pt-8">
       <div>
         {onBack && (
-          <Button variant="secondary" onClick={onBack}>
+          <Button variant="secondary" size="lg" className="min-h-11" onClick={onBack}>
             {t("back", "Back")}
           </Button>
         )}
       </div>
       <Button
         variant="primary"
+        size="lg"
+        className="min-h-11"
         onClick={onContinue}
         disabled={!canContinue || isLoading}
       >

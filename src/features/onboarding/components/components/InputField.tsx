@@ -1,9 +1,12 @@
 "use client"
 
+import { useId } from "react"
 import { cn } from "@/lib/utils"
 
 interface InputFieldProps {
   label?: string
+  /** Accessible name when there is no visible label (e.g. the step's h1 names the field). */
+  ariaLabel?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -19,6 +22,7 @@ interface InputFieldProps {
 
 function InputField({
   label,
+  ariaLabel,
   value,
   onChange,
   placeholder,
@@ -31,13 +35,25 @@ function InputField({
   className,
   inputClassName,
 }: InputFieldProps) {
+  const id = useId()
+  const errorId = `${id}-error`
+  const a11y = {
+    id,
+    "aria-label": label ? undefined : ariaLabel,
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": error ? errorId : undefined,
+  }
   return (
     <div className={cn("space-y-2", className)}>
       {label && (
-        <label className="text-sm font-medium text-foreground">{label}</label>
+        <label htmlFor={id} className="text-sm font-medium text-foreground">
+          {label}
+        </label>
       )}
       {multiline ? (
         <textarea
+          {...a11y}
+          dir="auto"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
@@ -46,6 +62,8 @@ function InputField({
         />
       ) : (
         <input
+          {...a11y}
+          dir={type === "text" ? "auto" : undefined}
           type={type}
           value={value}
           min={min}
@@ -56,7 +74,7 @@ function InputField({
         />
       )}
       {error && (
-        <p className="text-sm text-danger-500" aria-live="polite">
+        <p id={errorId} className="text-sm text-danger-600 dark:text-danger-500" aria-live="polite">
           {error}
         </p>
       )}

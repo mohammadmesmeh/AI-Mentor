@@ -48,6 +48,7 @@ function StepFourSuccessGoal({
           if (error) setError("")
         }}
         placeholder={t("stepFivePlaceholder")}
+        ariaLabel={t("stepFiveTitle")}
         multiline
         rows={4}
         error={error}

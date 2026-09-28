@@ -174,7 +174,9 @@
     "activationFailedTitle": "We couldn't open your roadmap",
     "activationFailedDescription": "Your roadmap was created, but we couldn't make it your active roadmap. Please try again.",
     "activationConflictDescription": "Your roadmap changed while we were opening it. Try again to check it.",
-    "retryActivation": "Try again"
+    "retryActivation": "Try again",
+    "generationFailedTitle": "We couldn't create your roadmap",
+    "timedOutTitle": "This is taking longer than usual"
   },
   "features": {
     "aiAnswers": {
