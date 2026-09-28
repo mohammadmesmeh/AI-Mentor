@@ -6,14 +6,16 @@ import {
 import type { ApiError } from "@/lib/api/errors"
 import { makeRequest, makeRoadmap, makeStage } from "./fixtures"
 
-const readyRoadmap = makeRoadmap({}, [makeStage()])
+const readyRoadmap = makeRoadmap({ status: "ready" }, [makeStage()])
 
 function input(overrides: Partial<DashboardViewInput> = {}): DashboardViewInput {
   return {
     authenticated: true,
     onboarding: { isLoading: false, isError: false, data: { completed: true, missingFields: [] } },
     startError: null,
+    requesting: false,
     sessionRequestId: null,
+    activation: { phase: "idle", error: null },
     polling: { phase: "idle", request: null },
     pinnedRoadmap: false,
     active: { isLoading: false, isError: false, data: null },
@@ -63,7 +65,36 @@ describe("resolveDashboardView", () => {
   })
 
   it("3. shows start-error when generation could not be started", () => {
-    expect(resolveDashboardView(input({ startError: apiError })).view).toBe("start-error")
+    expect(resolveDashboardView(input({ startError: apiError }))).toEqual({ view: "start-error", reason: "generic" })
+  })
+
+  describe("start errors", () => {
+    const start = (error: Partial<ApiError>) => resolveDashboardView(input({ startError: { ...apiError, ...error } }))
+
+    it("a 401 is a session problem — signed-out, never a generation failure", () => {
+      expect(start({ code: "unauthenticated", category: "access_denied" })).toEqual({ view: "signed-out" })
+    })
+
+    it("409 onboarding_incomplete returns to the missing fields from error.details", () => {
+      expect(
+        start({ code: "onboarding_incomplete", category: "conflict", details: { missing_fields: ["goal"] } })
+      ).toEqual({ view: "onboarding-incomplete", missingFields: ["goal"] })
+    })
+
+    it("names a rate limit and an outage", () => {
+      expect(start({ code: "too_many_requests", category: "rate_limited" })).toEqual({
+        view: "start-error",
+        reason: "rate_limited",
+      })
+      expect(start({ code: "authentication_service_unavailable", category: "unavailable" })).toEqual({
+        view: "start-error",
+        reason: "unavailable",
+      })
+    })
+  })
+
+  it("is generating while the POST is in flight, so a second click can't start another request", () => {
+    expect(resolveDashboardView(input({ requesting: true })).view).toBe("generating")
   })
 
   describe("active roadmap (GET /me/active-roadmap — how a reload finds the roadmap)", () => {
@@ -169,13 +200,27 @@ describe("resolveDashboardView", () => {
       )
     })
 
-    it.each(["ready", "active", "completed"] as const)("status %s is ready", (status) => {
+    it.each(["active", "completed"] as const)("status %s is ready", (status) => {
       const data = makeRoadmap({ status }, [makeStage()])
       expect(ready({ isLoading: false, isError: false, data })).toEqual({ view: "ready", roadmap: data })
     })
 
-    it("an in-session request that reached ready resolves its roadmap", () => {
-      expect(ready({ isLoading: false, isError: false, data: readyRoadmap }).view).toBe("ready")
+    it("contract §18: a generated roadmap that is still `ready` is activating, never the workspace", () => {
+      expect(ready({ isLoading: false, isError: false, data: readyRoadmap })).toEqual({ view: "activating" })
+    })
+
+    it("a failed activation shows activation-failed; a 409 is reported as a conflict", () => {
+      const failed = (code: string) =>
+        resolveDashboardView(
+          input({
+            sessionRequestId: "req-1",
+            polling: { phase: "ready", request: makeRequest() },
+            roadmap: { isLoading: false, isError: false, data: readyRoadmap },
+            activation: { phase: "failed", error: { ...apiError, code, category: "conflict" } },
+          })
+        )
+      expect(failed("roadmap_activation_conflict")).toEqual({ view: "activation-failed", conflict: true })
+      expect(failed("internal_error")).toEqual({ view: "activation-failed", conflict: false })
     })
   })
 })

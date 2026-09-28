@@ -121,7 +121,6 @@
     "pollingTimedOut": "يستغرق إنشاء مسارك وقتًا أطول قليلًا من المتوقع. تحقّق مرة أخرى بعد قليل.",
     "retryGeneration": "أعد المحاولة",
     "backToOnboarding": "أكمل ملفك الشخصي",
-    "generationCancelled": "تم إلغاء إنشاء مسار التعلم",
     "stageCompleted": "مكتملة",
     "stageActive": "قيد التنفيذ",
     "stageUpcoming": "قادمة",
@@ -176,7 +175,16 @@
     "taskCompleteLocked": "أكمل المهام التي تعتمد عليها هذه المهمة أولًا.",
     "taskCompleteNeedsActive": "يمكن تحديث مسار تعلمك النشط فقط.",
     "taskSkipUnavailable": "التخطي سيتوفر قريبًا.",
-    "taskCompletedAnnouncement": "تم تحديد المهمة كمكتملة."
+    "taskCompletedAnnouncement": "تم تحديد المهمة كمكتملة.",
+    "generatingTitle": "نُنشئ مسار تعلّمك المخصص",
+    "startErrorRateLimited": "محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.",
+    "startErrorUnavailable": "الخدمة غير متاحة مؤقتًا. حاول مرة أخرى بعد قليل.",
+    "activatingTitle": "نجهّز مسار تعلّمك",
+    "activatingDescription": "مسارك جاهز، ونفتحه لك الآن…",
+    "activationFailedTitle": "تعذّر فتح مسار تعلّمك",
+    "activationFailedDescription": "أُنشئ مسارك لكن تعذّر جعله مسارك النشط. حاول مرة أخرى.",
+    "activationConflictDescription": "تغيّرت حالة مسارك أثناء فتحه. حاول مرة أخرى للتحقق منه.",
+    "retryActivation": "حاول مرة أخرى"
   },
   "features": {
     "aiAnswers": {

@@ -7,6 +7,7 @@ import { Button } from "@/shared/components/ui/Button"
 import type { RootState } from "@/redux/store"
 import { useCompleteTaskMutation, useGetLearningProfileQuery } from "@/lib/api/apiSlice"
 import type { Roadmap } from "@/lib/api/types"
+import { asApiError } from "@/lib/api/errors"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
 import { useDashboardRoadmap } from "../../hooks/useDashboardRoadmap"
 import { findCurrentTask, focusTasks, orderedStages, roadmapProgress } from "../../lib/roadmapProgress"
@@ -47,8 +48,16 @@ function DashboardNotice({
 
 function DashboardPage() {
   const t = useT("dashboard")
-  const { view, generate, retryGeneration, checkAgain, reset, retryLoad, refetchRoadmap, pinRoadmap } =
-    useDashboardRoadmap()
+  const {
+    view,
+    generate,
+    retryGeneration,
+    checkAgain,
+    retryLoad,
+    refetchRoadmap,
+    retryActivation,
+    pinRoadmap,
+  } = useDashboardRoadmap()
 
   switch (view.view) {
     case "signed-out":
@@ -80,17 +89,25 @@ function DashboardPage() {
         />
       )
     case "start-error":
-      return <RoadmapGenerationFailure failureCode={null} onRetry={retryGeneration} />
+      return (
+        <RoadmapGenerationFailure
+          failureCode={null}
+          messageKey={
+            view.reason === "rate_limited"
+              ? "startErrorRateLimited"
+              : view.reason === "unavailable"
+                ? "startErrorUnavailable"
+                : undefined
+          }
+          onRetry={retryGeneration}
+        />
+      )
     case "failed":
       return <RoadmapGenerationFailure failureCode={view.failureCode} onRetry={retryGeneration} />
     case "generating":
     case "timed-out":
       return (
-        <RoadmapGenerating
-          timedOut={view.view === "timed-out"}
-          onCheckAgain={checkAgain}
-          onReset={reset}
-        />
+        <RoadmapGenerating timedOut={view.view === "timed-out"} onCheckAgain={checkAgain} />
       )
     case "roadmap-not-ready":
       return (
@@ -109,6 +126,24 @@ function DashboardPage() {
           actionLabel={t("generateRoadmap")}
           onAction={retryGeneration}
         />
+      )
+    case "activating":
+      return (
+        <div className="mx-auto max-w-md py-16 text-center" aria-live="polite">
+          <h1 className="mb-2 text-heading-md font-semibold text-foreground">{t("activatingTitle")}</h1>
+          <p className="text-muted-foreground">{t("activatingDescription")}</p>
+        </div>
+      )
+    case "activation-failed":
+      return (
+        <div role="alert">
+          <DashboardNotice
+            title={t("activationFailedTitle")}
+            description={t(view.conflict ? "activationConflictDescription" : "activationFailedDescription")}
+            actionLabel={t("retryActivation")}
+            onAction={retryActivation}
+          />
+        </div>
       )
     case "load-error":
       return (
@@ -177,10 +212,7 @@ function DashboardWorkspace({
         onRoadmapUpdated(updated.id)
         setAnnouncement(t("taskCompletedAnnouncement"))
       } catch (error) {
-        // unwrap() rejects with the already-normalized ApiError (see baseQuery),
-        // so read its code directly — toApiError() expects a raw server body.
-        const code = typeof error === "object" && error !== null ? (error as { code?: unknown }).code : undefined
-        const conflict = code === "task_completion_conflict"
+        const conflict = asApiError(error).code === "task_completion_conflict"
         setCompletionError({ taskId, kind: conflict ? "conflict" : "failed" })
         // The tree on screen disagrees with the server — re-read it.
         if (conflict) onStale()

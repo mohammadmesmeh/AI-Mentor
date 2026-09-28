@@ -121,7 +121,6 @@
     "pollingTimedOut": "Your roadmap is taking a little longer than expected. Check again in a moment.",
     "retryGeneration": "Try Again",
     "backToOnboarding": "Complete Your Profile",
-    "generationCancelled": "Roadmap creation was cancelled",
     "stageCompleted": "Completed",
     "stageActive": "In Progress",
     "stageUpcoming": "Coming Up",
@@ -176,7 +175,16 @@
     "taskCompleteLocked": "Finish the tasks this one depends on first.",
     "taskCompleteNeedsActive": "Only your active roadmap can be updated.",
     "taskSkipUnavailable": "Skipping is coming soon.",
-    "taskCompletedAnnouncement": "Task marked complete."
+    "taskCompletedAnnouncement": "Task marked complete.",
+    "generatingTitle": "Creating your personalized roadmap",
+    "startErrorRateLimited": "Too many attempts in a short time. Wait a minute, then try again.",
+    "startErrorUnavailable": "The service is temporarily unavailable. Please try again shortly.",
+    "activatingTitle": "Setting up your roadmap",
+    "activatingDescription": "Your roadmap is ready. We're opening it for you…",
+    "activationFailedTitle": "We couldn't open your roadmap",
+    "activationFailedDescription": "Your roadmap was created, but we couldn't make it your active roadmap. Please try again.",
+    "activationConflictDescription": "Your roadmap changed while we were opening it. Try again to check it.",
+    "retryActivation": "Try again"
   },
   "features": {
     "aiAnswers": {

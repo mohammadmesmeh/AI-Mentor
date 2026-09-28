@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from "react"
-import { useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
-import type { RootState } from "@/redux/store"
+import type { AppDispatch, RootState } from "@/redux/store"
 import {
+  apiSlice,
+  useActivateRoadmapMutation,
   useGetActiveRoadmapQuery,
   useGetOnboardingStatusQuery,
   useGetRoadmapQuery,
 } from "@/lib/api/apiSlice"
-import { resolveDashboardView, type DashboardView } from "../lib/dashboardView"
+import { asApiError } from "@/lib/api/errors"
+import { resolveDashboardView, type ActivationState, type DashboardView } from "../lib/dashboardView"
 import { useGenerateRoadmap } from "./useGenerateRoadmap"
 import { useRoadmapGenerationPolling } from "./useRoadmapGenerationPolling"
 
@@ -21,6 +24,8 @@ export interface DashboardRoadmapState {
   retryLoad: () => void
   /** Re-reads the roadmap on screen, e.g. while it is still being prepared. */
   refetchRoadmap: () => void
+  /** Tries the automatic activation again after it failed. */
+  retryActivation: () => void
   /**
    * Keep showing this roadmap for the rest of the session. Used after a task
    * completion returns the updated tree: a roadmap that becomes completed
@@ -29,7 +34,11 @@ export interface DashboardRoadmapState {
   pinRoadmap: (roadmapId: string) => void
 }
 
+type TrackedActivation = ActivationState & { roadmapId: string | null }
+const IDLE: TrackedActivation = { phase: "idle", error: null, roadmapId: null }
+
 export function useDashboardRoadmap(): DashboardRoadmapState {
+  const dispatch = useDispatch<AppDispatch>()
   // Without an in-memory session every authenticated call would go out with no
   // Authorization header and 401 (e.g. after a full page load) — don't fire it.
   const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -40,7 +49,7 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   const onboardingComplete = onboarding.data?.completed === true
   const active = useGetActiveRoadmapQuery(authenticated && onboardingComplete ? undefined : skipToken)
 
-  const { requestId, startError, generate, reset } = useGenerateRoadmap()
+  const { requesting, requestId, startError, generate, reset } = useGenerateRoadmap()
   const { phase, request, checkAgain } = useRoadmapGenerationPolling(requestId)
 
   const [pinnedRoadmapId, setPinnedRoadmapId] = useState<string | null>(null)
@@ -53,6 +62,43 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   useEffect(() => {
     if (phase === "cancelled") reset()
   }, [phase, reset])
+
+  // Contract §18/§22: a learner has one roadmap and it must be the active one.
+  // The backend usually activates the first roadmap itself; when the generated
+  // roadmap comes back `ready` and nothing is active, activate it here — no
+  // button, invisible to the learner. Then the dashboard reads
+  // GET /me/active-roadmap like after any reload.
+  const [activateRoadmap] = useActivateRoadmapMutation()
+  const [activation, setActivation] = useState<TrackedActivation>(IDLE)
+  const readyRoadmapId = roadmap.data?.status === "ready" ? roadmap.data.id : null
+
+  const activate = useCallback(
+    async (id: string) => {
+      setActivation({ phase: "activating", error: null, roadmapId: id })
+      try {
+        // Activation clears any other roadmap's active slot (§18), so ask the
+        // server first and never take the slot from an active roadmap.
+        const current = await dispatch(
+          apiSlice.endpoints.getActiveRoadmap.initiate(undefined, { forceRefetch: true, subscribe: false })
+        ).unwrap()
+        if (!current) await activateRoadmap(id).unwrap()
+        dispatch(apiSlice.util.invalidateTags(["ActiveRoadmap"]))
+        reset()
+        setPinnedRoadmapId(null)
+        // Remember the id so a render with the stale `ready` copy can't start it again.
+        setActivation({ phase: "idle", error: null, roadmapId: id })
+      } catch (error) {
+        setActivation({ phase: "failed", error: asApiError(error), roadmapId: id })
+      }
+    },
+    [dispatch, activateRoadmap, reset]
+  )
+
+  useEffect(() => {
+    if (!readyRoadmapId || activation.roadmapId === readyRoadmapId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- starts the request; the state tracks it.
+    void activate(readyRoadmapId)
+  }, [readyRoadmapId, activation.roadmapId, activate])
 
   const retryGeneration = useCallback(() => {
     reset()
@@ -74,14 +120,23 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     else if (activeIsError) void refetchActive()
   }, [onboardingIsError, refetchOnboarding, roadmapIsError, refetchRoadmapQuery, activeIsError, refetchActive])
 
+  // activate() re-reads the active roadmap first, so after a 409
+  // roadmap_activation_conflict (the roadmap's state changed) a retry finishes
+  // without a second POST if the roadmap became active meanwhile.
+  const retryActivation = useCallback(() => {
+    if (activation.roadmapId) void activate(activation.roadmapId)
+  }, [activation.roadmapId, activate])
+
   const pinRoadmap = useCallback((id: string) => setPinnedRoadmapId(id), [])
 
   const view = resolveDashboardView({
     authenticated,
     onboarding: { isLoading: onboarding.isLoading, isError: onboarding.isError, data: onboarding.data },
     startError,
+    requesting,
     sessionRequestId: requestId,
     polling: { phase, request },
+    activation: { phase: activation.phase, error: activation.error },
     pinnedRoadmap: pinnedRoadmapId !== null,
     active: { isLoading: active.isLoading, isError: active.isError, data: active.data },
     roadmap: { isLoading: roadmap.isLoading, isError: roadmap.isError, data: roadmap.data },
@@ -95,6 +150,7 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     reset,
     retryLoad,
     refetchRoadmap,
+    retryActivation,
     pinRoadmap,
   }
 }
