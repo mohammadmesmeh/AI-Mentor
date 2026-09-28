@@ -81,7 +81,7 @@ function RoadmapStageView({ stage, ctx }: { stage: RoadmapStage; ctx: RowContext
       {/* flex-wrap: on narrow screens the badge drops under the title rather
           than squeezing it into mid-word breaks. */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-5">
-        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
+        <div className="flex min-w-0 flex-1 basis-64 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <span className="font-display text-sm font-bold text-primary">
               {String(stage.position).padStart(2, "0")}
@@ -170,7 +170,8 @@ function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
       >
         {taskIcon(task.type)}
       </div>
-      <div className="min-w-0 flex-1">
+      {/* basis-56: on narrow screens the actions wrap below instead of squeezing the title. */}
+      <div className="min-w-0 flex-1 basis-56">
         <p
           dir="auto"
           className={cn(
@@ -187,7 +188,7 @@ function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
           )}
           {task.resources.length > 0 && (
             <span>
-              · {task.resources.length} {t("taskResources", "resources")}
+              · {t("taskResources", undefined, { count: task.resources.length })}
             </span>
           )}
         </div>

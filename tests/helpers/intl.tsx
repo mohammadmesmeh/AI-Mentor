@@ -28,7 +28,7 @@ export const TEST_MESSAGES = {
     taskUpcoming: "Upcoming",
     taskComplete: "Mark Complete",
     taskSkip: "Skip",
-    taskResources: "resources",
+    taskResources: "{count, plural, one {# resource} other {# resources}}",
     taskType: {
       read: "Read",
       watch: "Watch",

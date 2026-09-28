@@ -130,7 +130,7 @@
     "taskUpcoming": "Coming Up",
     "taskComplete": "Mark as Complete",
     "taskSkip": "Skip",
-    "taskResources": "resources",
+    "taskResources": "{count, plural, one {# resource} other {# resources}}",
     "taskType": {
       "read": "Reading",
       "watch": "Video",

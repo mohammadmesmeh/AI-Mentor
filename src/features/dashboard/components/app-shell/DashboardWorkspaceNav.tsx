@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import { Home, LayoutGrid, Menu, X, type LucideIcon } from "lucide-react"
+import { Home, LayoutGrid, LogOut, Menu, X, type LucideIcon } from "lucide-react"
 
-import { Link, usePathname } from "@/i18n/navigation"
+import { Link, usePathname, useRouter } from "@/i18n/navigation"
+import { useLogoutMutation } from "@/lib/api/apiSlice"
 import { useT } from "@/shared/hooks/useT"
 import { Logo } from "@/shared/components/layout/navbar/Logo"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
@@ -53,6 +54,33 @@ function WorkspaceLink({ href, icon: Icon, label, active, onNavigate, className 
   )
 }
 
+/**
+ * The site navbar is hidden on the dashboard, so without this the learner had
+ * no way to sign out from here. Same behavior as the navbar: the local session
+ * ends at once (contract §3 rule 7), the revoke call runs in the background.
+ */
+function LogoutButton({ onDone }: { onDone?: () => void }) {
+  const tNav = useT("nav")
+  const router = useRouter()
+  const [logout] = useLogoutMutation()
+  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  if (!authenticated) return null
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        onDone?.()
+        void logout()
+        router.push("/")
+      }}
+      className="flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <LogOut className="h-5 w-5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
+      <span>{tNav("logout", "Log Out")}</span>
+    </button>
+  )
+}
+
 function DashboardWorkspaceNav() {
   const t = useT("dashboard")
   const pathname = usePathname()
@@ -93,6 +121,7 @@ function DashboardWorkspaceNav() {
               active={isActive(href)}
             />
           ))}
+          <LogoutButton />
         </nav>
         <div className="flex items-center justify-between gap-2 border-t border-border/50 p-3">
           <LanguageSwitcher />
@@ -175,6 +204,7 @@ function DashboardWorkspaceNav() {
                 onNavigate={closeDrawer}
               />
             ))}
+            <LogoutButton onDone={closeDrawer} />
           </nav>
           <div className="flex items-center gap-2 border-t border-border/50 p-4">
             <LanguageSwitcher mobile />

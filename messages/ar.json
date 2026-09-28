@@ -130,7 +130,7 @@
     "taskUpcoming": "قادمة",
     "taskComplete": "وضع علامة كمكتملة",
     "taskSkip": "تخطٍّ",
-    "taskResources": "مصادر",
+    "taskResources": "{count, plural, zero {لا مصادر} one {مصدر واحد} two {مصدران} few {# مصادر} many {# مصدرًا} other {# مصدر}}",
     "taskType": {
       "read": "قراءة",
       "watch": "فيديو",

@@ -160,30 +160,37 @@ export const apiSlice = createApi({
       onQueryStarted: authPersistHandler as unknown as OnStartedHandler,
     }),
 
-    logout: build.mutation<void, void>({
-      query: () => ({
-        url: "/auth/logout",
-        method: "POST",
-        body: { refresh_token: getSession()?.refreshToken ?? null },
-      }),
-      onQueryStarted: async (
-        _arg: void,
-        { dispatch, queryFulfilled }: {
-          dispatch: (action: unknown) => unknown
-          queryFulfilled: Promise<unknown>
-        }
-      ) => {
-        // FR-006: clear local session state before awaiting the response, and
-        // again on failure — never conditional on network success.
+    logout: build.mutation<null, void>({
+      // The tokens are captured before the local session is cleared: the
+      // backend needs both the bearer and the refresh token to revoke the
+      // session (contract §9). Clearing first (as onQueryStarted used to) sent
+      // an unauthenticated request with `refresh_token: null`.
+      queryFn: async (_arg, api, extraOptions) => {
+        const current = getSession()
+        // FR-006 / contract §3 rule 7: local sign-out never waits on the network.
         clearSession()
-        dispatch(clearLocalSession())
-        try {
-          await queryFulfilled
-        } catch {
-          dispatch(clearLocalSession())
-        } finally {
-          dispatch(apiSlice.util.resetApiState())
+        api.dispatch(clearLocalSession())
+        if (current) {
+          await baseQueryWithReauth(
+            {
+              url: "/auth/logout",
+              method: "POST",
+              body: { refresh_token: current.refreshToken },
+              headers: { Authorization: `${current.tokenType} ${current.accessToken}` },
+            },
+            api,
+            extraOptions
+          )
         }
+        // The outcome of the revoke call doesn't change anything for the user.
+        // (RTK Query needs a defined `data`, hence null.)
+        return { data: null }
+      },
+      // Drop every cached server response once the call has settled —
+      // resetting inside queryFn would abort this very mutation.
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+        await queryFulfilled.catch(() => undefined)
+        dispatch(apiSlice.util.resetApiState())
       },
     }),
 

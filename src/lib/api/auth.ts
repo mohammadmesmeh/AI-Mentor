@@ -1,6 +1,6 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from "@reduxjs/toolkit/query/react"
 import type { ApiError } from "./errors"
-import { toApiError } from "./errors"
+import { asApiError, toApiError } from "./errors"
 import type { Session } from "./types"
 import { clearLocalSession } from "@/redux/slices/authSlice"
 
@@ -132,8 +132,13 @@ type RefreshOutcome = { ok: boolean; signOut: boolean }
 
 let refreshPromise: Promise<RefreshOutcome> | null = null
 
+/**
+ * The refresh call uses a raw fetchBaseQuery, so its error is a
+ * FetchBaseQueryError ({status, data}), not an ApiError — normalize it, or a
+ * 401 from /auth/refresh would never be recognized as "sign out".
+ */
 function normalizedError(result: { error?: unknown }): ApiError {
-  return result.error as ApiError
+  return asApiError(result.error)
 }
 
 async function runRefresh(): Promise<RefreshOutcome> {
