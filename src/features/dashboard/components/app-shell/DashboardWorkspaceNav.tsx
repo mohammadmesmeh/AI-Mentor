@@ -9,6 +9,8 @@ import {
   LogOut,
   Map as MapIcon,
   Menu,
+  Settings,
+  UserRound,
   X,
   type LucideIcon,
 } from "lucide-react"
@@ -34,6 +36,11 @@ const LEARNING_LINKS: NavItem[] = [
   { href: WORKSPACE_ROUTES.roadmap, icon: MapIcon, labelKey: "navRoadmap" },
   { href: WORKSPACE_ROUTES.tasks, icon: ListChecks, labelKey: "navTasks" },
   { href: WORKSPACE_ROUTES.resources, icon: BookOpen, labelKey: "navResources" },
+]
+
+const ACCOUNT_LINKS: NavItem[] = [
+  { href: WORKSPACE_ROUTES.profile, icon: UserRound, labelKey: "navProfile" },
+  { href: WORKSPACE_ROUTES.settings, icon: Settings, labelKey: "navSettings" },
 ]
 
 /** A section is active on its own page and on pages below it (/tasks/123 → Tasks). */
@@ -107,6 +114,11 @@ function NavSections({ pathname }: { pathname: string }) {
       <div>
         <p className={headingClass}>{t("navAccount")}</p>
         <ul className="space-y-1">
+          {ACCOUNT_LINKS.map((item) => (
+            <li key={item.href}>
+              <WorkspaceLink item={item} active={isActive(pathname, item.href)} label={t(item.labelKey)} />
+            </li>
+          ))}
           <li>
             <LogoutButton />
           </li>

@@ -1,7 +1,7 @@
 "use client"
 
-import { useRouter, usePathname } from "@/i18n/navigation"
 import { useLocale } from "next-intl"
+import { useSwitchLocale } from "@/shared/hooks/useSwitchLocale"
 import { cn } from "@/lib/utils"
 
 const locales = [
@@ -10,12 +10,11 @@ const locales = [
 ] as const
 
 function LanguageSwitcher({ mobile = false }: { mobile?: boolean }) {
-  const router = useRouter()
-  const pathname = usePathname()
   const currentLocale = useLocale()
+  const switchTo = useSwitchLocale()
 
-  const switchLocale = (nextLocale: string) => {
-    router.replace(pathname, { locale: nextLocale })
+  const switchLocale = (nextLocale: "en" | "ar") => {
+    void switchTo(nextLocale)
   }
 
   if (mobile) {

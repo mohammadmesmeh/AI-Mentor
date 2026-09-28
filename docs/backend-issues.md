@@ -120,6 +120,26 @@ Measured from the frontend's region (Render, warm instance):
 
 ---
 
+## 8. No account management: password, name/email, deletion
+
+**What happened** — the new Profile and Settings pages can show the account (`GET /me`) and edit preferences (`PATCH /me/preferences`) and the learning profile (`PUT /me/learning-profile`). Nothing else about the account can be changed. The pages leave these features out rather than showing controls that do nothing.
+
+**What the contract says** — §23: "Password reset or email verification" and "Update account name/email/password" do not exist. There is no account-deletion endpoint at all. §10 lists `deletion_requested` as a possible user `status`, but nothing can set it.
+
+**User impact** — a learner can't:
+- change their password, even when they know the current one;
+- recover a forgotten password (the sign-in page's "Forgot your password?" can only show a "not connected" message);
+- fix a typo in their name or change their email;
+- delete their account or request its deletion. Many privacy regulations expect this to be possible.
+
+**Suggested change**, in priority order:
+1. `POST /me/password` with `{current_password, password, password_confirmation}`, revoking other refresh tokens.
+2. `POST /auth/password/forgot` and `POST /auth/password/reset`.
+3. `PATCH /me` for `name`; email change with verification.
+4. `DELETE /me` or `POST /me/deletion-request`, re-authenticated, which sets `deletion_requested`.
+
+---
+
 ## Note: rate limits and the frontend's session route
 
 To keep learners signed in across reloads, the frontend now follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser.

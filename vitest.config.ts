@@ -8,6 +8,9 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     include: ["./tests/unit/**/*.test.{ts,tsx}", "./tests/component/**/*.test.{ts,tsx}"],
     css: false,
+    // Page-level component tests render whole pages over MSW; with every file
+    // running in parallel the first render can pass 5s on slower machines.
+    testTimeout: 15000,
   },
   resolve: {
     alias: {

@@ -1,11 +1,13 @@
 "use client"
 
 import { useT } from "@/shared/hooks/useT"
-import type {
-  LearningMethod,
-  Preferences,
-  SelfAssessedLevel,
-} from "@/lib/api/types"
+import type { Preferences } from "@/lib/api/types"
+import {
+  levelKeyMap,
+  preferenceKeyMap,
+  resourceLanguageKeyMap,
+  uiLocaleKeyMap,
+} from "../../lib/profileLabels"
 import type { OnboardingFormState } from "@/redux/slices/onboardingSlice"
 
 interface ReviewRow {
@@ -22,30 +24,6 @@ type CoreValues = Pick<
   | "desiredOutcome"
   | "preferredLearningMethods"
 >
-
-const levelKeyMap: Record<SelfAssessedLevel, string> = {
-  complete_beginner: "beginner",
-  some_experience: "someExperience",
-  intermediate: "intermediate",
-}
-
-const preferenceKeyMap: Record<LearningMethod, string> = {
-  hands_on_projects: "handsOn",
-  video_walkthroughs: "video",
-  reading_docs: "reading",
-  quizzes_drills: "quizzes",
-}
-
-const uiLocaleKeyMap: Record<Preferences["uiLocale"], string> = {
-  ar: "prefArabic",
-  en: "prefEnglish",
-}
-
-const resourceLanguageKeyMap: Record<Preferences["resourceLanguage"], string> = {
-  ar: "prefArabic",
-  en: "prefEnglish",
-  both: "prefBoth",
-}
 
 function buildCoreRows(t: (key: string) => string, values: CoreValues): ReviewRow[] {
   const minutes = values.availableMinutesPerWeek
