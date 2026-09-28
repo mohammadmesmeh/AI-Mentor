@@ -334,6 +334,7 @@
   --animate-typing:         typing-bounce 1.2s ease-in-out infinite;
   --animate-shimmer:        shimmer 1.6s linear infinite;
   --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
+  --animate-marquee:        marquee 70s linear infinite;
 
   /* --- Containers ---
      Max-width tokens for capped, centered layouts at the large end of the
@@ -1250,6 +1251,20 @@ html[dir="rtl"] {
 @keyframes hover-lift {
   from { transform: translateY(0); }
   to   { transform: translateY(-2px); }
+}
+
+/* Continuous marquee used by `animate-marquee`. The track holds its content
+   twice back to back, so shifting it by exactly half its width loops with no
+   seam. The sign follows reading direction: content flows toward the inline
+   start (leftward in LTR, rightward in RTL); `animation-direction: reverse`
+   gives the opposite row. Duration is set per element. Reduced motion is
+   handled by the global rule in §1. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(var(--marquee-sign, -1) * 50%)); }
+}
+[dir="rtl"] {
+  --marquee-sign: 1;
 }
 
 /* ==========================================================================
