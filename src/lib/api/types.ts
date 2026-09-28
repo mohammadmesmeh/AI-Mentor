@@ -94,6 +94,16 @@ export type TaskStatus =
 export type TaskType = "read" | "watch" | "quiz" | "project" | "assignment" | "coding_challenge"
 export type ResourceType = "documentation" | "article" | "video" | "course"
 
+/**
+ * Server-calculated progress (contract §16). Counts only `is_required` tasks;
+ * never computed or sent by the client.
+ */
+export interface Progress {
+  completedTasks: number
+  totalTasks: number
+  percentage: number
+}
+
 export interface Resource {
   id: string
   title: string
@@ -111,6 +121,7 @@ export interface RoadmapTask {
   status: TaskStatus
   isRequired: boolean
   estimatedMinutes: number
+  completedAt?: string | null
   dependsOnTaskIds: string[]
   resources: Resource[]
 }
@@ -122,6 +133,7 @@ export interface RoadmapStage {
   position: number
   status: StageStatus
   estimatedMinutes: number
+  progress?: Progress
   tasks: RoadmapTask[]
 }
 
@@ -138,7 +150,29 @@ export interface Roadmap {
   goal: string
   status: RoadmapStatus
   activatedAt: string | null
+  completedAt?: string | null
+  progress?: Progress
   currentVersion: RoadmapVersion | null
   createdAt: string
   updatedAt: string
+}
+
+/** `GET /tasks/{task}` (contract §19). */
+export interface TaskDetail {
+  id: string
+  type: TaskType
+  title: string
+  instructions: string
+  position: number
+  status: TaskStatus
+  isRequired: boolean
+  estimatedMinutes: number
+  completedAt: string | null
+  /** Server rule: roadmap active + owns the active slot, task available/current, all dependencies completed. */
+  canComplete: boolean
+  dependsOnTaskIds: string[]
+  dependencies: { id: string; title: string; status: TaskStatus }[]
+  resources: Resource[]
+  stage: { id: string; title: string; position: number; status: StageStatus; progress: Progress }
+  roadmap: { id: string; goal: string; status: RoadmapStatus; active: boolean; progress: Progress }
 }

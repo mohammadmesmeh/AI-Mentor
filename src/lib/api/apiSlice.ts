@@ -11,6 +11,7 @@ import type {
   RoadmapGenerationRequest,
   SelfAssessedLevel,
   Session,
+  TaskDetail,
   UiLocale,
   User,
 } from "./types"
@@ -132,7 +133,7 @@ function authPersistHandler(
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: apiBaseQuery,
-  tagTypes: ["Me", "Preferences", "LearningProfile", "OnboardingStatus", "Roadmap"],
+  tagTypes: ["Me", "Preferences", "LearningProfile", "OnboardingStatus", "Roadmap", "ActiveRoadmap", "Task"],
   endpoints: (build) => ({
     register: build.mutation<AuthData, RegisterArg>({
       query: (body) => ({
@@ -276,6 +277,79 @@ export const apiSlice = createApi({
       providesTags: ["Roadmap"],
       transformResponse: (data: unknown) => data as Roadmap,
     }),
+
+    /**
+     * The learner's roadmap that owns the active slot (contract §17). "No active
+     * roadmap" (404 active_roadmap_not_found) is a valid empty state, not a
+     * failure — including after a roadmap is completed, which clears the slot.
+     */
+    getActiveRoadmap: build.query<Roadmap | null, void>({
+      queryFn: async (arg, api, extraOptions) => {
+        const result = await apiBaseQuery("/me/active-roadmap", api, extraOptions)
+        if (!result.error) {
+          return { data: result.data as Roadmap }
+        }
+        if (result.error.code === "active_roadmap_not_found") {
+          return { data: null }
+        }
+        return { error: result.error }
+      },
+      providesTags: ["ActiveRoadmap"],
+    }),
+
+    /**
+     * Makes a ready/active roadmap the active one (contract §18). Idempotent on
+     * the server; 409 roadmap_activation_conflict for other states. No UI uses
+     * it yet.
+     */
+    activateRoadmap: build.mutation<Roadmap, string>({
+      query: (id) => ({ url: `/roadmaps/${id}/activate`, method: "POST", body: {} }),
+      transformResponse: (data: unknown) => data as Roadmap,
+      onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(apiSlice.util.upsertQueryData("getRoadmap", data.id, data))
+          dispatch(apiSlice.util.upsertQueryData("getActiveRoadmap", undefined, data))
+        } catch {
+          // Surfaced to the caller through the mutation result.
+        }
+      },
+    }),
+
+    /** Task detail incl. the server's `canComplete` (contract §19). No UI uses it yet. */
+    getTask: build.query<TaskDetail, string>({
+      query: (id) => `/tasks/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Task", id }],
+      transformResponse: (data: unknown) => data as TaskDetail,
+    }),
+
+    /**
+     * Completes a task (contract §20). The server owns every state change and
+     * returns the updated complete roadmap, which replaces the cached copy —
+     * nothing is changed locally before the server confirms. Repeating a
+     * successful completion is idempotent server-side; like every mutation here
+     * it is never auto-retried.
+     */
+    completeTask: build.mutation<Roadmap, string>({
+      query: (taskId) => ({ url: `/tasks/${taskId}/complete`, method: "POST", body: {} }),
+      transformResponse: (data: unknown) => data as Roadmap,
+      invalidatesTags: (_result, _error, taskId) => [{ type: "Task", id: taskId }],
+      onQueryStarted: async (_taskId, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(apiSlice.util.upsertQueryData("getRoadmap", data.id, data))
+          // A completed roadmap loses the active slot (§17), so the active
+          // query must be re-asked rather than handed the completed tree.
+          if (data.status === "completed") {
+            dispatch(apiSlice.util.invalidateTags(["ActiveRoadmap"]))
+          } else {
+            dispatch(apiSlice.util.upsertQueryData("getActiveRoadmap", undefined, data))
+          }
+        } catch {
+          // Surfaced to the caller through the mutation result.
+        }
+      },
+    }),
   }),
 })
 
@@ -293,4 +367,8 @@ export const {
   useGetGenerationStatusQuery,
   useLazyGetGenerationStatusQuery,
   useGetRoadmapQuery,
+  useGetActiveRoadmapQuery,
+  useActivateRoadmapMutation,
+  useGetTaskQuery,
+  useCompleteTaskMutation,
 } = apiSlice

@@ -1,11 +1,59 @@
 import { describe, expect, it } from "vitest"
 import {
+  canCompleteTask,
   findCurrentTask,
   focusTasks,
   orderedStages,
   roadmapProgress,
 } from "@/features/dashboard/lib/roadmapProgress"
 import { makeResource, makeRoadmap, makeStage, makeTask } from "./fixtures"
+
+describe("roadmapProgress with the server's progress (contract §16)", () => {
+  it("uses the server figures as-is instead of counting locally", () => {
+    const stages = [makeStage({ status: "active", tasks: [makeTask({ id: "a", status: "completed" }), makeTask({ id: "b" })] })]
+    const p = roadmapProgress(stages, { completedTasks: 1, totalTasks: 9, percentage: 11 })
+    expect(p).toMatchObject({ completedTasks: 1, countedTasks: 9, percent: 11, allCompleted: false })
+  })
+
+  it("is allCompleted when the server says every required task is done", () => {
+    const p = roadmapProgress([makeStage({ status: "completed" })], { completedTasks: 3, totalTasks: 3, percentage: 100 })
+    expect(p.allCompleted).toBe(true)
+  })
+})
+
+describe("canCompleteTask (contract §19/§20 can_complete)", () => {
+  const withTasks = (status: "active" | "ready" | "completed", tasks: ReturnType<typeof makeTask>[]) =>
+    makeRoadmap({ status }, [makeStage({ status: "active", tasks })])
+
+  it("allows an available or current task in the active roadmap with no pending dependencies", () => {
+    const available = makeTask({ id: "a", status: "available" })
+    const current = makeTask({ id: "c", status: "current" })
+    const roadmap = withTasks("active", [available, current])
+    expect(canCompleteTask(roadmap, available)).toBe(true)
+    expect(canCompleteTask(roadmap, current)).toBe(true)
+  })
+
+  it("refuses when the roadmap is not active", () => {
+    const task = makeTask({ id: "a", status: "available" })
+    expect(canCompleteTask(withTasks("ready", [task]), task)).toBe(false)
+    expect(canCompleteTask(withTasks("completed", [task]), task)).toBe(false)
+  })
+
+  it("refuses tasks that are not available/current", () => {
+    for (const status of ["upcoming", "completed", "skip_pending", "skipped", "replaced"] as const) {
+      const task = makeTask({ id: "a", status })
+      expect(canCompleteTask(withTasks("active", [task]), task)).toBe(false)
+    }
+  })
+
+  it("requires every dependency to be completed", () => {
+    const dep = makeTask({ id: "dep", status: "available" })
+    const task = makeTask({ id: "t", status: "available", dependsOnTaskIds: ["dep"] })
+    expect(canCompleteTask(withTasks("active", [dep, task]), task)).toBe(false)
+    const done = makeTask({ id: "dep", status: "completed" })
+    expect(canCompleteTask(withTasks("active", [done, task]), task)).toBe(true)
+  })
+})
 
 describe("orderedStages", () => {
   it("sorts stages, tasks and resources by position without mutating the input", () => {

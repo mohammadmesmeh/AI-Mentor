@@ -1,30 +1,15 @@
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
 import type { RootState } from "@/redux/store"
-import { useGetOnboardingStatusQuery, useGetRoadmapQuery } from "@/lib/api/apiSlice"
-import type { RoadmapGenerationRequest } from "@/lib/api/types"
 import {
-  isActiveRequest,
-  resolveDashboardView,
-  type DashboardView,
-} from "../lib/dashboardView"
+  useGetActiveRoadmapQuery,
+  useGetOnboardingStatusQuery,
+  useGetRoadmapQuery,
+} from "@/lib/api/apiSlice"
+import { resolveDashboardView, type DashboardView } from "../lib/dashboardView"
 import { useGenerateRoadmap } from "./useGenerateRoadmap"
 import { useRoadmapGenerationPolling } from "./useRoadmapGenerationPolling"
-
-/**
- * Stand-in for the learner's latest generation request until its retrieval is
- * documented in API_CONTRACT.md (spec 007 gate G-1 — see
- * specs/007-roadmap-dashboard-completion/contracts/api-dependencies.md).
- * "No request known" keeps today's behavior: only a request started in this
- * session is shown. Replace with the real query in T016; never guess the
- * endpoint here.
- */
-const LATEST_REQUEST_UNAVAILABLE = {
-  isLoading: false,
-  isError: false,
-  data: null as RoadmapGenerationRequest | null,
-}
 
 export interface DashboardRoadmapState {
   view: DashboardView
@@ -32,10 +17,16 @@ export interface DashboardRoadmapState {
   retryGeneration: () => void
   checkAgain: () => void
   reset: () => void
-  /** Re-runs whichever read failed (latest request or roadmap). */
+  /** Re-runs whichever read failed (onboarding gate, active roadmap or roadmap). */
   retryLoad: () => void
-  /** Re-reads the roadmap, e.g. while it is still being prepared. */
+  /** Re-reads the roadmap on screen, e.g. while it is still being prepared. */
   refetchRoadmap: () => void
+  /**
+   * Keep showing this roadmap for the rest of the session. Used after a task
+   * completion returns the updated tree: a roadmap that becomes completed
+   * leaves the active slot (contract §17), and must not vanish from the page.
+   */
+  pinRoadmap: (roadmapId: string) => void
 }
 
 export function useDashboardRoadmap(): DashboardRoadmapState {
@@ -43,23 +34,18 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   // Authorization header and 401 (e.g. after a full page load) — don't fire it.
   const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
   const onboarding = useGetOnboardingStatusQuery(authenticated ? undefined : skipToken)
+
+  // Contract §22: only once onboarding is complete, ask for the active roadmap —
+  // this is what finds the learner's roadmap again after a reload or sign-in.
+  const onboardingComplete = onboarding.data?.completed === true
+  const active = useGetActiveRoadmapQuery(authenticated && onboardingComplete ? undefined : skipToken)
+
   const { requestId, startError, generate, reset } = useGenerateRoadmap()
+  const { phase, request, checkAgain } = useRoadmapGenerationPolling(requestId)
 
-  const latest = LATEST_REQUEST_UNAVAILABLE
-  const latestActiveId = isActiveRequest(latest.data) ? latest.data!.id : null
-
-  // An in-session request (the learner clicked Generate) takes precedence.
-  const pollId = requestId ?? latestActiveId
-  const { phase, request, checkAgain } = useRoadmapGenerationPolling(pollId)
-
-  const roadmapId =
-    pollId !== null
-      ? phase === "ready"
-        ? request?.roadmapId ?? null
-        : null
-      : latest.data?.status === "succeeded"
-        ? latest.data.roadmapId
-        : null
+  const [pinnedRoadmapId, setPinnedRoadmapId] = useState<string | null>(null)
+  const sessionRoadmapId = requestId && phase === "ready" ? request?.roadmapId ?? null : null
+  const roadmapId = sessionRoadmapId ?? pinnedRoadmapId
   const roadmap = useGetRoadmapQuery(roadmapId ?? skipToken)
 
   // A cancelled generation returns the learner to the generation screen
@@ -74,15 +60,21 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
   }, [reset, generate])
 
   const { refetch: refetchRoadmapQuery, isError: roadmapIsError } = roadmap
+  const { refetch: refetchActive, isError: activeIsError } = active
+  const { refetch: refetchOnboarding, isError: onboardingIsError } = onboarding
+
   const refetchRoadmap = useCallback(() => {
     if (roadmapId) void refetchRoadmapQuery()
-  }, [roadmapId, refetchRoadmapQuery])
+    else if (onboardingComplete) void refetchActive()
+  }, [roadmapId, refetchRoadmapQuery, onboardingComplete, refetchActive])
 
-  const { refetch: refetchOnboarding, isError: onboardingIsError } = onboarding
   const retryLoad = useCallback(() => {
     if (onboardingIsError) void refetchOnboarding()
-    else if (roadmapIsError) refetchRoadmap()
-  }, [onboardingIsError, refetchOnboarding, roadmapIsError, refetchRoadmap])
+    else if (roadmapIsError) void refetchRoadmapQuery()
+    else if (activeIsError) void refetchActive()
+  }, [onboardingIsError, refetchOnboarding, roadmapIsError, refetchRoadmapQuery, activeIsError, refetchActive])
+
+  const pinRoadmap = useCallback((id: string) => setPinnedRoadmapId(id), [])
 
   const view = resolveDashboardView({
     authenticated,
@@ -90,7 +82,8 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     startError,
     sessionRequestId: requestId,
     polling: { phase, request },
-    latest,
+    pinnedRoadmap: pinnedRoadmapId !== null,
+    active: { isLoading: active.isLoading, isError: active.isError, data: active.data },
     roadmap: { isLoading: roadmap.isLoading, isError: roadmap.isError, data: roadmap.data },
   })
 
@@ -102,5 +95,6 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     reset,
     retryLoad,
     refetchRoadmap,
+    pinRoadmap,
   }
 }

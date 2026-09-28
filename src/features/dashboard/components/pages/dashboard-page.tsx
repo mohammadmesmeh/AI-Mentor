@@ -1,16 +1,16 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useSelector } from "react-redux"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import type { RootState } from "@/redux/store"
-import { useGetLearningProfileQuery } from "@/lib/api/apiSlice"
+import { useCompleteTaskMutation, useGetLearningProfileQuery } from "@/lib/api/apiSlice"
 import type { Roadmap } from "@/lib/api/types"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
 import { useDashboardRoadmap } from "../../hooks/useDashboardRoadmap"
 import { findCurrentTask, focusTasks, orderedStages, roadmapProgress } from "../../lib/roadmapProgress"
-import { RoadmapView } from "../RoadmapView"
+import { RoadmapView, type TaskCompletion } from "../RoadmapView"
 import { RoadmapGenerationFailure } from "../RoadmapGenerationFailure"
 import { RoadmapGenerating } from "../RoadmapGenerating"
 import { WelcomeSection } from "../sections/WelcomeSection"
@@ -47,7 +47,7 @@ function DashboardNotice({
 
 function DashboardPage() {
   const t = useT("dashboard")
-  const { view, generate, retryGeneration, checkAgain, reset, retryLoad, refetchRoadmap } =
+  const { view, generate, retryGeneration, checkAgain, reset, retryLoad, refetchRoadmap, pinRoadmap } =
     useDashboardRoadmap()
 
   switch (view.view) {
@@ -120,7 +120,13 @@ function DashboardPage() {
         />
       )
     case "ready":
-      return <DashboardWorkspace roadmap={view.roadmap} />
+      return (
+        <DashboardWorkspace
+          roadmap={view.roadmap}
+          onRoadmapUpdated={pinRoadmap}
+          onStale={refetchRoadmap}
+        />
+      )
   }
 }
 
@@ -129,7 +135,17 @@ function DashboardPage() {
  * Today's Focus / Progress grid → the full roadmap, whose stage titles are the
  * only visible stage listing.
  */
-function DashboardWorkspace({ roadmap }: { roadmap: Roadmap }) {
+function DashboardWorkspace({
+  roadmap,
+  onRoadmapUpdated,
+  onStale,
+}: {
+  roadmap: Roadmap
+  /** Called with the roadmap id the server returned after a completion. */
+  onRoadmapUpdated: (roadmapId: string) => void
+  /** Called when the server says the tree on screen is out of date (409). */
+  onStale: () => void
+}) {
   const t = useT("dashboard")
   const learnerName = useSelector((state: RootState) => state.auth.user?.name)
   const { data: profile } = useGetLearningProfileQuery()
@@ -139,9 +155,41 @@ function DashboardWorkspace({ roadmap }: { roadmap: Roadmap }) {
     return {
       current: findCurrentTask(stages),
       focus: focusTasks(stages),
-      progress: roadmapProgress(stages),
+      progress: roadmapProgress(stages, roadmap.progress),
     }
   }, [roadmap])
+
+  // Contract §20: the server re-checks eligibility and returns the updated
+  // roadmap, which the mutation writes into the cache — the page only shows it.
+  const [completeTask] = useCompleteTaskMutation()
+  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null)
+  const [completionError, setCompletionError] = useState<TaskCompletion["error"]>(null)
+  const [announcement, setAnnouncement] = useState("")
+
+  const onComplete = useCallback(
+    async (taskId: string) => {
+      if (pendingTaskId) return
+      setPendingTaskId(taskId)
+      setCompletionError(null)
+      setAnnouncement("")
+      try {
+        const updated = await completeTask(taskId).unwrap()
+        onRoadmapUpdated(updated.id)
+        setAnnouncement(t("taskCompletedAnnouncement"))
+      } catch (error) {
+        // unwrap() rejects with the already-normalized ApiError (see baseQuery),
+        // so read its code directly — toApiError() expects a raw server body.
+        const code = typeof error === "object" && error !== null ? (error as { code?: unknown }).code : undefined
+        const conflict = code === "task_completion_conflict"
+        setCompletionError({ taskId, kind: conflict ? "conflict" : "failed" })
+        // The tree on screen disagrees with the server — re-read it.
+        if (conflict) onStale()
+      } finally {
+        setPendingTaskId(null)
+      }
+    },
+    [pendingTaskId, completeTask, onRoadmapUpdated, onStale, t]
+  )
 
   return (
     <div className="space-y-8">
@@ -157,8 +205,14 @@ function DashboardWorkspace({ roadmap }: { roadmap: Roadmap }) {
           <RecentActivitySection status="unavailable" />
         </div>
       </div>
-      <RoadmapView roadmap={roadmap} />
+      <RoadmapView
+        roadmap={roadmap}
+        completion={{ pendingTaskId, error: completionError, onComplete: (id) => void onComplete(id) }}
+      />
       <span className="sr-only">{t("roadmapReady")}</span>
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
     </div>
   )
 }

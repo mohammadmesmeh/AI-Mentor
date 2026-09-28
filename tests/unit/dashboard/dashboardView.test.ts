@@ -15,7 +15,8 @@ function input(overrides: Partial<DashboardViewInput> = {}): DashboardViewInput 
     startError: null,
     sessionRequestId: null,
     polling: { phase: "idle", request: null },
-    latest: { isLoading: false, isError: false, data: null },
+    pinnedRoadmap: false,
+    active: { isLoading: false, isError: false, data: null },
     roadmap: { isLoading: false, isError: false, data: undefined },
     ...overrides,
   }
@@ -31,7 +32,7 @@ const apiError: ApiError = {
 describe("resolveDashboardView", () => {
   it("0. is signed-out without an in-memory session — before any gate check", () => {
     expect(
-      resolveDashboardView(input({ authenticated: false, latest: { isLoading: false, isError: true, data: undefined } }))
+      resolveDashboardView(input({ authenticated: false, active: { isLoading: false, isError: true, data: undefined } }))
         .view
     ).toBe("signed-out")
   })
@@ -65,130 +66,116 @@ describe("resolveDashboardView", () => {
     expect(resolveDashboardView(input({ startError: apiError })).view).toBe("start-error")
   })
 
-  it("5. is loading while the latest request loads and there is no in-session request", () => {
-    expect(
-      resolveDashboardView(input({ latest: { isLoading: true, isError: false, data: undefined } })).view
-    ).toBe("loading")
-  })
-
-  it("6. FR-002: a latest-request error with no in-session request is load-error, never start", () => {
-    expect(
-      resolveDashboardView(input({ latest: { isLoading: false, isError: true, data: undefined } })).view
-    ).toBe("load-error")
-  })
-
-  it("7. shows start when the server reports no request", () => {
-    expect(resolveDashboardView(input()).view).toBe("start")
-  })
-
-  it("7. shows start when the latest request was cancelled", () => {
-    const latest = { isLoading: false, isError: false, data: makeRequest({ status: "cancelled" as const }) }
-    expect(resolveDashboardView(input({ latest })).view).toBe("start")
-  })
-
-  it("8. shows generating for an active latest request being polled", () => {
-    const latest = {
-      isLoading: false,
-      isError: false,
-      data: makeRequest({ status: "running" as const, roadmapId: null }),
-    }
-    expect(
-      resolveDashboardView(input({ latest, polling: { phase: "in_progress", request: null } })).view
-    ).toBe("generating")
-  })
-
-  it("8. shows timed-out when polling times out", () => {
-    expect(
-      resolveDashboardView(
-        input({ sessionRequestId: "req-1", polling: { phase: "timed_out", request: null } })
-      ).view
-    ).toBe("timed-out")
-  })
-
-  it("9. shows failed with the failure code of the latest request", () => {
-    const latest = {
-      isLoading: false,
-      isError: false,
-      data: makeRequest({ status: "failed" as const, roadmapId: null, failureCode: "validation_failed" }),
-    }
-    expect(resolveDashboardView(input({ latest }))).toEqual({
-      view: "failed",
-      failureCode: "validation_failed",
-    })
-  })
-
-  it("in-session request takes precedence over the latest request", () => {
-    const latest = { isLoading: false, isError: false, data: makeRequest() }
-    const view = resolveDashboardView(
-      input({
-        latest,
-        sessionRequestId: "req-2",
-        polling: { phase: "in_progress", request: null },
-        roadmap: { isLoading: false, isError: false, data: readyRoadmap },
-      })
-    )
-    expect(view.view).toBe("generating")
-  })
-
-  it("in-session request makes a latest-request error irrelevant", () => {
-    const view = resolveDashboardView(
-      input({
-        latest: { isLoading: false, isError: true, data: undefined },
-        sessionRequestId: "req-2",
-        polling: { phase: "in_progress", request: null },
-      })
-    )
-    expect(view.view).toBe("generating")
-  })
-
-  describe("10. succeeded request → roadmap", () => {
-    const latest = { isLoading: false, isError: false, data: makeRequest() }
-
-    it("is loading while the roadmap loads", () => {
+  describe("active roadmap (GET /me/active-roadmap — how a reload finds the roadmap)", () => {
+    it("is loading while the active roadmap loads", () => {
       expect(
-        resolveDashboardView(input({ latest, roadmap: { isLoading: true, isError: false, data: undefined } }))
-          .view
+        resolveDashboardView(input({ active: { isLoading: true, isError: false, data: undefined } })).view
       ).toBe("loading")
     })
 
-    it("FR-004: a roadmap load error is load-error", () => {
+    it("FR-002: an active-roadmap error is load-error, never start", () => {
       expect(
-        resolveDashboardView(input({ latest, roadmap: { isLoading: false, isError: true, data: undefined } }))
-          .view
+        resolveDashboardView(input({ active: { isLoading: false, isError: true, data: undefined } })).view
       ).toBe("load-error")
     })
 
+    it("shows start when the server reports no active roadmap (404 → null)", () => {
+      expect(resolveDashboardView(input()).view).toBe("start")
+    })
+
+    it("shows the active roadmap after a reload, with no request in this session", () => {
+      const data = makeRoadmap({ status: "active" }, [makeStage()])
+      expect(resolveDashboardView(input({ active: { isLoading: false, isError: false, data } }))).toEqual({
+        view: "ready",
+        roadmap: data,
+      })
+    })
+
+    it("a pinned roadmap (after a completion) wins over the active query", () => {
+      const completed = makeRoadmap({ status: "completed" }, [makeStage()])
+      const view = resolveDashboardView(
+        input({ pinnedRoadmap: true, roadmap: { isLoading: false, isError: false, data: completed } })
+      )
+      expect(view).toEqual({ view: "ready", roadmap: completed })
+    })
+  })
+
+  describe("in-session generation", () => {
+    it("shows generating while the request is polled", () => {
+      expect(
+        resolveDashboardView(input({ sessionRequestId: "req-1", polling: { phase: "in_progress", request: null } })).view
+      ).toBe("generating")
+    })
+
+    it("shows timed-out when polling times out", () => {
+      expect(
+        resolveDashboardView(input({ sessionRequestId: "req-1", polling: { phase: "timed_out", request: null } })).view
+      ).toBe("timed-out")
+    })
+
+    it("shows failed with the request's failure code", () => {
+      const request = makeRequest({ status: "failed", roadmapId: null, failureCode: "roadmap_provider_failed" })
+      expect(resolveDashboardView(input({ sessionRequestId: "req-1", polling: { phase: "failed", request } }))).toEqual({
+        view: "failed",
+        failureCode: "roadmap_provider_failed",
+      })
+    })
+
+    it("shows start when the request was cancelled", () => {
+      expect(
+        resolveDashboardView(input({ sessionRequestId: "req-1", polling: { phase: "cancelled", request: null } })).view
+      ).toBe("start")
+    })
+
+    it("takes precedence over the active roadmap and makes an active-roadmap error irrelevant", () => {
+      const view = resolveDashboardView(
+        input({
+          active: { isLoading: false, isError: true, data: undefined },
+          sessionRequestId: "req-2",
+          polling: { phase: "in_progress", request: null },
+        })
+      )
+      expect(view.view).toBe("generating")
+    })
+  })
+
+  describe("roadmap states", () => {
+    const ready = (roadmap: DashboardViewInput["roadmap"]) =>
+      resolveDashboardView(input({ sessionRequestId: "req-1", polling: { phase: "ready", request: makeRequest() }, roadmap }))
+
+    it("is loading while the roadmap loads", () => {
+      expect(ready({ isLoading: true, isError: false, data: undefined }).view).toBe("loading")
+    })
+
+    it("FR-004: a roadmap load error is load-error", () => {
+      expect(ready({ isLoading: false, isError: true, data: undefined }).view).toBe("load-error")
+    })
+
     it.each(["draft", "generating", "validating"] as const)("status %s is roadmap-not-ready", (status) => {
-      const roadmap = { isLoading: false, isError: false, data: makeRoadmap({ status }, [makeStage()]) }
-      expect(resolveDashboardView(input({ latest, roadmap })).view).toBe("roadmap-not-ready")
+      expect(ready({ isLoading: false, isError: false, data: makeRoadmap({ status }, [makeStage()]) }).view).toBe(
+        "roadmap-not-ready"
+      )
     })
 
     it("a null current version is roadmap-not-ready", () => {
-      const roadmap = { isLoading: false, isError: false, data: makeRoadmap({ currentVersion: null }) }
-      expect(resolveDashboardView(input({ latest, roadmap })).view).toBe("roadmap-not-ready")
+      expect(ready({ isLoading: false, isError: false, data: makeRoadmap({ currentVersion: null }) }).view).toBe(
+        "roadmap-not-ready"
+      )
     })
 
     it.each(["reset", "archived", "failed"] as const)("status %s is roadmap-inactive", (status) => {
-      const roadmap = { isLoading: false, isError: false, data: makeRoadmap({ status }, [makeStage()]) }
-      expect(resolveDashboardView(input({ latest, roadmap })).view).toBe("roadmap-inactive")
+      expect(ready({ isLoading: false, isError: false, data: makeRoadmap({ status }, [makeStage()]) }).view).toBe(
+        "roadmap-inactive"
+      )
     })
 
     it.each(["ready", "active", "completed"] as const)("status %s is ready", (status) => {
       const data = makeRoadmap({ status }, [makeStage()])
-      const roadmap = { isLoading: false, isError: false, data }
-      expect(resolveDashboardView(input({ latest, roadmap }))).toEqual({ view: "ready", roadmap: data })
+      expect(ready({ isLoading: false, isError: false, data })).toEqual({ view: "ready", roadmap: data })
     })
 
-    it("an in-session request that reached ready resolves the roadmap too", () => {
-      const roadmap = { isLoading: false, isError: false, data: readyRoadmap }
-      const view = resolveDashboardView(
-        input({
-          sessionRequestId: "req-1",
-          polling: { phase: "ready", request: makeRequest() },
-          roadmap,
-        })
-      )
-      expect(view.view).toBe("ready")
+    it("an in-session request that reached ready resolves its roadmap", () => {
+      expect(ready({ isLoading: false, isError: false, data: readyRoadmap }).view).toBe("ready")
     })
   })
 })

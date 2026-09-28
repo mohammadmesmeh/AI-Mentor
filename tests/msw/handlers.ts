@@ -110,6 +110,11 @@ export const handlers = [
     return jsonBody({ completed: false, missingFields: [] })
   }),
 
+  // Contract §17: no roadmap owns the active slot yet.
+  http.get(`${API_BASE}/me/active-roadmap`, () => {
+    return errorResponse("active_roadmap_not_found", "No active roadmap.", 404)
+  }),
+
   http.post(`${API_BASE}/roadmap-generation-requests`, async ({ request }) => {
     const idempotencyKey = request.headers.get("Idempotency-Key") ?? "test-key"
     return jsonBody(

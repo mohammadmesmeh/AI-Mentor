@@ -117,6 +117,8 @@ export function generationFailureKey(failureCode: string | null): string {
       return "generationFailedValidation"
     case "roadmap_generation_failed":
       return "generationFailedInternal"
+    case "roadmap_provider_failed":
+      return "generationFailedProvider"
     default:
       return "generationFailedGeneric"
   }

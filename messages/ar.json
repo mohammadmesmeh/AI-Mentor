@@ -157,7 +157,6 @@
     "tasksCompletedOfTotal": "أُنجزت {done} من {total} مهام",
     "progressBarLabel": "نسبة إنجاز المسار",
     "taskMinutes": "{count, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
-    "taskActionUnavailable": "متاح قريبًا",
     "resourceOpensNewTab": "(يُفتح في علامة تبويب جديدة)",
     "resourceLinkUnavailable": "الرابط غير متاح",
     "roadmapNotReadyTitle": "جارٍ تجهيز مسار تعلمك",
@@ -169,7 +168,15 @@
     "retryLoad": "أعد المحاولة",
     "signedOutTitle": "سجّل الدخول للمتابعة",
     "signedOutDescription": "جلستك غير نشطة في هذه الصفحة. سجّل الدخول مرة أخرى لفتح لوحة التحكم.",
-    "signInAgain": "تسجيل الدخول"
+    "signInAgain": "تسجيل الدخول",
+    "generationFailedProvider": "تعذّر على خدمة الذكاء الاصطناعي إنشاء مسار تعلمك هذه المرة. يرجى المحاولة مرة أخرى.",
+    "taskCompleting": "جارٍ الإكمال…",
+    "taskCompleteConflict": "لا يمكن إكمال هذه المهمة بعد. تم تحديث مسار تعلمك.",
+    "taskCompleteFailed": "تعذّر تحديد هذه المهمة كمكتملة. يرجى المحاولة مرة أخرى.",
+    "taskCompleteLocked": "أكمل المهام التي تعتمد عليها هذه المهمة أولًا.",
+    "taskCompleteNeedsActive": "يمكن تحديث مسار تعلمك النشط فقط.",
+    "taskSkipUnavailable": "التخطي سيتوفر قريبًا.",
+    "taskCompletedAnnouncement": "تم تحديد المهمة كمكتملة."
   },
   "features": {
     "aiAnswers": {

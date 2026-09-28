@@ -5,6 +5,7 @@ describe("roadmap generation failure-code mapping (FR-023)", () => {
   it("T032: each recognized failure_code maps to its specific friendly explanation", () => {
     expect(generationFailureKey("invalid_generated_roadmap")).toBe("generationFailedValidation")
     expect(generationFailureKey("roadmap_generation_failed")).toBe("generationFailedInternal")
+    expect(generationFailureKey("roadmap_provider_failed")).toBe("generationFailedProvider")
   })
 
   it("T032b: unrecognized or null failure codes fall back to the generic explanation", () => {
