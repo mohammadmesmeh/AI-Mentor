@@ -10,7 +10,8 @@ const readyRoadmap = makeRoadmap({}, [makeStage()])
 
 function input(overrides: Partial<DashboardViewInput> = {}): DashboardViewInput {
   return {
-    onboarding: { isLoading: false, data: { completed: true, missingFields: [] } },
+    authenticated: true,
+    onboarding: { isLoading: false, isError: false, data: { completed: true, missingFields: [] } },
     startError: null,
     sessionRequestId: null,
     polling: { phase: "idle", request: null },
@@ -28,15 +29,34 @@ const apiError: ApiError = {
 }
 
 describe("resolveDashboardView", () => {
+  it("0. is signed-out without an in-memory session — before any gate check", () => {
+    expect(
+      resolveDashboardView(input({ authenticated: false, latest: { isLoading: false, isError: true, data: undefined } }))
+        .view
+    ).toBe("signed-out")
+  })
+
+  it("regression: a failed onboarding-status gate is load-error, never start or blank", () => {
+    expect(
+      resolveDashboardView(input({ onboarding: { isLoading: false, isError: true, data: undefined } })).view
+    ).toBe("load-error")
+  })
+
+  it("an onboarding status that has not arrived yet is loading, not a fall-through", () => {
+    expect(
+      resolveDashboardView(input({ onboarding: { isLoading: false, isError: false, data: undefined } })).view
+    ).toBe("loading")
+  })
+
   it("1. is loading while onboarding status loads", () => {
-    expect(resolveDashboardView(input({ onboarding: { isLoading: true, data: undefined } })).view).toBe(
+    expect(resolveDashboardView(input({ onboarding: { isLoading: true, isError: false, data: undefined } })).view).toBe(
       "loading"
     )
   })
 
   it("2. shows onboarding-incomplete with the missing fields", () => {
     const view = resolveDashboardView(
-      input({ onboarding: { isLoading: false, data: { completed: false, missingFields: ["goal"] } } })
+      input({ onboarding: { isLoading: false, isError: false, data: { completed: false, missingFields: ["goal"] } } })
     )
     expect(view).toEqual({ view: "onboarding-incomplete", missingFields: ["goal"] })
   })

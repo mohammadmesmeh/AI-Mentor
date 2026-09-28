@@ -166,7 +166,10 @@
     "roadmapInactiveDescription": "أنشئ مسار تعلم جديدًا لتواصل التعلم.",
     "dashboardLoadErrorTitle": "تعذّر تحميل لوحة التحكم",
     "dashboardLoadErrorDescription": "غالبًا ما يكون هذا مؤقتًا. يرجى المحاولة مرة أخرى.",
-    "retryLoad": "أعد المحاولة"
+    "retryLoad": "أعد المحاولة",
+    "signedOutTitle": "سجّل الدخول للمتابعة",
+    "signedOutDescription": "جلستك غير نشطة في هذه الصفحة. سجّل الدخول مرة أخرى لفتح لوحة التحكم.",
+    "signInAgain": "تسجيل الدخول"
   },
   "features": {
     "aiAnswers": {

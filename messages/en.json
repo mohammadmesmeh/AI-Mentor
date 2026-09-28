@@ -166,7 +166,10 @@
     "roadmapInactiveDescription": "Create a new roadmap to keep learning.",
     "dashboardLoadErrorTitle": "We couldn't load your dashboard",
     "dashboardLoadErrorDescription": "This is usually temporary. Please try again.",
-    "retryLoad": "Try again"
+    "retryLoad": "Try again",
+    "signedOutTitle": "Sign in to continue",
+    "signedOutDescription": "Your session isn't active in this tab. Sign in again to open your dashboard.",
+    "signInAgain": "Sign in"
   },
   "features": {
     "aiAnswers": {

@@ -26,17 +26,19 @@ function DashboardNotice({
   description,
   actionLabel,
   onAction,
+  href,
 }: {
   title: string
   description: string
   actionLabel: string
-  onAction: () => void
+  onAction?: () => void
+  href?: string
 }) {
   return (
     <div className="mx-auto max-w-md py-12 text-center">
       <h1 className="mb-2 text-heading-md font-semibold text-foreground">{title}</h1>
       <p className="mb-6 text-muted-foreground">{description}</p>
-      <Button variant="primary" onClick={onAction}>
+      <Button variant="primary" onClick={onAction} href={href}>
         {actionLabel}
       </Button>
     </div>
@@ -49,6 +51,17 @@ function DashboardPage() {
     useDashboardRoadmap()
 
   switch (view.view) {
+    case "signed-out":
+      // Tokens live only in memory (FR-007): a reload or a typed URL starts
+      // without a session, so ask for sign-in instead of firing calls that 401.
+      return (
+        <DashboardNotice
+          title={t("signedOutTitle")}
+          description={t("signedOutDescription")}
+          actionLabel={t("signInAgain")}
+          href="/auth"
+        />
+      )
     case "loading":
       return (
         <div className="py-16 text-center text-muted-foreground" aria-live="polite">

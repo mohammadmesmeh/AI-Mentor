@@ -1,5 +1,7 @@
 import { useCallback, useEffect } from "react"
+import { useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
+import type { RootState } from "@/redux/store"
 import { useGetOnboardingStatusQuery, useGetRoadmapQuery } from "@/lib/api/apiSlice"
 import type { RoadmapGenerationRequest } from "@/lib/api/types"
 import {
@@ -37,7 +39,10 @@ export interface DashboardRoadmapState {
 }
 
 export function useDashboardRoadmap(): DashboardRoadmapState {
-  const onboarding = useGetOnboardingStatusQuery()
+  // Without an in-memory session every authenticated call would go out with no
+  // Authorization header and 401 (e.g. after a full page load) — don't fire it.
+  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const onboarding = useGetOnboardingStatusQuery(authenticated ? undefined : skipToken)
   const { requestId, startError, generate, reset } = useGenerateRoadmap()
 
   const latest = LATEST_REQUEST_UNAVAILABLE
@@ -73,12 +78,15 @@ export function useDashboardRoadmap(): DashboardRoadmapState {
     if (roadmapId) void refetchRoadmapQuery()
   }, [roadmapId, refetchRoadmapQuery])
 
+  const { refetch: refetchOnboarding, isError: onboardingIsError } = onboarding
   const retryLoad = useCallback(() => {
-    if (roadmapIsError) refetchRoadmap()
-  }, [roadmapIsError, refetchRoadmap])
+    if (onboardingIsError) void refetchOnboarding()
+    else if (roadmapIsError) refetchRoadmap()
+  }, [onboardingIsError, refetchOnboarding, roadmapIsError, refetchRoadmap])
 
   const view = resolveDashboardView({
-    onboarding: { isLoading: onboarding.isLoading, data: onboarding.data },
+    authenticated,
+    onboarding: { isLoading: onboarding.isLoading, isError: onboarding.isError, data: onboarding.data },
     startError,
     sessionRequestId: requestId,
     polling: { phase, request },
