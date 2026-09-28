@@ -235,7 +235,26 @@
     "title": "AI Mentor — Your Personalized AI Learning Mentor"
   },
   "home": {
-    "welcome ": "Hi, I'm AI Mentor"
+    "welcome ": "Hi, I'm AI Mentor",
+    "domains": {
+      "title": "Learn any of this, and more",
+      "items": {
+        "webDevelopment": "Web Development",
+        "uiUxDesign": "UI/UX Design",
+        "digitalMarketing": "Digital Marketing",
+        "languages": "English",
+        "entrepreneurship": "Entrepreneurship",
+        "cybersecurity": "Cybersecurity",
+        "videoEditing": "Video Editing",
+        "dataScience": "Data Science",
+        "professionalWriting": "Professional Writing",
+        "photography": "Photography",
+        "leadership": "Leadership & Management",
+        "publicSpeaking": "Public Speaking",
+        "aiMachineLearning": "AI & Machine Learning",
+        "mobileApps": "Mobile Apps"
+      }
+    }
   },
   "loading": {
     "text": "Loading"
