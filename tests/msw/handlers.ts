@@ -113,6 +113,7 @@ export const handlers = [
       desired_outcome: body.desired_outcome,
       available_minutes_per_week: body.available_minutes_per_week,
       preferred_learning_methods: body.preferred_learning_methods,
+      preferred_resource_sources: body.preferred_resource_sources,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })

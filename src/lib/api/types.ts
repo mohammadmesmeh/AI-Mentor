@@ -32,6 +32,8 @@ export interface Preferences {
 
 export type SelfAssessedLevel = "complete_beginner" | "some_experience" | "intermediate"
 export type LearningMethod = "hands_on_projects" | "reading_docs" | "video_walkthroughs" | "quizzes_drills"
+/** Contract §12: where resources should come from. Array order is the learner's priority. */
+export type ResourceSource = "youtube" | "official_documentation" | "articles" | "courses"
 
 export interface LearningProfile {
   id: string
@@ -40,6 +42,8 @@ export interface LearningProfile {
   desiredOutcome: string | null
   availableMinutesPerWeek: number
   preferredLearningMethods: LearningMethod[] | null
+  /** null for legacy records created before the field existed. */
+  preferredResourceSources: ResourceSource[] | null
   createdAt: string
   updatedAt: string
 }
@@ -50,6 +54,7 @@ export type MissingField =
   | "desired_outcome"
   | "available_minutes_per_week"
   | "preferred_learning_methods"
+  | "preferred_resource_sources"
   | "resource_language"
 
 export interface OnboardingStatus {

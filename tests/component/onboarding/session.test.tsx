@@ -28,6 +28,11 @@ vi.mock("@/i18n/navigation", () => ({
 }))
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
+const failure422 = (details: Record<string, string[]>) =>
+  HttpResponse.json(
+    { error: { code: "validation_failed", message: "x", details }, meta: { request_id: "t" } },
+    { status: 422 }
+  )
 const failure = (code: string, status: number) =>
   HttpResponse.json({ error: { code, message: code }, meta: { request_id: "t" } }, { status })
 
@@ -54,6 +59,7 @@ function makeStore({ signedIn }: { signedIn: boolean }) {
       availableMinutesPerWeek: 120,
       desiredOutcome: "Use Git daily",
       preferredLearningMethods: ["reading_docs"],
+      preferredResourceSources: ["youtube", "official_documentation"],
     })
   )
   store.dispatch(goToStep(7))
@@ -125,6 +131,34 @@ describe("onboarding session handling", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: enMessages.dashboard.signedOutTitle })).toBeInTheDocument()
     expect(screen.queryByText(enMessages.dashboard.generationFailedGeneric)).toBeNull()
+  })
+
+  it("sends preferred_resource_sources with the other five fields (the 422 root cause)", async () => {
+    let body: Record<string, unknown> = {}
+    server.use(
+      http.put(`${API_BASE}/me/learning-profile`, async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json({ data: { id: "lp", ...body }, meta: { request_id: "t" } }, { status: 201 })
+      })
+    )
+    renderOnboarding(makeStore({ signedIn: true }))
+    await submit()
+    await waitFor(() => expect(body.preferred_resource_sources).toEqual(["youtube", "official_documentation"]))
+    expect(Object.keys(body)).toHaveLength(6)
+  })
+
+  it("a 422 flags the rejected answer on its review row, with what the contract allows", async () => {
+    server.use(
+      http.put(`${API_BASE}/me/learning-profile`, () =>
+        failure422({ available_minutes_per_week: ["must be at least 15"], "preferred_resource_sources.0": ["invalid"] })
+      )
+    )
+    renderOnboarding(makeStore({ signedIn: true }))
+    await submit()
+    expect(await screen.findByText(enMessages.onboarding.reviewFieldsInvalid)).toBeInTheDocument()
+    expect(screen.getByText(enMessages.onboarding.fieldError.available_minutes_per_week)).toBeInTheDocument()
+    expect(screen.getByText(enMessages.onboarding.fieldError.preferred_resource_sources)).toBeInTheDocument()
+    expect(screen.queryByText(enMessages.onboarding.stepSixSubmitFailed)).toBeNull()
   })
 
   it("root cause fix: completing onboarding requests roadmap generation, then goes to the dashboard", async () => {

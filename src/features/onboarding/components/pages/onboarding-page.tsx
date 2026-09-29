@@ -13,6 +13,7 @@ import {
   hydrate,
   setSubmitStatus,
   setSubmitError,
+  setSubmitFieldErrors,
   type SubmitStatus,
 } from "@/redux/slices/onboardingSlice"
 import type { AppDispatch, RootState } from "@/redux/store"
@@ -23,6 +24,7 @@ import {
   usePutLearningProfileMutation,
 } from "@/lib/api/apiSlice"
 import { asApiError } from "@/lib/api/errors"
+import { LEARNING_PROFILE_FIELDS, rejectedFields } from "@/lib/api/validation"
 import { LinkButton, LoadingRegion, Skeleton } from "@/features/dashboard/components/ui/workspace"
 import { startRoadmapGeneration } from "@/features/dashboard/hooks/useGenerateRoadmap"
 import { OnboardingLayout } from "../OnboardingLayout"
@@ -90,7 +92,7 @@ function OnboardingFlow() {
   const router = useRouter()
   const locale = useLocale()
   const onboarding = useSelector((state: RootState) => state.onboarding)
-  const { currentStep, form, preferences, submitStatus, submitError } = onboarding
+  const { currentStep, form, preferences, submitStatus, submitError, submitFieldErrors } = onboarding
   const stepRegionRef = useRef<HTMLDivElement>(null)
 
   const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
@@ -163,7 +165,8 @@ function OnboardingFlow() {
       form.availableMinutesPerWeek === null ||
       form.availableMinutesPerWeek === undefined ||
       Number.isNaN(form.availableMinutesPerWeek) ||
-      form.preferredLearningMethods.length === 0
+      form.preferredLearningMethods.length === 0 ||
+      form.preferredResourceSources.length === 0
     ) {
       dispatch(setSubmitStatus("failed"))
       dispatch(setSubmitError("stepSixSubmitFailed"))
@@ -177,6 +180,7 @@ function OnboardingFlow() {
         availableMinutesPerWeek: form.availableMinutesPerWeek,
         desiredOutcome: form.desiredOutcome.trim(),
         preferredLearningMethods: form.preferredLearningMethods,
+        preferredResourceSources: form.preferredResourceSources,
       }).unwrap()
       dispatch(setSubmitStatus("succeeded"))
       // Contract §22: generation starts as soon as onboarding completes — the
@@ -188,9 +192,17 @@ function OnboardingFlow() {
       // unwrap() rejects with the normalized ApiError. A 401 whose refresh
       // failed is a session problem, never "couldn't save" (or a generation
       // failure): say so and offer sign-in.
-      const { category } = asApiError(error)
+      const apiError = asApiError(error)
       dispatch(setSubmitStatus("failed"))
-      dispatch(setSubmitError(category === "access_denied" ? "submitSessionExpired" : "stepSixSubmitFailed"))
+      if (apiError.category === "access_denied") {
+        dispatch(setSubmitError("submitSessionExpired"))
+        return
+      }
+      // 422 validation_failed: flag the rejected answers on the review rows,
+      // each with what the contract allows (ar/en), not only a generic error.
+      const fields = rejectedFields(apiError, LEARNING_PROFILE_FIELDS)
+      dispatch(setSubmitFieldErrors(fields))
+      dispatch(setSubmitError(fields.length > 0 ? "reviewFieldsInvalid" : "stepSixSubmitFailed"))
     }
   }
 
@@ -199,6 +211,7 @@ function OnboardingFlow() {
       form={form}
       status={status}
       error={submitError}
+      fieldErrors={submitFieldErrors}
       onEdit={handleEdit}
       onSubmit={handleSubmit}
       onRetry={handleSubmit}
@@ -242,6 +255,8 @@ function OnboardingFlow() {
       <StepSixLearningPreferences
         preferences={form.preferredLearningMethods}
         onChangePreferences={(v) => dispatch(updateForm({ preferredLearningMethods: v }))}
+        sources={form.preferredResourceSources}
+        onChangeSources={(v) => dispatch(updateForm({ preferredResourceSources: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />
