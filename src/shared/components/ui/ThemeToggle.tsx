@@ -5,9 +5,23 @@ import { useTheme } from "@/shared/components/providers/ThemeProvider"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
-function ThemeToggle({ mobile = false }: { mobile?: boolean }) {
+function ThemeToggle({ mobile = false, workspace = false }: { mobile?: boolean; workspace?: boolean }) {
   const { theme, toggleTheme } = useTheme()
   const t = useT("theme")
+
+  if (workspace) {
+    const Icon = theme === "dark" ? Sun : Moon
+    return (
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? t("switchToLight", "Switch to light mode") : t("switchToDark", "Switch to dark mode")}
+        className="inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-md border border-line bg-glass-strong text-ink transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <Icon className="size-[1.125rem]" aria-hidden="true" />
+      </button>
+    )
+  }
 
   if (mobile) {
     return (

@@ -1,20 +1,18 @@
 "use client"
 
-import { AlertTriangle, ClipboardList, ExternalLink, LogIn, Map as MapIcon } from "lucide-react"
-import { Link } from "@/i18n/navigation"
-import { useT, type TranslateFn } from "@/shared/hooks/useT"
+import { AlertTriangle, CircleAlert, ClipboardList, Clock, ExternalLink, LogIn, Map as MapIcon } from "lucide-react"
+import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
+import { MetaItem, MetaList } from "@/shared/components/ui/MetaItem"
 import { cn } from "@/lib/utils"
-import { taskPath, WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
-import type { Resource, Roadmap } from "@/lib/api/types"
+import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
+import type { Resource, Roadmap, TaskType } from "@/lib/api/types"
 import type { LearnerRoadmapState } from "../../hooks/useLearnerRoadmap"
 import type { TaskCompletionState } from "../../hooks/useTaskCompletion"
-import type { TaskItem } from "../../lib/learningItems"
-import { canCompleteTask } from "../../lib/roadmapProgress"
 import { safeExternalUrl } from "../../lib/safeExternalUrl"
 import { resourceHost } from "../../lib/learningItems"
-import { taskIcon } from "../../lib/taskIcon"
-import { LinkButton, LiveMessage, MetaChip, PageState, TaskStatusChip } from "../ui/workspace"
+import { TASK_TYPE_ICON } from "../../lib/typeIcons"
+import { LinkButton, LiveMessage, PageState } from "../ui/workspace"
 
 /**
  * Renders every non-ready state of a workspace page the same way — loading
@@ -58,7 +56,7 @@ export function RoadmapGate({
     case "error":
       return <ErrorState onRetry={state.retry} />
     case "ready":
-      return <div className="animate-fade-in space-y-8">{children(state.roadmap)}</div>
+      return <div className="animate-fade-in space-y-6">{children(state.roadmap)}</div>
   }
 }
 
@@ -92,36 +90,26 @@ export function ErrorState({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-/** Duration + type + optional, as muted metadata. */
+/** A task's type, time and "Optional", as plain text with small icons. */
 export function TaskMeta({
   type,
   minutes,
-  required,
+  required = true,
   className,
 }: {
-  type: TaskItem["task"]["type"]
+  type: TaskType
   minutes: number
-  required: boolean
+  required?: boolean
   className?: string
 }) {
   const td = useT("dashboard")
   const t = useT("workspace")
   return (
-    <span className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground", className)}>
-      <span>{td(`taskType.${type}`, type)}</span>
-      {minutes > 0 && (
-        <>
-          <span aria-hidden="true">·</span>
-          <span>{td("taskMinutes", undefined, { count: minutes })}</span>
-        </>
-      )}
-      {!required && (
-        <>
-          <span aria-hidden="true">·</span>
-          <span>{t("optional")}</span>
-        </>
-      )}
-    </span>
+    <MetaList className={className}>
+      <MetaItem icon={TASK_TYPE_ICON[type]}>{td(`taskType.${type}`, type)}</MetaItem>
+      {minutes > 0 && <MetaItem icon={Clock}>{td("taskMinutes", undefined, { count: minutes })}</MetaItem>}
+      {!required && <span className="text-sm text-muted-foreground">{t("optional")}</span>}
+    </MetaList>
   )
 }
 
@@ -134,11 +122,13 @@ export function MarkCompleteButton({
   taskId,
   canComplete,
   completion,
+  size = "default",
   className,
 }: {
   taskId: string
   canComplete: boolean
   completion: TaskCompletionState
+  size?: "default" | "lg"
   className?: string
 }) {
   const td = useT("dashboard")
@@ -146,10 +136,11 @@ export function MarkCompleteButton({
   const pending = completion.pendingTaskId === taskId
   const error = completion.error?.taskId === taskId ? completion.error.kind : null
   return (
-    <span className={cn("flex flex-col items-stretch gap-1 sm:items-end", className)}>
+    <span className={cn("flex flex-col items-stretch gap-1.5", className)}>
       <Button
         variant="primary"
-        className="min-h-11 px-4"
+        size={size}
+        className={cn("min-h-11 px-4", size === "lg" && "min-h-12")}
         disabled={completion.pendingTaskId !== null}
         aria-busy={pending || undefined}
         onClick={() => void completion.complete(taskId)}
@@ -157,7 +148,8 @@ export function MarkCompleteButton({
         {pending ? td("taskCompleting") : td("taskComplete")}
       </Button>
       {error && (
-        <span role="alert" className="text-xs text-danger-600 dark:text-danger-500">
+        <span role="alert" className="flex items-start gap-1.5 text-xs font-medium text-ink">
+          <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           {td(error === "conflict" ? "taskCompleteConflict" : "taskCompleteFailed")}
         </span>
       )}
@@ -177,115 +169,54 @@ export function CompletionAnnouncer({ completion }: { completion: TaskCompletion
   return <LiveMessage message={message} />
 }
 
-/** One task in a list (Roadmap and Tasks pages): title links to its page. */
-export function TaskListRow({
-  item,
-  roadmap,
-  completion,
-  showStage = false,
-}: {
-  item: TaskItem
-  roadmap: Roadmap
-  completion: TaskCompletionState
-  showStage?: boolean
-}) {
+/** The site a resource opens, optionally with its type: "Video · youtube.com". */
+export function ResourceSource({ resource, showType = true }: { resource: Resource; showType?: boolean }) {
   const t = useT("workspace")
-  const { task, stage, status } = item
-  const muted = status === "locked" || status === "upcoming"
+  const host = resourceHost(resource.url)
+  const parts = [showType ? t(`resourceType.${resource.type}`, resource.type) : null, host].filter(Boolean)
+  if (parts.length === 0) return null
   return (
-    <li
-      className={cn(
-        "flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4 sm:px-5",
-        status === "current" && "bg-accent-700/[0.04]"
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]",
-          status === "current"
-            ? "bg-accent-700/10 text-accent-700 dark:text-accent-300"
-            : muted
-              ? "bg-muted text-muted-foreground"
-              : "bg-primary/10 text-primary dark:text-primary-200"
-        )}
-      >
-        {taskIcon(task.type, "h-5 w-5")}
-      </span>
-      <span className="min-w-0 flex-1 basis-48 space-y-1">
-        <Link
-          href={taskPath(task.id)}
-          dir="auto"
-          className={cn(
-            "block rounded-sm font-medium wrap-break-word underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-            muted ? "text-muted-foreground" : "text-foreground"
-          )}
-        >
-          {task.title}
-        </Link>
-        {showStage && (
-          <span dir="auto" className="block text-xs text-muted-foreground wrap-break-word">
-            {t("stageLabel", undefined, { position: stage.position, title: stage.title })}
-          </span>
-        )}
-        <TaskMeta type={task.type} minutes={task.estimatedMinutes} required={task.isRequired} />
-      </span>
-      <span className="flex flex-wrap items-center gap-3 sm:justify-end">
-        <TaskStatusChip status={status} label={t(`status.${status}`)} />
-        <MarkCompleteButton
-          taskId={task.id}
-          canComplete={canCompleteTask(roadmap, task)}
-          completion={completion}
-        />
-      </span>
-    </li>
+    <span dir="auto" className="block text-[0.8125rem] text-muted-foreground">
+      {parts.join(" · ")}
+    </span>
   )
 }
 
 /**
  * An AI-found resource is untrusted: only an http(s) URL becomes a link, opened
- * in a new tab without an opener (spec 007 FR-017). Shows its real type and
- * site so the learner knows what opens.
+ * in a new tab without an opener (spec 007 FR-017). The link is named after the
+ * resource for assistive technology; otherwise "Link unavailable" is shown.
  */
-export function ResourceLink({ resource, t }: { resource: Resource; t: TranslateFn }) {
+export function ResourceOpenLink({
+  resource,
+  label,
+  size = "md",
+}: {
+  resource: Resource
+  label: string
+  size?: "sm" | "md"
+}) {
   const td = useT("dashboard")
   const href = safeExternalUrl(resource.url)
-  const host = resourceHost(resource.url)
-  const typeLabel = t(`resourceType.${resource.type}`, resource.type)
   if (!href) {
-    return (
-      <span className="flex flex-col gap-1">
-        <span dir="auto" className="font-medium text-muted-foreground wrap-break-word">
-          {resource.title}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {typeLabel} · {td("resourceLinkUnavailable")}
-        </span>
-      </span>
-    )
+    return <span className="shrink-0 text-xs text-muted-foreground">{td("resourceLinkUnavailable")}</span>
   }
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex min-h-11 flex-col justify-center gap-1 rounded-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      className={cn(
+        "inline-flex shrink-0 items-center gap-2 rounded-md border border-line bg-glass-strong font-semibold text-ink no-underline transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        size === "sm" ? "min-h-11 px-3 text-[0.8125rem] sm:min-h-9" : "min-h-11 px-4 text-sm"
+      )}
     >
-      <span className="inline-flex items-start gap-1.5 font-medium text-secondary-700 group-hover:underline underline-offset-4 dark:text-secondary-300">
-        <span dir="auto" className="wrap-break-word">
-          {resource.title}
-        </span>
-        <ExternalLink className="mt-1 h-3.5 w-3.5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
-        <span className="sr-only"> {td("resourceOpensNewTab")}</span>
+      {label}
+      <span className="sr-only">
+        {" "}
+        <span dir="auto">{resource.title}</span> {td("resourceOpensNewTab")}
       </span>
-      <span className="flex flex-wrap items-center gap-2">
-        <MetaChip>{typeLabel}</MetaChip>
-        {host && (
-          <span dir="ltr" className="text-xs text-muted-foreground">
-            {host}
-          </span>
-        )}
-      </span>
+      <ExternalLink className="size-3.5 rtl:-scale-x-100" aria-hidden="true" />
     </a>
   )
 }

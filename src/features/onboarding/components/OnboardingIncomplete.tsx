@@ -3,7 +3,8 @@
 import { ClipboardList } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 import type { MissingField } from "@/lib/api/types"
-import { LinkButton, PageState, Panel } from "@/features/dashboard/components/ui/workspace"
+import { Card } from "@/components/ui/card"
+import { LinkButton, PageState } from "@/features/dashboard/components/ui/workspace"
 
 interface OnboardingIncompleteProps {
   missingFields: MissingField[]
@@ -32,14 +33,14 @@ function OnboardingIncomplete({ missingFields }: OnboardingIncompleteProps) {
         action={<LinkButton href="/onboarding">{t("backToOnboarding")}</LinkButton>}
       />
       {missingFields.length > 0 && (
-        <Panel className="mx-auto max-w-md p-5">
-          <p className="text-sm font-medium text-foreground">{t("missingFieldsLabel", "Missing information:")}</p>
+        <Card variant="glass" className="mx-auto max-w-md p-5">
+          <p className="m-0 text-sm font-semibold text-ink">{t("missingFieldsLabel", "Missing information:")}</p>
           <ul className="mt-2 list-disc space-y-1 ps-5 text-sm text-muted-foreground">
             {missingFields.map((field) => (
               <li key={field}>{t(missingFieldKeyMap[field] ?? field)}</li>
             ))}
           </ul>
-        </Panel>
+        </Card>
       )}
     </div>
   )

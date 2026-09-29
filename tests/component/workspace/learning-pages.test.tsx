@@ -165,12 +165,13 @@ describe("learning pages", () => {
     it("filters by status and offers a way back from an empty filter", async () => {
       backend()
       renderPage(signedInStore(), <TasksPage />)
-      const group = await screen.findByRole("group", { name: w.filterLabel })
-      const chip = (label: string) => within(group).getByRole("button", { name: new RegExp(`^${label}`) })
+      const tabs = await screen.findByRole("tablist", { name: w.filterLabel })
+      const chip = (label: string) => within(tabs).getByRole("tab", { name: new RegExp(`^${label}`) })
 
-      expect(screen.getAllByRole("listitem")).toHaveLength(4)
+      // One header row + one row per task.
+      expect(within(screen.getByRole("table", { name: w.tasksTitle })).getAllByRole("row")).toHaveLength(5)
       fireEvent.click(chip(w.filter.completed))
-      expect(chip(w.filter.completed)).toHaveAttribute("aria-pressed", "true")
+      expect(chip(w.filter.completed)).toHaveAttribute("aria-selected", "true")
       expect(screen.getByRole("link", { name: "Task t1" })).toBeInTheDocument()
       expect(screen.queryByRole("link", { name: "Task t2" })).toBeNull()
 
@@ -202,8 +203,8 @@ describe("learning pages", () => {
     it("lists every resource with its task, filters by the contract's types, and says honestly when a type has none", async () => {
       backend()
       renderPage(signedInStore(), <ResourcesPage />)
-      const group = await screen.findByRole("group", { name: w.resourceFilterLabel })
-      const chip = (label: string) => within(group).getByRole("button", { name: new RegExp(`^${label}`) })
+      const tabs = await screen.findByRole("tablist", { name: w.resourceFilterLabel })
+      const chip = (label: string) => within(tabs).getByRole("tab", { name: new RegExp(`^${label}`) })
 
       const doc = screen.getByRole("link", { name: /Git docs/ })
       expect(doc).toHaveAttribute("href", "https://git-scm.com/doc")

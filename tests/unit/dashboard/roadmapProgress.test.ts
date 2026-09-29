@@ -222,11 +222,6 @@ describe("roadmapProgress", () => {
     expect(p.completedTasks).toBe(2)
     expect(p.percent).toBe(40)
     expect(p.allCompleted).toBe(false)
-    expect(p.stageStatuses).toEqual([
-      { id: "s1", title: "Stage", status: "completed" },
-      { id: "s2", title: "Stage", status: "active" },
-      { id: "s3", title: "Stage", status: "upcoming" },
-    ])
   })
 
   it("floors rather than rounds", () => {

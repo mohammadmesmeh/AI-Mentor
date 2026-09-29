@@ -18,6 +18,9 @@ const buttonVariants = cva(
         secondary:
           "border border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-md hover:scale-[1.02] " +
           "dark:border-white/15 dark:bg-white/8 dark:text-secondary-foreground dark:shadow-none dark:backdrop-blur-md dark:hover:bg-white/14 dark:hover:shadow-none",
+        // Learning workspace: a quiet button that sits on glass cards.
+        glass:
+          "border border-line bg-glass-strong font-semibold text-ink hover:bg-card dark:hover:bg-glass-strong/80",
       },
       size: {
         default: "min-h-9 px-4 py-2",

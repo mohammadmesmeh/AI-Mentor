@@ -1,13 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
+import dynamic from "next/dynamic"
 import { useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useLocale } from "next-intl"
-import { BookOpen, Languages, LogOut, UserRound } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { useRouter } from "@/i18n/navigation"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
+import { FilterTabs } from "@/shared/components/ui/FilterTabs"
 import { useTheme } from "@/shared/components/providers/ThemeProvider"
 import { useSwitchLocale } from "@/shared/hooks/useSwitchLocale"
 import type { RootState } from "@/redux/store"
@@ -16,13 +18,20 @@ import type { Preferences, ResourceLanguage, UiLocale } from "@/lib/api/types"
 import { resourceLanguageKeyMap } from "@/features/onboarding/lib/profileLabels"
 import { ErrorState, SignedOutState } from "@/features/dashboard/components/learning/shared"
 import {
+  CardSkeleton,
   LoadingRegion,
   PageHeader,
-  Panel,
-  PanelHeader,
   Skeleton,
+  WorkspaceCard,
 } from "@/features/dashboard/components/ui/workspace"
-import { ChoiceGroup, SaveStatus, type SaveState } from "../controls"
+import { SaveStatus, SettingRow, selectTriggerClass, type SaveState } from "../controls"
+
+// The Select's menu code is the heaviest part of this page: it loads right
+// after first paint, behind a placeholder of the same size.
+const TimezoneSelect = dynamic(() => import("../TimezoneSelect"), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className={`${selectTriggerClass} animate-pulse motion-reduce:animate-none`} />,
+})
 
 /**
  * Only what the contract supports (§11): ui_locale, resource_language and
@@ -52,8 +61,8 @@ function useStatusLabels() {
 function SettingsContent({ preferences }: { preferences: Preferences | null }) {
   const t = useT("account")
   return (
-    <div className="animate-fade-in space-y-8">
-      <PageHeader eyebrow={t("settingsEyebrow")} title={t("settingsTitle")} description={t("settingsDescription")} />
+    <div className="animate-fade-in max-w-245 space-y-5">
+      <PageHeader title={t("settingsTitle")} description={t("settingsDescription")} />
       <AppearancePanel />
       <LearningPreferencesPanel preferences={preferences} />
       <AccountActionsPanel />
@@ -70,29 +79,31 @@ function AppearancePanel() {
   const [localeSave, setLocaleSave] = useState<SaveState>("idle")
 
   return (
-    <Panel aria-labelledby="appearance-heading">
-      <PanelHeader id="appearance-heading" icon={Languages} title={t("appearanceSection")} />
-      <div className="space-y-8 p-5">
-        <ChoiceGroup<UiLocale>
-          name="ui-locale"
-          legend={t("interfaceLanguage")}
-          hint={t("interfaceLanguageHint")}
-          trailing={<SaveStatus state={localeSave} labels={labels} />}
+    <WorkspaceCard titleId="appearance-heading" title={t("appearanceSection")}>
+      <SettingRow
+        labelId="ui-locale-label"
+        label={t("interfaceLanguage")}
+        hint={t("interfaceLanguageHint")}
+        status={<SaveStatus state={localeSave} labels={labels} />}
+      >
+        <FilterTabs<UiLocale>
+          labelledBy="ui-locale-label"
           options={[
             { value: "ar", label: "العربية", lang: "ar" },
             { value: "en", label: "English", lang: "en" },
           ]}
           value={locale}
           onChange={(next) => {
+            if (next === locale) return
             setLocaleSave("saving")
             // Route change + PATCH ui_locale; the store and cache survive.
             void switchLocale(next).then((ok) => setLocaleSave(ok ? "saved" : "failed"))
           }}
         />
-        <ChoiceGroup<"light" | "dark">
-          name="theme"
-          legend={t("theme")}
-          hint={t("themeHint")}
+      </SettingRow>
+      <SettingRow labelId="theme-label" label={t("theme")} hint={t("themeHint")}>
+        <FilterTabs<"light" | "dark">
+          labelledBy="theme-label"
           options={[
             { value: "light", label: t("themeLight") },
             { value: "dark", label: t("themeDark") },
@@ -100,8 +111,8 @@ function AppearancePanel() {
           value={theme}
           onChange={setTheme}
         />
-      </div>
-    </Panel>
+      </SettingRow>
+    </WorkspaceCard>
   )
 }
 
@@ -112,24 +123,22 @@ function LearningPreferencesPanel({ preferences }: { preferences: Preferences | 
   const [updatePreferences] = useUpdatePreferencesMutation()
   const [resourceSave, setResourceSave] = useState<SaveState>("idle")
   const [timezoneSave, setTimezoneSave] = useState<SaveState>("idle")
-  const deviceZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, [])
-  const zones = useMemo(() => {
-    const all = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []
-    const current = preferences?.timezone
-    // Keep the saved value selectable even if this browser doesn't list it (e.g. "UTC").
-    return current && !all.includes(current) ? [current, ...all] : all
-  }, [preferences?.timezone])
+  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const allZones = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []
 
   if (!preferences) {
     return (
-      <Panel aria-labelledby="learning-prefs-heading">
-        <PanelHeader id="learning-prefs-heading" icon={BookOpen} title={t("learningPrefsSection")} />
-        <p role="alert" className="p-5 text-muted-foreground">
+      <WorkspaceCard titleId="learning-prefs-heading" title={t("learningPrefsSection")}>
+        <p role="alert" className="m-0 text-muted-foreground">
           {t("preferencesUnavailable")}
         </p>
-      </Panel>
+      </WorkspaceCard>
     )
   }
+
+  // Keep the saved value selectable even if this browser doesn't list it (e.g. "UTC").
+  const zones = allZones.includes(preferences.timezone) ? allZones : [preferences.timezone, ...allZones]
+  const zoneLabel = (zone: string) => zone.replace(/_/g, " ")
 
   const save = (patch: { resourceLanguage?: ResourceLanguage; timezone?: string }, setState: (s: SaveState) => void) => {
     setState("saving")
@@ -140,62 +149,53 @@ function LearningPreferencesPanel({ preferences }: { preferences: Preferences | 
   }
 
   return (
-    <Panel aria-labelledby="learning-prefs-heading">
-      <PanelHeader id="learning-prefs-heading" icon={BookOpen} title={t("learningPrefsSection")} />
-      <div className="space-y-8 p-5">
-        <ChoiceGroup<ResourceLanguage>
-          name="resource-language"
-          legend={t("resourceLanguage")}
-          hint={t("resourceLanguageHint")}
-          columns={3}
-          trailing={<SaveStatus state={resourceSave} labels={labels} />}
+    <WorkspaceCard titleId="learning-prefs-heading" title={t("learningPrefsSection")}>
+      <SettingRow
+        labelId="resource-language-label"
+        label={t("resourceLanguage")}
+        hint={t("resourceLanguageHint")}
+        status={<SaveStatus state={resourceSave} labels={labels} />}
+      >
+        <FilterTabs<ResourceLanguage>
+          labelledBy="resource-language-label"
           disabled={resourceSave === "saving"}
           options={(["ar", "en", "both"] as const).map((value) => ({
             value,
             label: to(resourceLanguageKeyMap[value]),
           }))}
           value={preferences.resourceLanguage}
-          onChange={(value) => save({ resourceLanguage: value }, setResourceSave)}
+          onChange={(value) => {
+            if (value !== preferences.resourceLanguage) save({ resourceLanguage: value }, setResourceSave)
+          }}
         />
+      </SettingRow>
 
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <label htmlFor="timezone" className="font-medium text-foreground">
-              {t("timezone")}
-            </label>
-            <SaveStatus state={timezoneSave} labels={labels} />
-          </div>
-          <p id="timezone-hint" className="-mt-2 text-sm text-muted-foreground">
-            {t("timezoneHint")}
-          </p>
-          <select
-            id="timezone"
-            dir="ltr"
-            aria-describedby="timezone-hint"
-            value={preferences.timezone}
+      <SettingRow
+        labelId="timezone-label"
+        htmlFor="timezone"
+        label={t("timezone")}
+        hint={t("timezoneHint")}
+        status={<SaveStatus state={timezoneSave} labels={labels} />}
+      >
+        <TimezoneSelect
+          id="timezone"
+          options={zones.map((zone) => ({ value: zone, label: zoneLabel(zone) }))}
+          value={preferences.timezone}
+          disabled={timezoneSave === "saving"}
+          onChange={(zone) => save({ timezone: zone }, setTimezoneSave)}
+        />
+        {deviceZone && deviceZone !== preferences.timezone && (
+          <Button
+            variant="glass"
+            className="min-h-11"
             disabled={timezoneSave === "saving"}
-            onChange={(e) => save({ timezone: e.target.value }, setTimezoneSave)}
-            className="input min-h-11 max-w-md"
+            onClick={() => save({ timezone: deviceZone }, setTimezoneSave)}
           >
-            {zones.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone.replace(/_/g, " ")}
-              </option>
-            ))}
-          </select>
-          {deviceZone && deviceZone !== preferences.timezone && (
-            <Button
-              variant="secondary"
-              className="min-h-11"
-              disabled={timezoneSave === "saving"}
-              onClick={() => save({ timezone: deviceZone }, setTimezoneSave)}
-            >
-              {t("useDeviceTimezone", undefined, { zone: deviceZone.replace(/_/g, " ") })}
-            </Button>
-          )}
-        </div>
-      </div>
-    </Panel>
+            {t("useDeviceTimezone", undefined, { zone: zoneLabel(deviceZone) })}
+          </Button>
+        )}
+      </SettingRow>
+    </WorkspaceCard>
   )
 }
 
@@ -205,12 +205,10 @@ function AccountActionsPanel() {
   const router = useRouter()
   const [logout] = useLogoutMutation()
   return (
-    <Panel aria-labelledby="account-actions-heading">
-      <PanelHeader id="account-actions-heading" icon={UserRound} title={t("accountActions")} />
-      <div className="flex flex-wrap items-center justify-between gap-4 p-5">
-        <p className="text-sm text-muted-foreground">{t("logoutHint")}</p>
+    <WorkspaceCard titleId="account-actions-heading" title={t("accountActions")}>
+      <SettingRow labelId="logout-label" label={tn("logout", "Log Out")} hint={t("logoutHint")}>
         <Button
-          variant="secondary"
+          variant="glass"
           size="lg"
           className="min-h-11"
           onClick={() => {
@@ -218,11 +216,11 @@ function AccountActionsPanel() {
             router.push("/")
           }}
         >
-          <LogOut className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+          <LogOut className="size-4 rtl:-scale-x-100" aria-hidden="true" />
           {tn("logout", "Log Out")}
         </Button>
-      </div>
-    </Panel>
+      </SettingRow>
+    </WorkspaceCard>
   )
 }
 
@@ -230,14 +228,15 @@ function SettingsSkeleton() {
   const t = useT("workspace")
   return (
     <LoadingRegion label={t("loading")}>
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-5 w-72 max-w-full" />
+      <div className="max-w-245 space-y-5">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-5 w-72 max-w-full" />
+        </div>
+        <CardSkeleton className="h-60" />
+        <CardSkeleton className="h-60" />
+        <CardSkeleton className="h-36" />
       </div>
-      <Skeleton className="h-72 rounded-lg" />
-      <Skeleton className="h-72 rounded-lg" />
-      <Skeleton className="h-28 rounded-lg" />
     </LoadingRegion>
   )
 }

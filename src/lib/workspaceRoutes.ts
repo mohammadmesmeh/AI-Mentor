@@ -8,6 +8,7 @@ export const WORKSPACE_ROUTES = {
   roadmap: "/roadmap",
   tasks: "/tasks",
   resources: "/resources",
+  progress: "/progress",
   profile: "/profile",
   settings: "/settings",
 } as const

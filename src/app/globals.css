@@ -639,7 +639,7 @@ html[dir="rtl"] {
    `font-display` utility the section h2s carry — the same way the unlayered
    RTL heading rules below outrank utilities. */
 [dir="rtl"] h1,
-[dir="rtl"] h2 {
+[dir="rtl"] h2:not([data-slot="card-title"]) {
   font-family: var(--font-zain), var(--font-zain-latin);
   /* Zain's ink runs up to ~1.45em tall (tall alef/shadda over deep
      descenders/kasra), but many headings inherit Tailwind's built-in
@@ -1407,21 +1407,6 @@ html[dir="rtl"] {
     animation: var(--animate-scale-in);
   }
 
-  /* ---------- Progress bars ---------- */
-  .progress-track {
-    width: 100%;
-    height: 0.5rem;
-    border-radius: var(--radius-pill);
-    background-color: var(--surface);
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: var(--radius-pill);
-    background-image: linear-gradient(90deg, var(--color-primary-500), var(--color-accent-500));
-    transition: width 0.4s var(--ease-out-soft);
-  }
-
   /* ---------- Timeline (e.g. learning path / roadmap history) ---------- */
   .timeline-item {
     position: relative;
@@ -1550,4 +1535,141 @@ html[dir="rtl"] {
     outline: none;
     box-shadow: none;
   }
+}
+/* ==========================================================================
+   10. LEARNING WORKSPACE (signed-in app)
+   Glass surfaces over a soft blue canvas, and the only colors the workspace
+   uses: navy #12314D / #0A1930, blues #1D4E89 / #4683CB, soft blue #DEEAFB
+   and neutrals. Purple #7C3AED marks only the current task / active stage.
+   Status colors are exposed as `status-*` utilities; which status gets which
+   color is decided in one place (features/dashboard/lib/statusStyles.ts).
+   ========================================================================== */
+
+:root,
+.light {
+  --ws-canvas: #edf2f9;
+  --ws-glow-1: rgb(70 131 203 / 26%);
+  --ws-glow-2: rgb(18 49 77 / 14%);
+  --ws-glow-3: rgb(29 78 137 / 14%);
+
+  --glass-fill: rgb(255 255 255 / 58%);
+  --glass-fill-strong: rgb(255 255 255 / 72%);
+  --glass-bar: rgb(255 255 255 / 55%);
+  --glass-edge: rgb(255 255 255 / 80%);
+  --glass-shadow: 0 10px 30px rgb(18 49 77 / 7%), inset 0 1px 0 rgb(255 255 255 / 90%);
+  --glass-solid: #f9fbfe;
+  --glass-blur: 10px;
+
+  --line: rgb(18 49 77 / 9%);
+  --track: rgb(18 49 77 / 8%);
+  --segment: rgb(18 49 77 / 7%);
+  --ink: #0a1930;
+
+  --status-completed: #12314d;
+  --status-current: #7c3aed;
+  --status-current-text: #6d28d9;
+  --status-available: #1d4e89;
+  --status-upcoming: #4683cb;
+  --status-neutral: #667085;
+  --chart-remaining: #deeafb;
+}
+
+.dark {
+  --ws-canvas: #0a1320;
+  --ws-glow-1: rgb(70 131 203 / 16%);
+  --ws-glow-2: rgb(29 78 137 / 22%);
+  --ws-glow-3: rgb(18 49 77 / 45%);
+
+  --glass-fill: rgb(20 32 52 / 55%);
+  --glass-fill-strong: rgb(28 44 70 / 72%);
+  --glass-bar: rgb(12 22 38 / 62%);
+  --glass-edge: rgb(160 190 226 / 14%);
+  --glass-shadow: 0 10px 30px rgb(0 0 0 / 28%), inset 0 1px 0 rgb(255 255 255 / 4%);
+  --glass-solid: #121e31;
+
+  --line: rgb(160 190 226 / 12%);
+  --track: rgb(160 190 226 / 14%);
+  --segment: rgb(160 190 226 / 10%);
+  --ink: #f3f6fb;
+
+  --status-completed: #c2d5ea;
+  --status-current: #7c3aed;
+  --status-current-text: #d8b4fe;
+  --status-available: #9cc0ec;
+  --status-upcoming: #6b9fdd;
+  --status-neutral: #8b93a7;
+  --chart-remaining: rgb(156 192 236 / 22%);
+}
+
+/* A lighter blur on phones; the full effect from tablets up. */
+@media (min-width: 48rem) {
+  :root {
+    --glass-blur: 18px;
+  }
+}
+
+/* Solid fallback: no backdrop-filter support, or the user asked for less
+   transparency. Glass surfaces become opaque; nothing else changes. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root,
+  .light,
+  .dark {
+    --glass-fill: var(--glass-solid);
+    --glass-fill-strong: var(--glass-solid);
+    --glass-bar: var(--glass-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  .light,
+  .dark {
+    --glass-fill: var(--glass-solid);
+    --glass-fill-strong: var(--glass-solid);
+    --glass-bar: var(--glass-solid);
+    --glass-blur: 0px;
+  }
+}
+
+@theme inline {
+  --color-status-completed: var(--status-completed);
+  --color-status-current: var(--status-current);
+  --color-status-current-text: var(--status-current-text);
+  --color-status-available: var(--status-available);
+  --color-status-upcoming: var(--status-upcoming);
+  --color-status-neutral: var(--status-neutral);
+  --color-chart-remaining: var(--chart-remaining);
+  --color-line: var(--line);
+  --color-track: var(--track);
+  --color-segment: var(--segment);
+  --color-ink: var(--ink);
+  --color-glass-strong: var(--glass-fill-strong);
+  --radius-icon: calc(var(--radius) * 0.75); /* 12px — icon boxes */
+}
+
+/* Cards: translucent white, blurred, light edge, soft shadow. */
+@utility glass {
+  background-color: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+}
+
+/* Sidebar and top bar: the same material, a little more see-through. */
+@utility glass-bar {
+  background-color: var(--glass-bar);
+  border-color: var(--glass-edge);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+}
+
+/* The soft blue page background the glass sits on. */
+@utility workspace-canvas {
+  background-color: var(--ws-canvas);
+  background-image:
+    radial-gradient(560px 440px at 88% 6%, var(--ws-glow-1), transparent 70%),
+    radial-gradient(640px 520px at 10% 58%, var(--ws-glow-2), transparent 70%),
+    radial-gradient(480px 380px at 62% 100%, var(--ws-glow-3), transparent 70%);
+  background-attachment: fixed;
 }

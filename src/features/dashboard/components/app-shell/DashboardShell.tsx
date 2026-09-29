@@ -1,12 +1,16 @@
 import { DashboardWorkspaceNav } from "./DashboardWorkspaceNav"
-import { Container } from "@/shared/components/ui/Container"
+import { WorkspaceTopBar } from "./WorkspaceTopBar"
 
+/** Sidebar + top bar over the soft blue canvas; pages render in the main column. */
 function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh">
+    <div className="workspace-canvas min-h-dvh">
       <DashboardWorkspaceNav />
-      <div className="lg:ps-64">
-        <Container className="py-8">{children}</Container>
+      <div className="flex min-h-dvh flex-col lg:ps-66">
+        <WorkspaceTopBar />
+        <div className="mx-auto w-full max-w-(--container-wide) flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          {children}
+        </div>
       </div>
     </div>
   )
