@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>نظرة عامة — جوال</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&amp;family=Zain:wght@700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div dir="rtl" style="width: 390px; height: 1480px; box-sizing: border-box; display: flex; flex-direction: column; background-color: #EDF2F9; background-image: radial-gradient(560px 440px at 88% 6%, rgba(70,131,203,0.26), transparent 70%), radial-gradient(640px 520px at 10% 58%, rgba(18,49,77,0.14), transparent 70%), radial-gradient(480px 380px at 62% 100%, rgba(29,78,137,0.14), transparent 70%); color: #12314D; font-family: 'Noto Sans Arabic', system-ui, sans-serif; line-height: 1.7; overflow: hidden">
+
+<header style="height: 64px; flex-shrink: 0; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.75)">
+<div style="display: flex; align-items: center; gap: 10px">
+<button type="button" aria-label="فتح القائمة" aria-expanded="false" style="width: 44px; height: 44px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.7); color: #12314D; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+</button>
+<span style="font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 20px; font-weight: 800; color: #0A1930">AI Mentor</span>
+</div>
+<div style="width: 36px; height: 36px; border-radius: 999px; background: #DEEAFB; color: #12314D; display: flex; align-items: center; justify-content: center; font-weight: 700">م</div>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px">
+
+<section style="display: flex; flex-direction: column; gap: 10px">
+<h1 style="margin: 0; font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 28px; font-weight: 800; color: #0A1930; line-height: 1.4">أهلاً بعودتك، محمد</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 18px">
+<span style="font-size: 12px; font-weight: 600; color: #344054">هندسة الواجهات الأمامية</span>
+<span style="font-size: 12px; font-weight: 600; color: #344054">متوسط</span>
+</div>
+</section>
+
+<section aria-label="ملخص" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+<div style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; font-weight: 600; color: #667085">{{s.label}}</span>
+<span style="font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 26px; font-weight: 800; color: #0A1930; line-height: 1.3">{{s.value}}</span>
+<span style="font-size: 12px; color: #667085">{{s.sub}}</span>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="c" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<h2 id="c" style="margin: 0; font-size: 16px; font-weight: 600; color: #0A1930">تابع التعلّم</h2>
+<span style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #6D28D9"><span style="width: 8px; height: 8px; border-radius: 999px; background: #7C3AED; box-shadow: 0 0 0 4px rgba(124,58,237,0.16)"></span>المهمة الحالية</span>
+</div>
+<div style="font-size: 12px; font-weight: 600; color: #1D4E89">المرحلة 2 · أساسيات ‏React‏</div>
+<h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0A1930; line-height: 1.6">بناء مكوّنات قابلة لإعادة الاستخدام</h3>
+<div style="font-size: 13px; color: #667085">مشروع تطبيقي · 40 دقيقة</div>
+<a href="#" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; border-radius: 8px; background: #12314D; color: #ffffff; font-size: 15px; font-weight: 700; text-decoration: none">
+<span>افتح المهمة</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"></path></svg>
+</a>
+</section>
+
+<section aria-labelledby="f" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 20px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="f" style="margin: 0 0 8px; font-size: 16px; font-weight: 600; color: #0A1930">تركيز اليوم</h2>
+<sc-for list="{{ focus }}" as="t" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(18,49,77,0.08)">
+<div style="width: 30px; height: 30px; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; {{t.mark}}">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.icon}}"></path></svg>
+</div>
+<div style="min-width: 0">
+<div style="font-size: 14px; font-weight: 600; color: #0A1930">{{t.title}}</div>
+<div style="font-size: 12px; color: #667085">{{t.meta}}</div>
+</div>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="g" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="g" style="margin: 0; font-size: 16px; font-weight: 600; color: #0A1930">مراحل الخطة</h2>
+<sc-for list="{{ stages }}" as="g" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 600; color: #0A1930">{{g.title}}</span><span style="color: #667085">{{g.count}}</span></div>
+<div style="height: 8px; border-radius: 999px; background: rgba(18,49,77,0.08); overflow: hidden"><div style="height: 8px; border-radius: 999px; width: {{g.pct}}%; background: {{g.color}}"></div></div>
+</div>
+</sc-for>
+</section>
+
+<section style="background: rgba(255,255,255,0.38); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px dashed rgba(18,49,77,0.22); border-radius: 16px; padding: 18px 20px; display: flex; align-items: center; gap: 12px">
+<div style="flex-grow: 1">
+<div style="font-size: 15px; font-weight: 700; color: #0A1930">ملاحظة المرشد</div>
+<div style="font-size: 13px; color: #475467">ملاحظات مخصّصة لتقدّمك، قيد التطوير.</div>
+</div>
+<span style="font-size: 13px; font-weight: 600; color: #475467">قريباً</span>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1480}}'>
+class Component extends DCLogic {
+renderVals() {
+const lock = 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4';
+return {
+stats: [
+{ label: 'التقدّم الكلي', value: '44%', sub: '4 من 9 مهام' },
+{ label: 'المرحلة', value: '2 من 3', sub: 'أساسيات ‏React‏' },
+{ label: 'الوقت المتبقي', value: '2 س 55 د', sub: 'تقديري' },
+{ label: 'المصادر', value: '9', sub: 'فيديو ومقالات وتوثيق' }
+],
+focus: [
+{ title: 'بناء مكوّنات قابلة لإعادة الاستخدام', meta: 'متاحة الآن · 40 د', icon: 'M8 5l11 7-11 7z', mark: 'background: #F5F3FF; color: #7C3AED; border: 2px solid #7C3AED' },
+{ title: 'إدارة الحالة باستخدام ‏useState‏', meta: 'بعدها · 30 د', icon: lock, mark: 'background: #F1F5F9; color: #667085' },
+{ title: 'تخطيط المشروع التطبيقي', meta: 'المرحلة 3 · 25 د', icon: lock, mark: 'background: #F1F5F9; color: #667085' }
+],
+stages: [
+{ title: '1. أساسيات الويب', count: '3 من 3', pct: 100, color: '#12314D' },
+{ title: '2. أساسيات ‏React‏', count: '1 من 3', pct: 33, color: '#7C3AED' },
+{ title: '3. مشروع تطبيقي', count: '0 من 3', pct: 0, color: '#12314D' }
+]
+};
+}
+}
+</script>
+</body>
+</html>
