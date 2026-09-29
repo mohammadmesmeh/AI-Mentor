@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { Provider } from "react-redux"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
@@ -98,7 +99,7 @@ describe("Profile", () => {
     expect(screen.getByText(`${o.reading} and ${o.quizzes}`)).toBeInTheDocument()
     expect(screen.getByText(o.prefBoth)).toBeInTheDocument()
     // No controls for what the contract can't change.
-    expect(screen.queryByRole("textbox", { name: a.name })).toBeNull()
+    expect(screen.queryByRole("textbox")).toBeNull()
   })
 
   it("edits the learning profile with one PUT of all five fields, and never generates a roadmap", async () => {
@@ -171,19 +172,19 @@ describe("Settings", () => {
   it("resource language saves only that field with PATCH and says so", async () => {
     const calls = backend()
     renderPage(signedInStore(), <SettingsPage />)
-    const group = await screen.findByRole("group", { name: a.resourceLanguage })
-    fireEvent.click(within(group).getByRole("radio", { name: o.prefArabic }))
+    const tabs = await screen.findByRole("tablist", { name: a.resourceLanguage })
+    fireEvent.click(within(tabs).getByRole("tab", { name: o.prefArabic }))
 
     await waitFor(() => expect(calls.patches).toEqual([{ resource_language: "ar" }]))
-    expect(await within(group).findByText(a.savedShort)).toBeInTheDocument()
+    expect(await screen.findByText(a.savedShort)).toBeInTheDocument()
     expect(calls.generation).toBe(0)
   })
 
   it("interface language switches the route locale and saves ui_locale — no generation", async () => {
     const calls = backend()
     renderPage(signedInStore(), <SettingsPage />)
-    const group = await screen.findByRole("group", { name: a.interfaceLanguage })
-    fireEvent.click(within(group).getByRole("radio", { name: "العربية" }))
+    const tabs = await screen.findByRole("tablist", { name: a.interfaceLanguage })
+    fireEvent.click(within(tabs).getByRole("tab", { name: "العربية" }))
 
     expect(replace).toHaveBeenCalledWith("/settings", { locale: "ar" })
     await waitFor(() => expect(calls.patches).toEqual([{ ui_locale: "ar" }]))
@@ -193,18 +194,19 @@ describe("Settings", () => {
   it("timezone saves with PATCH", async () => {
     const calls = backend()
     renderPage(signedInStore(), <SettingsPage />)
-    const select = await screen.findByLabelText(a.timezone)
-    fireEvent.change(select, { target: { value: "Asia/Hebron" } })
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole("combobox", { name: a.timezone }))
+    await user.click(await screen.findByRole("option", { name: "Asia/Hebron" }))
     await waitFor(() => expect(calls.patches).toEqual([{ timezone: "Asia/Hebron" }]))
   })
 
   it("theme is a local choice", async () => {
     backend()
     renderPage(signedInStore(), <SettingsPage />)
-    const group = await screen.findByRole("group", { name: a.theme })
-    fireEvent.click(within(group).getByRole("radio", { name: a.themeDark }))
+    const tabs = await screen.findByRole("tablist", { name: a.theme })
+    fireEvent.click(within(tabs).getByRole("tab", { name: a.themeDark }))
     expect(document.documentElement.classList.contains("dark")).toBe(true)
-    fireEvent.click(within(group).getByRole("radio", { name: a.themeLight }))
+    fireEvent.click(within(tabs).getByRole("tab", { name: a.themeLight }))
     expect(document.documentElement.classList.contains("dark")).toBe(false)
   })
 

@@ -4,10 +4,12 @@ import { useState } from "react"
 import { useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useLocale } from "next-intl"
-import { GraduationCap, UserRound } from "lucide-react"
+import { Check, CircleAlert, Info } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
+import { Card } from "@/components/ui/card"
+import { Avatar } from "@/shared/components/ui/Avatar"
 import { Button } from "@/shared/components/ui/Button"
 import type { RootState } from "@/redux/store"
 import {
@@ -29,14 +31,14 @@ import {
 } from "@/features/onboarding/lib/profileLabels"
 import { ErrorState, SignedOutState } from "@/features/dashboard/components/learning/shared"
 import {
+  CardSkeleton,
   LinkButton,
   LoadingRegion,
   PageHeader,
-  Panel,
-  PanelHeader,
   Skeleton,
+  WorkspaceCard,
 } from "@/features/dashboard/components/ui/workspace"
-import { ChoiceGroup, Field } from "../controls"
+import { ChoiceGroup, Field, FieldError, inputClass } from "../controls"
 
 function ProfilePage() {
   const restoring = useSelector((state: RootState) => state.auth.restoring)
@@ -61,21 +63,17 @@ function ProfilePage() {
   if (!me.data || profile.data === undefined) return <ProfileSkeleton />
 
   return (
-    <div className="animate-fade-in space-y-8">
+    <div className="animate-fade-in max-w-245 space-y-6">
       <ProfileHeader />
-      <div className="grid items-start gap-6 lg:grid-cols-3">
-        <AccountPanel name={me.data.name} email={me.data.email} createdAt={me.data.createdAt} />
-        <div className="lg:col-span-2">
-          <LearningProfilePanel profile={profile.data} resourceLanguage={preferences.data?.resourceLanguage ?? null} />
-        </div>
-      </div>
+      <AccountPanel name={me.data.name} email={me.data.email} createdAt={me.data.createdAt} />
+      <LearningProfilePanel profile={profile.data} resourceLanguage={preferences.data?.resourceLanguage ?? null} />
     </div>
   )
 }
 
 function ProfileHeader() {
   const t = useT("account")
-  return <PageHeader eyebrow={t("profileEyebrow")} title={t("profileTitle")} description={t("profileDescription")} />
+  return <PageHeader title={t("profileTitle")} description={t("profileDescription")} />
 }
 
 /** GET /me — read-only: the contract has no endpoint to change name or email (§23). */
@@ -84,30 +82,28 @@ function AccountPanel({ name, email, createdAt }: { name: string; email: string;
   const locale = useLocale()
   const since = createdAt ? new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(createdAt)) : null
   return (
-    <Panel aria-labelledby="account-heading">
-      <PanelHeader id="account-heading" icon={UserRound} title={t("accountSection")} />
-      <dl className="space-y-4 p-5">
-        <div>
-          <dt className="text-xs font-medium text-muted-foreground">{t("name")}</dt>
-          <dd dir="auto" className="font-medium text-foreground wrap-break-word">
-            {name}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium text-muted-foreground">{t("email")}</dt>
-          <dd dir="ltr" className="text-start font-medium text-foreground break-all">
-            {email}
-          </dd>
-        </div>
+    <Card
+      as="section"
+      variant="glass"
+      aria-label={t("accountSection")}
+      className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-7"
+    >
+      <Avatar name={name} tone="navy" className="size-16 font-display text-[1.75rem] font-extrabold sm:size-19 sm:text-[2rem]" />
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <p dir="auto" className="m-0 font-display text-[1.625rem] leading-snug font-extrabold wrap-break-word text-ink">
+          {name}
+        </p>
+        <p dir="ltr" className="m-0 text-start text-sm break-all text-muted-foreground">
+          {email}
+        </p>
         {since && (
-          <div>
-            <dt className="text-xs font-medium text-muted-foreground">{t("memberSince")}</dt>
-            <dd className="text-foreground">{since}</dd>
-          </div>
+          <p className="m-0 text-[0.8125rem] font-semibold text-status-available">
+            {t("memberSinceValue", undefined, { date: since })}
+          </p>
         )}
-        <p className="border-t border-border/50 pt-4 text-xs text-muted-foreground">{t("accountReadOnly")}</p>
-      </dl>
-    </Panel>
+        <p className="m-0 pt-1 text-xs text-muted-foreground">{t("accountReadOnly")}</p>
+      </div>
+    </Card>
   )
 }
 
@@ -175,26 +171,23 @@ function LearningProfilePanel({
 
   if (!profile) {
     return (
-      <Panel aria-labelledby="learning-heading">
-        <PanelHeader id="learning-heading" icon={GraduationCap} title={t("learningSection")} />
-        <div className="space-y-4 p-5">
-          <p className="text-muted-foreground">{t("noLearningProfile")}</p>
+      <WorkspaceCard titleId="learning-heading" title={t("learningSection")}>
+        <div className="space-y-4">
+          <p className="m-0 text-muted-foreground">{t("noLearningProfile")}</p>
           <LinkButton href="/onboarding">{tw("continueOnboarding")}</LinkButton>
         </div>
-      </Panel>
+      </WorkspaceCard>
     )
   }
 
   return (
-    <Panel aria-labelledby="learning-heading">
-      <PanelHeader
-        id="learning-heading"
-        icon={GraduationCap}
-        title={t("learningSection")}
-        trailing={
+    <WorkspaceCard
+      titleId="learning-heading"
+      title={t("learningSection")}
+      action={
           !editing && (
             <Button
-              variant="secondary"
+              variant="glass"
               className="min-h-11"
               onClick={() => {
                 setSaved(false)
@@ -205,7 +198,7 @@ function LearningProfilePanel({
             </Button>
           )
         }
-      />
+    >
       {editing ? (
         <LearningProfileForm
           profile={profile}
@@ -215,14 +208,15 @@ function LearningProfilePanel({
           }}
         />
       ) : (
-        <div className="space-y-4 p-5">
+        <div className="space-y-4">
           {saved && (
-            <p role="status" className="rounded-md bg-success-500/10 px-3 py-2 text-sm text-success-600 dark:text-success-500">
+            <p role="status" className="m-0 flex items-center gap-2 text-sm font-semibold text-status-completed">
+              <Check className="size-4" aria-hidden="true" />
               {t("saved")}
             </p>
           )}
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <ProfileRow label={t("goal")} value={profile.goal} wide />
+          <dl className="m-0">
+            <ProfileRow label={t("goal")} value={profile.goal} />
             <ProfileRow
               label={t("level")}
               value={profile.selfAssessedLevel ? to(levelKeyMap[profile.selfAssessedLevel]) : null}
@@ -231,7 +225,7 @@ function LearningProfilePanel({
               label={t("minutes")}
               value={t("minutesValue", undefined, { count: profile.availableMinutesPerWeek })}
             />
-            <ProfileRow label={t("outcome")} value={profile.desiredOutcome} wide />
+            <ProfileRow label={t("outcome")} value={profile.desiredOutcome} />
             <ProfileRow
               label={t("methods")}
               value={
@@ -242,29 +236,43 @@ function LearningProfilePanel({
                   : null
               }
             />
-            <div>
-              <dt className="text-xs font-medium text-muted-foreground">{t("resourceLanguage")}</dt>
-              <dd className="flex flex-wrap items-center gap-x-3 text-foreground">
+            <div className={PROFILE_ROW}>
+              <dt className="text-muted-foreground">{t("resourceLanguage")}</dt>
+              <dd className="m-0 flex flex-wrap items-center gap-x-3 font-semibold text-ink">
                 <span>{resourceLanguage ? to(resourceLanguageKeyMap[resourceLanguage]) : t("notSet")}</span>
                 <TextLink href={WORKSPACE_ROUTES.settings}>{t("changeInSettings")}</TextLink>
               </dd>
             </div>
           </dl>
+          <RoadmapUnchangedNote />
         </div>
       )}
-    </Panel>
+    </WorkspaceCard>
   )
 }
 
-function ProfileRow({ label, value, wide }: { label: string; value: string | null; wide?: boolean }) {
+const PROFILE_ROW = "grid gap-1 border-t border-line py-3.5 text-sm first:border-t-0 first:pt-0 sm:grid-cols-[12.5rem_minmax(0,1fr)] sm:gap-4"
+
+function ProfileRow({ label, value }: { label: string; value: string | null }) {
   const t = useT("account")
   return (
-    <div className={wide ? "sm:col-span-2" : undefined}>
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd dir="auto" className="whitespace-pre-line text-foreground wrap-break-word">
-        {value || <span className="text-muted-foreground">{t("notSet")}</span>}
+    <div className={PROFILE_ROW}>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd dir="auto" className="m-0 font-semibold whitespace-pre-line wrap-break-word text-ink">
+        {value || <span className="font-normal text-muted-foreground">{t("notSet")}</span>}
       </dd>
     </div>
+  )
+}
+
+/** Editing the profile never touches the roadmap — said once, in soft blue. */
+function RoadmapUnchangedNote() {
+  const t = useT("account")
+  return (
+    <p className="m-0 flex items-start gap-2.5 rounded-icon bg-secondary-100/60 px-4 py-3.5 text-[0.8125rem] text-secondary-700 dark:bg-secondary-300/10 dark:text-secondary-300">
+      <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      {t("roadmapUnchanged")}
+    </p>
   )
 }
 
@@ -332,8 +340,8 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-6 p-5">
-      <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">{t("roadmapUnchanged")}</p>
+    <form onSubmit={submit} noValidate className="space-y-6">
+      <RoadmapUnchangedNote />
 
       <Field id="lp-goal" label={t("goal")} error={errors.goal}>
         {(describedBy) => (
@@ -346,7 +354,7 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
             onChange={(e) => set("goal", e.target.value)}
             aria-invalid={!!errors.goal}
             aria-describedby={describedBy}
-            className="input min-h-11 resize-y"
+            className={cn(inputClass, "resize-y")}
           />
         )}
       </Field>
@@ -365,7 +373,9 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
           onChange={(value) => set("selfAssessedLevel", value)}
         />
         {errors.selfAssessedLevel && (
-          <p className="mt-1.5 text-xs text-danger-600 dark:text-danger-500">{errors.selfAssessedLevel}</p>
+          <div className="mt-1.5">
+            <FieldError>{errors.selfAssessedLevel}</FieldError>
+          </div>
         )}
       </div>
 
@@ -380,7 +390,7 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
             onChange={(e) => set("desiredOutcome", e.target.value)}
             aria-invalid={!!errors.desiredOutcome}
             aria-describedby={describedBy}
-            className="input min-h-11 resize-y"
+            className={cn(inputClass, "resize-y")}
           />
         )}
       </Field>
@@ -397,13 +407,13 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
             onChange={(e) => set("minutes", e.target.value)}
             aria-invalid={!!errors.minutes}
             aria-describedby={describedBy}
-            className="input min-h-11 max-w-48"
+            className={cn(inputClass, "max-w-48")}
           />
         )}
       </Field>
 
-      <fieldset id="lp-methods" tabIndex={-1} className="space-y-3 outline-none" aria-describedby={errors.methods ? "lp-methods-error" : undefined}>
-        <legend className="font-medium text-foreground">{t("methods")}</legend>
+      <fieldset id="lp-methods" tabIndex={-1} className="m-0 space-y-3 border-0 p-0 outline-none" aria-describedby={errors.methods ? "lp-methods-error" : undefined}>
+        <legend className="p-0 text-sm font-semibold text-ink">{t("methods")}</legend>
         <div className="grid gap-2 sm:grid-cols-2">
           {METHODS.map((method) => {
             const checked = draft.methods.includes(method)
@@ -412,7 +422,7 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
                 key={method}
                 className={cn(
                   "flex min-h-11 cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm font-medium transition-colors has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
-                  checked ? "border-primary bg-primary/5 dark:border-primary-300" : "border-border bg-card hover:bg-muted/60"
+                  checked ? "border-primary-900 bg-secondary-100/60 dark:border-status-completed dark:bg-secondary-300/10" : "border-line bg-glass-strong hover:bg-card"
                 )}
               >
                 <input
@@ -428,24 +438,21 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
             )
           })}
         </div>
-        {errors.methods && (
-          <p id="lp-methods-error" className="text-xs text-danger-600 dark:text-danger-500">
-            {errors.methods}
-          </p>
-        )}
+        {errors.methods && <FieldError id="lp-methods-error">{errors.methods}</FieldError>}
       </fieldset>
 
       {formError && (
-        <p role="alert" className="rounded-md bg-danger-500/10 px-3 py-2 text-sm text-danger-600 dark:text-danger-500">
+        <p role="alert" className="m-0 flex items-start gap-2 rounded-icon border border-primary-900/20 bg-glass-strong px-4 py-3 text-sm font-medium text-ink">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           {formError}
         </p>
       )}
 
-      <div className="flex flex-wrap gap-3 border-t border-border/50 pt-5">
+      <div className="flex flex-wrap gap-3 border-t border-line pt-5">
         <Button type="submit" variant="primary" size="lg" className="min-h-11" disabled={saving} aria-busy={saving || undefined}>
           {saving ? t("saving") : t("save")}
         </Button>
-        <Button type="button" variant="secondary" size="lg" className="min-h-11" disabled={saving} onClick={() => onDone(false)}>
+        <Button type="button" variant="glass" size="lg" className="min-h-11" disabled={saving} onClick={() => onDone(false)}>
           {t("cancel")}
         </Button>
       </div>
@@ -457,14 +464,19 @@ function ProfileSkeleton() {
   const t = useT("workspace")
   return (
     <LoadingRegion label={t("loading")}>
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-9 w-48" />
-        <Skeleton className="h-5 w-72 max-w-full" />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Skeleton className="h-64 rounded-lg" />
-        <Skeleton className="h-80 rounded-lg lg:col-span-2" />
+      <div className="max-w-245 space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-5 w-72 max-w-full" />
+        </div>
+        <CardSkeleton className="flex items-center gap-5 sm:p-7">
+          <Skeleton className="size-16 rounded-full sm:size-19" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-4 w-56 max-w-full" />
+          </div>
+        </CardSkeleton>
+        <CardSkeleton className="h-96" />
       </div>
     </LoadingRegion>
   )

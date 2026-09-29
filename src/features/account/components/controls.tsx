@@ -1,7 +1,15 @@
 "use client"
 
-import { Check, Loader2, TriangleAlert } from "lucide-react"
+import { Check, CircleAlert, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+/** Text inputs and textareas on glass cards; an invalid field gets a navy ring (no red). */
+export const inputClass =
+  "input min-h-11 bg-glass-strong aria-invalid:border-primary-900 aria-invalid:ring-2 aria-invalid:ring-primary-900/15 dark:aria-invalid:border-status-completed"
+
+/** The time zone Select's trigger — and its same-size placeholder while it loads. */
+export const selectTriggerClass =
+  "flex h-11 w-full min-w-60 items-center justify-between rounded-md border border-line bg-glass-strong px-3 text-sm text-ink md:w-64"
 
 /**
  * A labelled group of real radio inputs drawn as selectable cards. Keyboard:
@@ -11,41 +19,21 @@ import { cn } from "@/lib/utils"
 export function ChoiceGroup<T extends string>({
   name,
   legend,
-  hint,
   options,
   value,
   onChange,
-  disabled,
   columns = 2,
-  trailing,
 }: {
   name: string
   legend: string
-  hint?: string
-  options: { value: T; label: string; description?: string; lang?: string }[]
+  options: { value: T; label: string; description?: string }[]
   value: T | null
   onChange: (value: T) => void
-  disabled?: boolean
   columns?: 2 | 3
-  trailing?: React.ReactNode
 }) {
-  const hintId = hint ? `${name}-hint` : undefined
-  const labelId = `${name}-legend`
-  // The legend must be the fieldset's first child; the group is named by the
-  // label text only, so the save status next to it isn't read as the name.
   return (
-    <fieldset className="space-y-3" aria-labelledby={labelId} aria-describedby={hintId} disabled={disabled}>
-      <legend className="flex w-full flex-wrap items-baseline justify-between gap-2">
-        <span id={labelId} className="font-medium text-foreground">
-          {legend}
-        </span>
-        {trailing}
-      </legend>
-      {hint && (
-        <p id={hintId} className="-mt-2 text-sm text-muted-foreground">
-          {hint}
-        </p>
-      )}
+    <fieldset className="m-0 space-y-3 border-0 p-0">
+      <legend className="p-0 text-sm font-semibold text-ink">{legend}</legend>
       <div className={cn("grid gap-2", columns === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
         {options.map((option) => {
           const checked = option.value === value
@@ -54,8 +42,8 @@ export function ChoiceGroup<T extends string>({
               key={option.value}
               className={cn(
                 "relative flex min-h-11 cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors duration-200",
-                "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60",
-                checked ? "border-primary bg-primary/5 dark:border-primary-300" : "border-border bg-card hover:bg-muted/60"
+                "has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+                checked ? "border-primary-900 bg-secondary-100/60 dark:border-status-completed dark:bg-secondary-300/10" : "border-line bg-glass-strong hover:bg-card"
               )}
             >
               <input
@@ -64,15 +52,11 @@ export function ChoiceGroup<T extends string>({
                 value={option.value}
                 checked={checked}
                 onChange={() => onChange(option.value)}
-                className="mt-1 h-4 w-4 shrink-0 accent-primary"
+                className="mt-1 size-4 shrink-0 accent-primary"
               />
               <span className="min-w-0">
-                <span lang={option.lang} className="block text-sm font-medium text-foreground">
-                  {option.label}
-                </span>
-                {option.description && (
-                  <span className="block text-xs text-muted-foreground">{option.description}</span>
-                )}
+                <span className="block text-sm font-medium text-ink">{option.label}</span>
+                {option.description && <span className="block text-xs text-muted-foreground">{option.description}</span>}
               </span>
             </label>
           )
@@ -93,26 +77,36 @@ export function SaveStatus({
   labels: { saving: string; saved: string; failed: string }
 }) {
   return (
-    <span role="status" aria-live="polite" className="inline-flex min-h-5 items-center gap-1.5 text-xs">
+    <span role="status" aria-live="polite" className="inline-flex min-h-5 items-center gap-1.5 text-xs font-medium">
       {state === "saving" && (
         <>
-          <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          <Loader2 className="size-3.5 animate-spin text-status-neutral motion-reduce:animate-none" aria-hidden="true" />
           <span className="text-muted-foreground">{labels.saving}</span>
         </>
       )}
       {state === "saved" && (
         <>
-          <Check className="h-3.5 w-3.5 text-success-600 dark:text-success-500" aria-hidden="true" />
-          <span className="text-success-600 dark:text-success-500">{labels.saved}</span>
+          <Check className="size-3.5 text-status-completed" aria-hidden="true" />
+          <span className="text-status-completed">{labels.saved}</span>
         </>
       )}
       {state === "failed" && (
         <>
-          <TriangleAlert className="h-3.5 w-3.5 text-danger-600 dark:text-danger-500" aria-hidden="true" />
-          <span className="text-danger-600 dark:text-danger-500">{labels.failed}</span>
+          <CircleAlert className="size-3.5 text-ink" aria-hidden="true" />
+          <span className="text-ink">{labels.failed}</span>
         </>
       )}
     </span>
+  )
+}
+
+/** A field's validation message: navy text with an icon (never red). */
+export function FieldError({ id, children }: { id?: string; children: React.ReactNode }) {
+  return (
+    <p id={id} className="m-0 flex items-center gap-1.5 text-xs font-medium text-ink">
+      <CircleAlert className="size-3.5 shrink-0" aria-hidden="true" />
+      {children}
+    </p>
   )
 }
 
@@ -136,20 +130,52 @@ export function Field({
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm font-medium text-foreground">
+      <label htmlFor={id} className="block text-sm font-semibold text-ink">
         {label}
       </label>
       {children(describedBy)}
       {hintId && (
-        <p id={hintId ?? undefined} className="text-xs text-muted-foreground">
+        <p id={hintId} className="m-0 text-xs text-muted-foreground">
           {hint}
         </p>
       )}
-      {error && (
-        <p id={errorId ?? undefined} className="text-xs text-danger-600 dark:text-danger-500">
-          {error}
-        </p>
-      )}
+      {error && <FieldError id={errorId ?? undefined}>{error}</FieldError>}
+    </div>
+  )
+}
+
+/**
+ * One setting: its label and hint on one side, the control on the other
+ * (stacked on phones). `labelId` names the control (e.g. a FilterTabs list).
+ */
+export function SettingRow({
+  labelId,
+  label,
+  hint,
+  htmlFor,
+  status,
+  children,
+}: {
+  labelId: string
+  label: string
+  hint?: string
+  /** For a native/labelable control, the label points at it. */
+  htmlFor?: string
+  /** The save status, shown under the hint. */
+  status?: React.ReactNode
+  children: React.ReactNode
+}) {
+  const Label = htmlFor ? "label" : "p"
+  return (
+    <div className="flex flex-col gap-3 border-t border-line py-4 first:border-t-0 first:pt-0 last:pb-0 md:flex-row md:items-center md:justify-between md:gap-6">
+      <div className="min-w-0 space-y-0.5">
+        <Label id={labelId} htmlFor={htmlFor} className="m-0 block text-[0.9375rem] font-semibold text-ink">
+          {label}
+        </Label>
+        {hint && <p className="m-0 text-[0.8125rem] text-muted-foreground">{hint}</p>}
+        {status}
+      </div>
+      <div className="flex shrink-0 flex-col items-stretch gap-2 md:items-end">{children}</div>
     </div>
   )
 }
