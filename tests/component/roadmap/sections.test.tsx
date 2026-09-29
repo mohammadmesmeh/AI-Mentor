@@ -4,11 +4,12 @@ import { render, screen, within } from "@testing-library/react"
 import { IntlWrapper } from "@tests/helpers/intl"
 import { ContinueLearningSection } from "@/features/dashboard/components/sections/ContinueLearningSection"
 import { TodayFocusSection } from "@/features/dashboard/components/sections/TodayFocusSection"
-import { ProgressSection } from "@/features/dashboard/components/sections/ProgressSection"
-import { focusTasks, roadmapProgress } from "@/features/dashboard/lib/roadmapProgress"
+import { PlanStagesSection } from "@/features/dashboard/components/sections/PlanStagesSection"
+import { focusTasks } from "@/features/dashboard/lib/roadmapProgress"
+import { progressStats } from "@/features/dashboard/lib/progressStats"
 import enMessages from "../../../messages/en.json"
 import arMessages from "../../../messages/ar.json"
-import { makeStage, makeTask } from "@tests/unit/dashboard/fixtures"
+import { makeRoadmap, makeStage, makeTask } from "@tests/unit/dashboard/fixtures"
 
 // Button (for buttonVariants) imports the locale-aware navigation helpers,
 // which need Next's runtime — stub them as the other component tests do.
@@ -35,7 +36,7 @@ describe("ContinueLearningSection (spec 007 US2)", () => {
     expect(screen.getByText("Read the DOM guide")).toBeInTheDocument()
     expect(screen.getByText(enMessages.dashboard.taskType.read)).toBeInTheDocument()
     expect(screen.getByText("45 min")).toBeInTheDocument()
-    expect(screen.getByText("Stage: Frontend Basics")).toBeInTheDocument()
+    expect(screen.getByText("Stage 1 · Frontend Basics")).toBeInTheDocument()
     expect(screen.getByRole("link", { name: enMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
   })
 
@@ -54,7 +55,7 @@ describe("ContinueLearningSection (spec 007 US2)", () => {
   it("renders in Arabic", () => {
     renderIn(<ContinueLearningSection current={{ task, stage }} allCompleted={false} />, "ar")
     expect(screen.getByRole("link", { name: arMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
-    expect(screen.getByText("المرحلة: Frontend Basics")).toBeInTheDocument()
+    expect(screen.getByText("المرحلة 1 · Frontend Basics")).toBeInTheDocument()
   })
 })
 
@@ -85,7 +86,7 @@ describe("TodayFocusSection (spec 007 US4)", () => {
   })
 })
 
-describe("ProgressSection (spec 007 US3)", () => {
+describe("PlanStagesSection (spec 007 US3)", () => {
   const stages = [
     makeStage({
       id: "s1",
@@ -110,19 +111,14 @@ describe("ProgressSection (spec 007 US3)", () => {
     }),
   ]
 
-  it("shows real stage and task counts with an accessible progress bar", () => {
-    renderIn(<ProgressSection progress={roadmapProgress(stages)} />)
-    expect(screen.getByText("Stage 2 of 3")).toBeInTheDocument()
-    expect(screen.getByText("4 of 10 tasks completed")).toBeInTheDocument()
-    const bar = screen.getByRole("progressbar")
-    expect(bar).toHaveAttribute("aria-valuenow", "40")
-    expect(bar).toHaveAccessibleName(enMessages.dashboard.progressBarLabel)
-  })
-
-  it("exposes stage titles only to assistive technology (not a second visible list)", () => {
-    const { container } = renderIn(<ProgressSection progress={roadmapProgress(stages)} />)
-    const list = container.querySelector("ul")
-    expect(list).toHaveClass("sr-only")
-    expect(list?.textContent).toContain("Beta")
+  it("lists every stage with its real task counts and an accessible progress bar", () => {
+    const { byStage } = progressStats(makeRoadmap({}, stages))
+    renderIn(<PlanStagesSection stages={byStage} />)
+    expect(screen.getByText("2. Beta")).toBeInTheDocument()
+    expect(screen.getByText(`4 of 4 done · ${enMessages.workspace.stageStatus.completed}`)).toBeInTheDocument()
+    expect(screen.getByText(`0 of 3 done · ${enMessages.workspace.stageStatus.active}`)).toBeInTheDocument()
+    const bars = screen.getAllByRole("progressbar")
+    expect(bars.map((bar) => bar.getAttribute("aria-valuenow"))).toEqual(["100", "0", "0"])
+    expect(bars[1]).toHaveAccessibleName("2. Beta")
   })
 })

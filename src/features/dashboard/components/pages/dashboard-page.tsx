@@ -1,6 +1,5 @@
 "use client"
 
-import { useMemo } from "react"
 import { useSelector } from "react-redux"
 import { AlertTriangle, Hourglass, Map as MapIcon, RefreshCw, Sparkles } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
@@ -11,16 +10,19 @@ import type { Roadmap } from "@/lib/api/types"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
 import { useDashboardRoadmap } from "../../hooks/useDashboardRoadmap"
 import { findCurrentTask, focusTasks, orderedStages, roadmapProgress } from "../../lib/roadmapProgress"
+import { progressStats } from "../../lib/progressStats"
+import { resourceItems } from "../../lib/learningItems"
 import { RoadmapGenerationFailure } from "../RoadmapGenerationFailure"
 import { RoadmapGenerating } from "../RoadmapGenerating"
 import { WelcomeSection } from "../sections/WelcomeSection"
 import { ContinueLearningSection } from "../sections/ContinueLearningSection"
-import { ProgressSection } from "../sections/ProgressSection"
+import { PlanStagesSection } from "../sections/PlanStagesSection"
+import { OverviewStats } from "../sections/OverviewStats"
 import { TodayFocusSection } from "../sections/TodayFocusSection"
 import { MentorInsightSection } from "../sections/MentorInsightSection"
-import { RecentActivitySection } from "../sections/RecentActivitySection"
 import { SignedOutState } from "../learning/shared"
-import { LoadingRegion, PageState, Skeleton } from "../ui/workspace"
+import { CardSkeleton, LoadingRegion, PageState, Skeleton } from "../ui/workspace"
+import { StatCardSkeleton } from "../ui/StatCard"
 
 /** One primary action for a full-page state (a real <button>, 44px tall). */
 function StateAction({ label, onClick }: { label: string; onClick: () => void }) {
@@ -122,41 +124,31 @@ function DashboardPage() {
 }
 
 /**
- * The Overview: greeting (the page's only h1) → Continue learning (the main
- * action) → Today's focus / Progress → insight and activity. The full roadmap
- * lives on its own page (/roadmap), linked from Progress.
+ * The Overview: greeting (the page's only h1) → key figures → Continue
+ * learning (the main action) and Today's focus → plan stages and the mentor
+ * card. Everything comes from the cached roadmap and learning profile.
  */
 function Overview({ roadmap }: { roadmap: Roadmap }) {
   const learnerName = useSelector((state: RootState) => state.auth.user?.name)
   const { data: profile } = useGetLearningProfileQuery()
-
-  const { current, focus, progress } = useMemo(() => {
-    const stages = orderedStages(roadmap.currentVersion)
-    return {
-      current: findCurrentTask(stages),
-      focus: focusTasks(stages),
-      progress: roadmapProgress(stages, roadmap.progress),
-    }
-  }, [roadmap])
+  const stages = orderedStages(roadmap.currentVersion)
+  const summary = roadmapProgress(stages, roadmap.progress)
+  const stats = progressStats(roadmap)
 
   return (
-    <div className="animate-fade-in space-y-8">
-      <WelcomeSection learnerName={learnerName} learningGoal={profile?.goal ?? roadmap.goal} />
-      <ContinueLearningSection current={current} allCompleted={progress.allCompleted} />
-      {/* Flat grid: on phones Progress comes right after Today's focus. */}
-      <div className="grid items-start gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <TodayFocusSection tasks={focus} />
-        </div>
-        <div className="lg:col-span-2">
-          <ProgressSection progress={progress} />
-        </div>
-        <div className="lg:col-span-3">
-          <MentorInsightSection />
-        </div>
-        <div className="lg:col-span-2">
-          <RecentActivitySection />
-        </div>
+    <div className="animate-fade-in space-y-6">
+      <WelcomeSection
+        learnerName={learnerName}
+        learningGoal={profile?.goal ?? roadmap.goal}
+        level={profile?.selfAssessedLevel}
+        minutesPerWeek={profile?.availableMinutesPerWeek}
+      />
+      <OverviewStats stats={stats} resources={resourceItems(roadmap)} />
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        <ContinueLearningSection current={findCurrentTask(stages)} allCompleted={summary.allCompleted} />
+        <TodayFocusSection tasks={focusTasks(stages)} />
+        <PlanStagesSection stages={stats.byStage} />
+        <MentorInsightSection />
       </div>
     </div>
   )
@@ -166,21 +158,20 @@ function OverviewSkeleton() {
   const t = useT("workspace")
   return (
     <LoadingRegion label={t("loading")}>
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-9 w-72 max-w-full" />
-        <Skeleton className="h-5 w-56 max-w-full" />
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-72 max-w-full" />
+        <Skeleton className="h-5 w-96 max-w-full" />
       </div>
-      <Skeleton className="h-44 rounded-lg" />
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
-          <Skeleton className="h-56 rounded-lg" />
-          <Skeleton className="h-40 rounded-lg" />
-        </div>
-        <div className="space-y-6 lg:col-span-2">
-          <Skeleton className="h-56 rounded-lg" />
-          <Skeleton className="h-40 rounded-lg" />
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((i) => (
+          <StatCardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        <CardSkeleton className="h-80" />
+        <CardSkeleton className="h-72" />
+        <CardSkeleton className="h-60" />
+        <CardSkeleton className="h-36" />
       </div>
     </LoadingRegion>
   )
