@@ -1,8 +1,9 @@
 "use client"
 
-import { useTranslations } from "next-intl"
-import { Brain } from "lucide-react"
+import { Brain, Clock } from "lucide-react"
+import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
+import { PageState, Skeleton } from "./ui/workspace"
 
 interface RoadmapGeneratingProps {
   timedOut: boolean
@@ -15,35 +16,32 @@ interface RoadmapGeneratingProps {
  * create a new generation request (contract §15 rule 4).
  */
 function RoadmapGenerating({ timedOut, onCheckAgain }: RoadmapGeneratingProps) {
-  const t = useTranslations("dashboard")
+  const t = useT("dashboard")
 
   if (timedOut) {
     return (
-      <div className="mx-auto max-w-md py-16 text-center">
-        <h1 className="mb-2 text-heading-md font-semibold text-foreground">
-          {t("pollingTimedOut")}
-        </h1>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Button variant="primary" onClick={onCheckAgain}>
+      <PageState
+        role="status"
+        icon={Clock}
+        title={t("timedOutTitle")}
+        description={t("pollingTimedOut")}
+        action={
+          <Button variant="primary" size="lg" className="min-h-11" onClick={onCheckAgain}>
             {t("checkAgain")}
           </Button>
-        </div>
-      </div>
+        }
+      />
     )
   }
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 px-5 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-        <Brain className="h-10 w-10 text-primary" aria-hidden="true" />
-      </div>
-      <div className="space-y-2">
-        <h1 className="text-heading-md font-semibold text-foreground">
-          {t("generatingTitle")}
-        </h1>
-        <p className="text-muted-foreground" aria-live="polite">
-          {t("generationInProgress")}
-        </p>
+    <div className="space-y-2">
+      <PageState role="status" icon={Brain} title={t("generatingTitle")} description={t("generationInProgress")} />
+      {/* The shape of what's coming; pulses only when motion is allowed. */}
+      <div aria-hidden="true" className="mx-auto max-w-xl space-y-3">
+        <Skeleton className="h-16 rounded-lg" />
+        <Skeleton className="h-16 rounded-lg opacity-70" />
+        <Skeleton className="h-16 rounded-lg opacity-40" />
       </div>
     </div>
   )

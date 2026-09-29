@@ -61,7 +61,7 @@ function StepThreeTimeCommitment({
         min={MIN_MINUTES}
         max={MAX_MINUTES}
         error={error}
-        inputClassName="p-4 rounded-xl"
+        inputClassName="min-h-11 p-4"
       />
       <StepNavigation
         onBack={onBack}

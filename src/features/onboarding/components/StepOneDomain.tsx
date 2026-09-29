@@ -43,7 +43,8 @@ function StepOneDomain({ value, onChange, onNext }: StepOneDomainProps) {
         }}
         placeholder={t("stepOnePlaceholder")}
         error={error}
-        inputClassName="p-4 rounded-xl"
+        ariaLabel={t("stepOneTitle")}
+        inputClassName="min-h-11 p-4"
       />
       <StepNavigation onContinue={handleContinue} canContinue={!!value.trim()} />
     </div>

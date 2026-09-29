@@ -1,8 +1,9 @@
 import { Map } from "lucide-react"
 import { useLocale } from "next-intl"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { useT } from "@/shared/hooks/useT"
+import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
+import { LinkButton, Panel } from "../ui/workspace"
 import { cn } from "@/lib/utils"
 import type { RoadmapProgress } from "../../lib/roadmapProgress"
 
@@ -30,23 +31,23 @@ const STAGE_STATUS_KEY = {
  */
 function ProgressSection({ progress }: ProgressSectionProps) {
   const t = useT("dashboard")
+  const tw = useT("workspace")
   const locale = useLocale()
   const percentLabel = new Intl.NumberFormat(locale, { style: "percent" }).format(
     progress.percent / 100
   )
 
   return (
-    <section aria-labelledby="progress-heading">
-      <Card>
+    <Panel aria-labelledby="progress-heading">
         <div className="flex items-center justify-between gap-3 border-b border-border/50 p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10">
               <Map className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h2
                 id="progress-heading"
-                className="text-heading-sm font-semibold text-foreground"
+                className="font-display text-heading-sm font-semibold text-foreground"
               >
                 {t("progressTitle", "Progress")}
               </h2>
@@ -58,9 +59,9 @@ function ProgressSection({ progress }: ProgressSectionProps) {
               </p>
             </div>
           </div>
-          <span className="badge-base bg-primary/10 text-xs text-primary">{percentLabel}</span>
+          <span className="badge-base rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary dark:text-primary-200">{percentLabel}</span>
         </div>
-        <CardContent className="space-y-5 p-5">
+        <div className="space-y-5 p-5">
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">
               {t("tasksCompletedOfTotal", undefined, {
@@ -100,9 +101,11 @@ function ProgressSection({ progress }: ProgressSectionProps) {
               </ul>
             </>
           )}
-        </CardContent>
-      </Card>
-    </section>
+          <LinkButton href={WORKSPACE_ROUTES.roadmap} variant="secondary" className="w-full">
+            {tw("viewRoadmap")}
+          </LinkButton>
+        </div>
+    </Panel>
   )
 }
 

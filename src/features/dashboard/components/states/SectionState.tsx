@@ -13,7 +13,7 @@ function SectionState({ title, description, icon: Icon, className }: SectionStat
   return (
     <div className={cn("flex flex-col items-start gap-3", className)}>
       {Icon && (
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+        <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10">
           <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
         </div>
       )}

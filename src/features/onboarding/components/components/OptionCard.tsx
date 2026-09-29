@@ -28,7 +28,7 @@ function OptionCard({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "relative w-full rounded-xl border bg-card p-5 text-start shadow-sm transition-all duration-200 cursor-pointer",
+        "relative w-full rounded-lg border bg-card p-5 text-start shadow-sm transition-all duration-200 cursor-pointer",
         "hover:border-primary/40 hover:shadow-md",
         selected
           ? "border-primary/60 bg-primary/[0.05] ring-1 ring-primary/20"

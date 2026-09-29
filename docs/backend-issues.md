@@ -57,9 +57,11 @@ The request only returns after the whole generation has run (`QUEUE_CONNECTION=s
 
 **What the contract says** — §23: "AI mentor chat" and "Evidence uploads, certificates, streaks, analytics, notifications, gamification" do not exist. There is no activity or event endpoint either (task completion only returns the roadmap).
 
+Also, the roadmap tree (`GET /me/active-roadmap`, `GET /roadmaps/{id}`) has no `completed_at` on its tasks. It exists only on `GET /tasks/{id}` (§19), so even a simple "recently completed" list would need one request per completed task. Checked on 2026-09-28: task keys in the active roadmap are `id, type, title, instructions, position, status, is_required, estimated_minutes, depends_on_task_ids, resources`.
+
 **User impact** — two of the dashboard's six sections are always empty.
 
-**Suggested change** — when planned: an activity endpoint (e.g. `GET /me/activity?limit=10` with task completions and stage changes, each with a timestamp), and an insight endpoint (or a field on the active roadmap).
+**Suggested change** — when planned: an activity endpoint (e.g. `GET /me/activity?limit=10` with task completions and stage changes, each with a timestamp), and an insight endpoint (or a field on the active roadmap). In the meantime, adding `completed_at` to tasks in the roadmap resource would let the frontend show recent completions without extra requests.
 
 ---
 
@@ -91,6 +93,50 @@ Measured from the frontend's region (Render, warm instance):
 **User impact** — the frontend can't say *why* (roadmap not active, task locked by a dependency, task already skipped, not in the current version), so it shows a generic "this task can't be completed right now" and re-reads the roadmap.
 
 **Suggested change** — add `details.reason` (e.g. `roadmap_not_active`, `dependencies_incomplete`, `task_not_available`, `not_current_version`) and, for dependencies, `details.blocking_task_ids`. Or document that this 409 has no details.
+
+---
+
+## 7. "Watch" tasks never get a video, and many resources are site homepages
+
+**What happened** — we checked every resource of five generated roadmaps (Git ×4, React ×1; 45 resources). Every URL loads (HTTP 200), so no link is broken. But:
+
+- **No resource has `type: "video"`.** Tasks of type `watch` get `documentation` resources pointing at pages that are not videos. This happened even for a learner whose only preferred method is `video_walkthroughs` (React roadmap generated 2026-09-28).
+
+  | Task type | Resource type | URL |
+  | --- | --- | --- |
+  | `watch` | `documentation` | `https://git-scm.com/downloads` (a download page) |
+  | `watch` | `documentation` | `https://docs.github.com/` |
+  | `watch` | `documentation` | `https://git-scm.com/doc` |
+  | `watch` | `documentation` | `https://react.dev/learn` |
+
+- **Many resources are homepages, not the material the task names:** `https://github.com/` for a "Publishing a Small Project" project task, `https://git-scm.com/` for an assignment, `https://react.dev/` for a reading task. The same URL is often reused for several unrelated tasks in one roadmap (`https://react.dev/learn` appears 4 times out of 9).
+- `https://guides.github.com/` redirects to `https://docs.github.com/en` (an outdated link).
+
+**What the contract says** — §16 lists resource types `documentation`, `article`, `video`, `course` and task types including `watch`. It says nothing about matching them, but a `watch` task implies a video.
+
+**User impact** — learners report that "video links don't work": the link opens, but it's a download page or a docs index, not a video. The frontend shows the resource's real type ("Documentation"), so the mismatch is visible but confusing.
+
+**Suggested change** — in generation validation, require at least one `video` resource for `watch` tasks (or don't generate `watch` tasks without one). Reject bare homepages as resources, and prefer deep links specific to the task. If videos can't be guaranteed, don't generate `watch` tasks.
+
+---
+
+## 8. No account management: password, name/email, deletion
+
+**What happened** — the new Profile and Settings pages can show the account (`GET /me`) and edit preferences (`PATCH /me/preferences`) and the learning profile (`PUT /me/learning-profile`). Nothing else about the account can be changed. The pages leave these features out rather than showing controls that do nothing.
+
+**What the contract says** — §23: "Password reset or email verification" and "Update account name/email/password" do not exist. There is no account-deletion endpoint at all. §10 lists `deletion_requested` as a possible user `status`, but nothing can set it.
+
+**User impact** — a learner can't:
+- change their password, even when they know the current one;
+- recover a forgotten password (the sign-in page's "Forgot your password?" can only show a "not connected" message);
+- fix a typo in their name or change their email;
+- delete their account or request its deletion. Many privacy regulations expect this to be possible.
+
+**Suggested change**, in priority order:
+1. `POST /me/password` with `{current_password, password, password_confirmation}`, revoking other refresh tokens.
+2. `POST /auth/password/forgot` and `POST /auth/password/reset`.
+3. `PATCH /me` for `name`; email change with verification.
+4. `DELETE /me` or `POST /me/deletion-request`, re-authenticated, which sets `deletion_requested`.
 
 ---
 

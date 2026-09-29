@@ -23,7 +23,7 @@ import {
   usePutLearningProfileMutation,
 } from "@/lib/api/apiSlice"
 import { asApiError } from "@/lib/api/errors"
-import { Button } from "@/shared/components/ui/Button"
+import { LinkButton, LoadingRegion, Skeleton } from "@/features/dashboard/components/ui/workspace"
 import { startRoadmapGeneration } from "@/features/dashboard/hooks/useGenerateRoadmap"
 import { OnboardingLayout } from "../OnboardingLayout"
 import { StepOneDomain } from "../StepOneDomain"
@@ -47,13 +47,28 @@ function OnboardingPage() {
 }
 
 function OnboardingRestoring() {
-  const t = useTranslations("onboarding")
   return (
     <OnboardingLayout currentStep={1} totalSteps={TOTAL_STEPS}>
-      <p className="py-8 text-center text-muted-foreground" aria-live="polite">
-        {t("loadingProfile")}
-      </p>
+      <StepSkeleton />
     </OnboardingLayout>
+  )
+}
+
+/** The shape of a step (title, text, field, navigation), so nothing shifts when it loads. */
+function StepSkeleton() {
+  const t = useTranslations("onboarding")
+  return (
+    <LoadingRegion label={t("loadingProfile")}>
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-5 w-full" />
+      </div>
+      <Skeleton className="h-14 rounded-md" />
+      <div className="flex justify-between border-t border-border-default pt-8">
+        <Skeleton className="h-11 w-24" />
+        <Skeleton className="h-11 w-32" />
+      </div>
+    </LoadingRegion>
   )
 }
 
@@ -64,16 +79,13 @@ function OnboardingSignedOut() {
       <div className="mx-auto max-w-md py-12 text-center">
         <h1 className="mb-2 text-heading-md font-semibold text-foreground">{t("signedOutTitle")}</h1>
         <p className="mb-6 text-muted-foreground">{t("signedOutDescription")}</p>
-        <Button variant="primary" href="/auth">
-          {t("signInAgain")}
-        </Button>
+        <LinkButton href="/auth">{t("signInAgain")}</LinkButton>
       </div>
     </OnboardingLayout>
   )
 }
 
 function OnboardingFlow() {
-  const t = useTranslations("onboarding")
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const locale = useLocale()
@@ -171,7 +183,7 @@ function OnboardingFlow() {
       // success screen promises it. The thunk keeps running after the redirect
       // and the dashboard polls the request. A learner has one roadmap, so
       // nothing is generated when one is already active.
-      void dispatch(startRoadmapGeneration({ unlessActive: true }))
+      void dispatch(startRoadmapGeneration())
     } catch (error) {
       // unwrap() rejects with the normalized ApiError. A 401 whose refresh
       // failed is a session problem, never "couldn't save" (or a generation
@@ -248,9 +260,7 @@ function OnboardingFlow() {
   return (
     <OnboardingLayout currentStep={currentStep} totalSteps={TOTAL_STEPS}>
       {profileLoading && preferences === null ? (
-        <p className="py-8 text-center text-muted-foreground" aria-live="polite">
-          {t("loadingProfile")}
-        </p>
+        <StepSkeleton />
       ) : (
         <AnimatePresence mode="wait">
           <motion.div

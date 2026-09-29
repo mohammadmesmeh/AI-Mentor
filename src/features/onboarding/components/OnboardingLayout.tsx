@@ -24,7 +24,7 @@ function BrandPanel() {
   ]
 
   return (
-    <aside className="relative flex w-full flex-col justify-between border-b border-border-default bg-gradient-to-b from-surface-card to-primary/[0.04] p-8 md:w-[42%] md:shrink-0 md:border-b-0 md:border-r md:p-11">
+    <aside className="relative flex w-full flex-col justify-between border-b border-border-default bg-gradient-to-b from-surface-card to-primary/[0.04] p-8 md:w-[42%] md:shrink-0 md:border-b-0 md:border-e md:p-11">
       <div>
         <h2 className="mb-4 font-display text-2xl font-extrabold leading-[1.18] tracking-tight text-foreground uppercase sm:text-[26px] rtl:leading-[1.5]">
           {t("brandTitle")}
@@ -65,7 +65,7 @@ function OnboardingLayout({
 }: OnboardingLayoutProps) {
   return (
     <div className="mx-auto w-full max-w-[1020px] px-4 py-10 sm:px-6">
-      <div className="flex w-full flex-col overflow-hidden rounded-3xl border border-border-default bg-surface-card shadow-floating transition-all duration-300 md:flex-row">
+      <div className="flex w-full flex-col overflow-hidden rounded-lg border border-border-default bg-surface-card shadow-floating transition-all duration-300 md:flex-row">
         <BrandPanel />
         <section className="flex w-full flex-col justify-between p-6 sm:p-8 md:flex-1 md:p-12">
           <div>

@@ -1,43 +1,29 @@
 import { History } from "lucide-react"
 
-import { Card, CardContent } from "@/components/ui/card"
 import { useT } from "@/shared/hooks/useT"
+import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
 import { SectionState } from "../states/SectionState"
+import { LinkButton, Panel, PanelHeader } from "../ui/workspace"
 
-interface RecentActivitySectionProps {
-  status?: "unavailable"
-}
-
-function RecentActivitySection({ status = "unavailable" }: RecentActivitySectionProps) {
+/**
+ * No activity data exists in the contract (§23; the roadmap tree has no
+ * completion timestamps), so this says so honestly and points to where the
+ * learner's completed tasks are listed. docs/backend-issues.md #4.
+ */
+function RecentActivitySection() {
   const t = useT("dashboard")
+  const tw = useT("workspace")
 
   return (
-    <section aria-labelledby="recent-activity-heading">
-      <Card className="h-full">
-        <div className="flex items-center gap-3 border-b border-border/50 p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <History className="h-5 w-5 text-primary" aria-hidden="true" />
-          </div>
-          <h2
-            id="recent-activity-heading"
-            className="text-heading-sm font-semibold text-foreground"
-          >
-            {t("recentActivityTitle", "Recent Activity")}
-          </h2>
-        </div>
-        <CardContent className="p-5">
-          {status === "unavailable" && (
-            <SectionState
-              title={t("noRecentActivityTitle", "No recent activity yet")}
-              description={t(
-                "noRecentActivityDescription",
-                "Completed tasks and stage changes will appear here."
-              )}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </section>
+    <Panel aria-labelledby="recent-activity-heading">
+      <PanelHeader id="recent-activity-heading" icon={History} title={t("recentActivityTitle", "Recent Activity")} />
+      <div className="space-y-4 p-5">
+        <SectionState title={t("noRecentActivityTitle")} description={t("noRecentActivityDescription")} />
+        <LinkButton href={WORKSPACE_ROUTES.tasks} variant="secondary" className="w-full">
+          {tw("viewCompletedTasks")}
+        </LinkButton>
+      </div>
+    </Panel>
   )
 }
 

@@ -8,6 +8,7 @@ import { server } from "@tests/msw/server"
 import { IntlWrapper } from "@tests/helpers/intl"
 import authReducer, { sessionEstablished } from "@/redux/slices/authSlice"
 import generationReducer from "@/redux/slices/generationSlice"
+import workspaceReducer from "@/redux/slices/workspaceSlice"
 import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession, setSession } from "@/lib/api/auth"
 import type { User } from "@/lib/api/types"
@@ -77,7 +78,7 @@ function wireRoadmap(status: "ready" | "active") {
 
 function signedInStore() {
   const store = configureStore({
-    reducer: { auth: authReducer, generation: generationReducer, [apiSlice.reducerPath]: apiSlice.reducer },
+    reducer: { auth: authReducer, generation: generationReducer, workspace: workspaceReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
   setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000})
@@ -130,7 +131,8 @@ async function generate() {
   fireEvent.click(await screen.findByRole("button", { name: t.generateRoadmap }))
 }
 
-const workspace = () => screen.findByRole("heading", { level: 2, name: "Learn Git" }, { timeout: 6000 })
+// The Overview is up when its main action points at the task to do next.
+const workspace = () => screen.findByRole("link", { name: enMessages.workspace.openTask }, { timeout: 6000 })
 
 describe("first roadmap activation (contract §18, §22)", () => {
   beforeEach(() => clearSession())
@@ -143,8 +145,8 @@ describe("first roadmap activation (contract §18, §22)", () => {
 
     expect(await workspace()).toBeInTheDocument()
     expect(calls.activate).toBe(1)
-    expect(screen.getByText("Pro Git")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: t.taskComplete })).toBeEnabled()
+    expect(screen.getByRole("link", { name: enMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
+    expect(screen.getAllByText("Read the Git book").length).toBeGreaterThan(0)
     // No activation control is ever shown to the learner.
     expect(screen.queryByRole("button", { name: /activate/i })).toBeNull()
   })

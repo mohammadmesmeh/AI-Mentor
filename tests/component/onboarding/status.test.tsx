@@ -5,6 +5,7 @@ import { IntlWrapper } from "@tests/helpers/intl"
 import { OnboardingIncomplete } from "@/features/onboarding/components/OnboardingIncomplete"
 
 vi.mock("@/i18n/navigation", () => ({
+  Link: ({ children, ...props }: React.ComponentProps<"a">) => <a {...props}>{children}</a>,
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   usePathname: () => "/dashboard",
 }))
@@ -45,7 +46,7 @@ describe("missing-onboarding-info display (FR-008)", () => {
     expect(screen.queryByText("Missing information:")).not.toBeInTheDocument()
     expect(screen.queryAllByRole("listitem")).toHaveLength(0)
     expect(
-      screen.getByRole("button", { name: "Complete onboarding" })
-    ).toBeInTheDocument()
+      screen.getByRole("link", { name: "Complete onboarding" })
+    ).toHaveAttribute("href", "/onboarding")
   })
 })

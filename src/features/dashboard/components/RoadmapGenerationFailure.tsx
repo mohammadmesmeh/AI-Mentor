@@ -1,10 +1,10 @@
 "use client"
 
-import { useTranslations } from "next-intl"
 import { AlertTriangle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import { generationFailureKey } from "@/lib/api/errors"
+import { PageState } from "./ui/workspace"
 
 interface RoadmapGenerationFailureProps {
   failureCode: string | null
@@ -16,26 +16,24 @@ interface RoadmapGenerationFailureProps {
 /**
  * Terminal-failure view. Maps the persisted failure_code to a friendly
  * localized explanation via generationFailureKey (FR-023); the raw server
- * failure_code is never shown to users (FR-018).
+ * failure_code is never shown to users (FR-018). Retrying creates a new
+ * request with a new idempotency key (contract §15).
  */
 function RoadmapGenerationFailure({ failureCode, messageKey, onRetry }: RoadmapGenerationFailureProps) {
-  const t = useTranslations("dashboard")
-
+  const t = useT("dashboard")
   return (
-    <Card role="alert" className="mx-auto max-w-md border-danger-500/20 bg-danger-500/[0.04]">
-      <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-danger-500/10">
-          <AlertTriangle className="h-7 w-7 text-danger-500" aria-hidden="true" />
-        </div>
-        <h1 className="text-heading-md font-semibold text-foreground">
-          {t("generationIncompleteTitle")}
-        </h1>
-        <p className="max-w-sm text-muted-foreground">{t(messageKey ?? generationFailureKey(failureCode))}</p>
-        <Button variant="primary" onClick={onRetry}>
+    <PageState
+      role="alert"
+      icon={AlertTriangle}
+      tone="muted"
+      title={t("generationFailedTitle")}
+      description={t(messageKey ?? generationFailureKey(failureCode))}
+      action={
+        <Button variant="primary" size="lg" className="min-h-11" onClick={onRetry}>
           {t("retryGeneration")}
         </Button>
-      </CardContent>
-    </Card>
+      }
+    />
   )
 }
 

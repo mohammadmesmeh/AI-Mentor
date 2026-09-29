@@ -18,6 +18,7 @@ import { useT } from "@/shared/hooks/useT"
 import { usePathname, useRouter } from "@/i18n/navigation"
 import { useLogoutMutation } from "@/lib/api/apiSlice"
 import type { RootState } from "@/redux/store"
+import { isWorkspacePath } from "@/lib/workspaceRoutes"
 
 import { useSurfaceTheme, type SurfaceTheme } from "@/shared/components/layout/ShellBackground"
 
@@ -148,7 +149,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
     [mobileOpen]
   )
 
-  if (typeof pathname === "string" && pathname.startsWith("/dashboard")) {
+  if (isWorkspacePath(pathname)) {
     return null
   }
 

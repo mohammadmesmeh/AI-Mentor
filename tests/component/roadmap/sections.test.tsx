@@ -30,13 +30,13 @@ const stage = makeStage({ id: "s1", title: "Frontend Basics", status: "active" }
 const task = makeTask({ id: "t1", title: "Read the DOM guide", type: "read", status: "current", estimatedMinutes: 45 })
 
 describe("ContinueLearningSection (spec 007 US2)", () => {
-  it("shows the current task's title, type, minutes and stage, linking to its anchor", () => {
+  it("shows the current task's title, type, minutes and stage, linking to its page", () => {
     renderIn(<ContinueLearningSection current={{ task, stage }} allCompleted={false} />)
     expect(screen.getByText("Read the DOM guide")).toBeInTheDocument()
     expect(screen.getByText(enMessages.dashboard.taskType.read)).toBeInTheDocument()
     expect(screen.getByText("45 min")).toBeInTheDocument()
     expect(screen.getByText("Stage: Frontend Basics")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Go to task" })).toHaveAttribute("href", "#task-t1")
+    expect(screen.getByRole("link", { name: enMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
   })
 
   it("shows the completion state with no task link when everything is done", () => {
@@ -48,12 +48,12 @@ describe("ContinueLearningSection (spec 007 US2)", () => {
   it("shows the honest nothing-to-start state pointing at the roadmap otherwise", () => {
     renderIn(<ContinueLearningSection current={null} allCompleted={false} />)
     expect(screen.getByText(enMessages.dashboard.nothingToStartTitle)).toBeInTheDocument()
-    expect(screen.getByRole("link")).toHaveAttribute("href", "#roadmap")
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/roadmap")
   })
 
   it("renders in Arabic", () => {
     renderIn(<ContinueLearningSection current={{ task, stage }} allCompleted={false} />, "ar")
-    expect(screen.getByRole("link", { name: arMessages.dashboard.goToTask })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: arMessages.workspace.openTask })).toHaveAttribute("href", "/tasks/t1")
     expect(screen.getByText("المرحلة: Frontend Basics")).toBeInTheDocument()
   })
 })
@@ -75,7 +75,7 @@ describe("TodayFocusSection (spec 007 US4)", () => {
   it("lists at most 3 tasks, current first, each linking to its task", () => {
     renderIn(<TodayFocusSection tasks={focusTasks(stages)} />)
     const links = within(screen.getByRole("list")).getAllByRole("link")
-    expect(links.map((l) => l.getAttribute("href"))).toEqual(["#task-c", "#task-a", "#task-b"])
+    expect(links.map((l) => l.getAttribute("href"))).toEqual(["/tasks/c", "/tasks/a", "/tasks/b"])
   })
 
   it("shows the empty state when nothing is actionable", () => {
