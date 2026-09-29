@@ -140,6 +140,45 @@ Measured from the frontend's region (Render, warm instance):
 
 ---
 
+## 9. Existing learners are sent back to onboarding by the new `preferred_resource_sources`
+
+**What happened** — after the contract update that made `preferred_resource_sources` a required learning-profile field, every learner created before the change has it as `null`. The backend now reports them as not onboarded, even when they already have an active roadmap. Checked on 2026-09-29 with a test account created on 2026-09-28:
+
+| Request | Status | Response (tokens removed) | `X-Request-ID` |
+| --- | --- | --- | --- |
+| `GET /me/onboarding-status` | `200` | `{"completed": false, "missing_fields": ["preferred_resource_sources"]}` | `01M3PPS67AS9ETB4DPS82J20H6` |
+| `GET /me/learning-profile` | `200` | `… "preferred_resource_sources": null …` | `01M3PPSB4M2K52FF5MWSSZ759G` |
+| `GET /me/active-roadmap` | `200` | the learner's active roadmap | — |
+
+A new account also shows why saves failed before the frontend was updated: `PUT /me/learning-profile` with the five previous fields → `422 validation_failed`, `details: {"preferred_resource_sources": ["The preferred resource sources field is required."]}` (`X-Request-ID 01M3PPPZC261X9W3PTDQM8V4KQ`). With the sixth field it returns `201` (`01M3PPQ68RQ27PGXBD9P3MJB49`).
+
+**What the contract says** — §12: "Legacy incomplete records can return … `preferred_resource_sources` as `null`", and "All six fields are required". §13 lists `preferred_resource_sources` among the `missing_fields`. §22: "Do not enable roadmap generation until `completed` is `true`", and the learning flow starts from `completed=true`. §15: "Legacy version-1 queued requests remain readable and default to official documentation behavior."
+
+**User impact** — a learner who was already learning is suddenly told to finish onboarding before they can see their roadmap again. The frontend follows the contract (onboarding status gates the workspace), so these learners must re-submit their learning profile once to pick sources. Nothing is lost, but it's a surprising interruption for every existing user.
+
+**Suggested change** — migrate legacy profiles with `preferred_resource_sources = ["official_documentation"]`, the same default §15 already uses for version-1 snapshots, so existing learners stay `completed: true`. Alternatively, don't count the field as missing for learners who already have a roadmap.
+
+---
+
+## 10. Selecting YouTube as a source makes every roadmap generation fail
+
+**What happened** — with the frontend sending the new field, generation succeeds or fails depending only on the selected sources. Same goal, level, outcome, time and formats each time; fresh accounts; 2026-09-29:
+
+| `preferred_resource_sources` | Generation result | POST `X-Request-ID` | Generation request |
+| --- | --- | --- | --- |
+| `["youtube"]` | `failed`, `failure_code: "roadmap_provider_failed"` (≈37 s) | `01M3PS5FK01ZNDDEXW132AXAB6` | `01m3ps5hpdxexpcg9haffqj989` |
+| `["courses", "youtube"]` (through the UI) | `failed`, `roadmap_provider_failed` | — | — |
+| `["official_documentation"]` | `succeeded`, resources: `documentation` | `01M3PS6SDRYMB7S5CVNHPPN3MF` | `01m3ps6vhq08rshzs1pwmjpgt5` |
+| `["articles", "courses"]` | `succeeded`, resources: `documentation` and `course` (no `article`) | `01M3PS8B4M11FZEE5QFZ1YG9HD` | `01m3ps8d8te3h21p9gs06ncm39` |
+
+**What the contract says** — §15: "When `youtube` is selected, the backend discards generated video URLs and searches YouTube Data API v3 once per task … Empty results or provider failures terminate safely as `roadmap_provider_failed`." It also says "resource types follow the selected source list". §27 adds `YOUTUBE_API_KEY=<secret>` and the other `YOUTUBE_*` settings.
+
+**User impact** — any learner who picks YouTube — the obvious choice for someone who prefers videos — can't get a roadmap at all. They see "The AI service couldn't create your roadmap this time", and retrying fails the same way. Separately, a learner who picks articles gets documentation instead.
+
+**Suggested change** — check that `YOUTUBE_API_KEY` (and the other `YOUTUBE_*` values) are set on Render and the key has YouTube Data API v3 enabled with quota. Consider failing only the tasks without a video (falling back to the learner's next source in priority order) instead of the whole roadmap. Also check that `articles` produces `article` resources.
+
+---
+
 ## Note: rate limits and the frontend's session route
 
 To keep learners signed in across reloads, the frontend now follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser.
