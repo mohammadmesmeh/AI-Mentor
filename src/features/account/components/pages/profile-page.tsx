@@ -19,7 +19,7 @@ import {
   usePutLearningProfileMutation,
 } from "@/lib/api/apiSlice"
 import { asApiError } from "@/lib/api/errors"
-import type { LearningMethod, LearningProfile, SelfAssessedLevel } from "@/lib/api/types"
+import type { LearningMethod, LearningProfile, ResourceSource, SelfAssessedLevel } from "@/lib/api/types"
 import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
 import {
   LEVELS,
@@ -28,7 +28,11 @@ import {
   levelKeyMap,
   preferenceKeyMap,
   resourceLanguageKeyMap,
+  SOURCES,
+  sourceKeyMap,
+  toggleSource,
 } from "@/features/onboarding/lib/profileLabels"
+import { LEARNING_PROFILE_FIELDS, rejectedFields, type LearningProfileField } from "@/lib/api/validation"
 import { ErrorState, SignedOutState } from "@/features/dashboard/components/learning/shared"
 import {
   CardSkeleton,
@@ -113,6 +117,8 @@ type Draft = {
   desiredOutcome: string
   minutes: string
   methods: LearningMethod[]
+  /** Priority order (contract §12). */
+  sources: ResourceSource[]
 }
 type DraftErrors = Partial<Record<keyof Draft, string>>
 
@@ -123,6 +129,8 @@ function toDraft(profile: LearningProfile): Draft {
     desiredOutcome: profile.desiredOutcome ?? "",
     minutes: String(profile.availableMinutesPerWeek ?? ""),
     methods: profile.preferredLearningMethods ?? [],
+    // null on legacy profiles: the learner has to pick at least one to save.
+    sources: profile.preferredResourceSources ?? [],
   }
 }
 
@@ -139,16 +147,18 @@ function validate(draft: Draft, t: (key: string) => string, to: (key: string) =>
   const minutes = Number(draft.minutes)
   if (!Number.isInteger(minutes) || minutes < 15 || minutes > 10080) errors.minutes = to("minutesInvalid")
   if (draft.methods.length === 0) errors.methods = t("methodsRequired")
+  if (draft.sources.length === 0) errors.sources = to("sourcesError")
   return errors
 }
 
 /** Server field names (§12) → form fields, for a 422 validation_failed. */
-const SERVER_FIELDS: Record<string, keyof Draft> = {
+const SERVER_FIELDS: Record<LearningProfileField, keyof Draft> = {
   goal: "goal",
   self_assessed_level: "selfAssessedLevel",
   desired_outcome: "desiredOutcome",
   available_minutes_per_week: "minutes",
   preferred_learning_methods: "methods",
+  preferred_resource_sources: "sources",
 }
 
 /**
@@ -236,9 +246,18 @@ function LearningProfilePanel({
                   : null
               }
             />
+            <ProfileRow
+              label={t("sources")}
+              value={
+                profile.preferredResourceSources?.length
+                  ? profile.preferredResourceSources.map((s, i) => `${i + 1}. ${to(sourceKeyMap[s])}`).join(" · ")
+                  : null
+              }
+            />
             <div className={PROFILE_ROW}>
               <dt className="text-muted-foreground">{t("resourceLanguage")}</dt>
               <dd className="m-0 flex flex-wrap items-center gap-x-3 font-semibold text-ink">
+
                 <span>{resourceLanguage ? to(resourceLanguageKeyMap[resourceLanguage]) : t("notSet")}</span>
                 <TextLink href={WORKSPACE_ROUTES.settings}>{t("changeInSettings")}</TextLink>
               </dd>
@@ -319,6 +338,7 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         desiredOutcome: draft.desiredOutcome.trim(),
         availableMinutesPerWeek: Number(draft.minutes),
         preferredLearningMethods: draft.methods,
+        preferredResourceSources: draft.sources,
       }).unwrap()
       onDone(true)
     } catch (caught) {
@@ -327,15 +347,18 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         setFormError(t("sessionEnded"))
         return
       }
-      // 422 validation_failed: mark the fields the server rejected. Its messages
-      // are English-only (and never shown, FR-018), so ours are used.
+      // 422 validation_failed: mark each field the server rejected (array
+      // errors arrive per item, e.g. "preferred_resource_sources.0") with what
+      // the contract allows. The server's messages are English-only and never
+      // shown (FR-018).
       const serverErrors: DraftErrors = {}
-      for (const field of Object.keys(error.details ?? {})) {
-        const key = SERVER_FIELDS[field]
-        if (key) serverErrors[key] = t("fieldInvalid")
+      for (const field of rejectedFields(error, LEARNING_PROFILE_FIELDS)) {
+        serverErrors[SERVER_FIELDS[field]] = to(`fieldError.${field}`)
       }
       setErrors(serverErrors)
       setFormError(t("saveFailed"))
+      const first = Object.keys(serverErrors)[0]
+      if (first) document.getElementById(`lp-${first}`)?.focus()
     }
   }
 
@@ -439,6 +462,47 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
           })}
         </div>
         {errors.methods && <FieldError id="lp-methods-error">{errors.methods}</FieldError>}
+      </fieldset>
+
+      <fieldset
+        id="lp-sources"
+        tabIndex={-1}
+        className="m-0 space-y-3 border-0 p-0 outline-none"
+        aria-describedby={errors.sources ? "lp-sources-hint lp-sources-error" : "lp-sources-hint"}
+      >
+        <legend className="p-0 text-sm font-semibold text-ink">{t("sources")}</legend>
+        <p id="lp-sources-hint" className="m-0 text-xs text-muted-foreground">
+          {t("sourcesHint")}
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {SOURCES.map((source) => {
+            const rank = draft.sources.indexOf(source)
+            const checked = rank >= 0
+            return (
+              <label
+                key={source}
+                className={cn(
+                  "flex min-h-11 cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm font-medium transition-colors has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+                  checked ? "border-primary-900 bg-secondary-100/60 dark:border-status-completed dark:bg-secondary-300/10" : "border-line bg-glass-strong hover:bg-card"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => set("sources", toggleSource(draft.sources, source))}
+                  className="h-4 w-4 accent-primary"
+                />
+                <span className="flex-1">{to(sourceKeyMap[source])}</span>
+                {checked && (
+                  <span className="rounded-full bg-secondary-700/10 px-2 py-0.5 text-xs text-secondary-700 dark:text-secondary-300">
+                    {to("sourcePriority", undefined, { n: rank + 1 })}
+                  </span>
+                )}
+              </label>
+            )
+          })}
+        </div>
+        {errors.sources && <FieldError id="lp-sources-error">{errors.sources}</FieldError>}
       </fieldset>
 
       {formError && (

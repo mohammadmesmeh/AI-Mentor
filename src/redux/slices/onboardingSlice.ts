@@ -5,9 +5,11 @@ import type {
   OnboardingStatus,
   Preferences,
   ResourceLanguage,
+  ResourceSource,
   SelfAssessedLevel,
   UiLocale,
 } from "@/lib/api/types"
+import type { LearningProfileField } from "@/lib/api/validation"
 
 export type SubmitStatus = "idle" | "submitting" | "succeeded" | "failed"
 
@@ -17,6 +19,8 @@ export interface OnboardingFormState {
   availableMinutesPerWeek: number | null
   desiredOutcome: string
   preferredLearningMethods: LearningMethod[]
+  /** Priority order (contract §12). */
+  preferredResourceSources: ResourceSource[]
   preferences: {
     uiLocale: UiLocale
     resourceLanguage: ResourceLanguage
@@ -36,6 +40,7 @@ export const initialForm = (): OnboardingFormState => ({
   availableMinutesPerWeek: null,
   desiredOutcome: "",
   preferredLearningMethods: [],
+  preferredResourceSources: [],
   preferences: { ...defaultPreferences },
 })
 
@@ -52,6 +57,8 @@ interface OnboardingState {
   onboardingStatus: OnboardingStatus | null
   submitStatus: SubmitStatus
   submitError: string | null
+  /** Fields the server rejected with a 422, shown next to their review rows. */
+  submitFieldErrors: LearningProfileField[]
 }
 
 const initialState: OnboardingState = {
@@ -62,6 +69,7 @@ const initialState: OnboardingState = {
   onboardingStatus: null,
   submitStatus: "idle",
   submitError: null,
+  submitFieldErrors: [],
 }
 
 const onboardingSlice = createSlice({
@@ -102,6 +110,8 @@ const onboardingSlice = createSlice({
           availableMinutesPerWeek: learningProfile.availableMinutesPerWeek ?? null,
           desiredOutcome: learningProfile.desiredOutcome ?? "",
           preferredLearningMethods: learningProfile.preferredLearningMethods ?? [],
+          // null on legacy profiles: the learner picks them now.
+          preferredResourceSources: learningProfile.preferredResourceSources ?? [],
           preferences: { ...state.form.preferences },
         }
       }
@@ -117,10 +127,14 @@ const onboardingSlice = createSlice({
       state.submitStatus = action.payload
       if (action.payload !== "failed") {
         state.submitError = null
+        state.submitFieldErrors = []
       }
     },
     setSubmitError(state, action: PayloadAction<string | null>) {
       state.submitError = action.payload
+    },
+    setSubmitFieldErrors(state, action: PayloadAction<LearningProfileField[]>) {
+      state.submitFieldErrors = action.payload
     },
   },
 })
@@ -132,6 +146,7 @@ export const {
   hydrate,
   setSubmitStatus,
   setSubmitError,
+  setSubmitFieldErrors,
 } = onboardingSlice.actions
 
 export type { OnboardingState }

@@ -1,4 +1,4 @@
-import type { LearningMethod, Preferences, SelfAssessedLevel } from "@/lib/api/types"
+import type { LearningMethod, Preferences, ResourceSource, SelfAssessedLevel } from "@/lib/api/types"
 
 /**
  * `onboarding.*` message keys for the contract's learning-profile and
@@ -7,6 +7,22 @@ import type { LearningMethod, Preferences, SelfAssessedLevel } from "@/lib/api/t
  */
 export const LEVELS: readonly SelfAssessedLevel[] = ["complete_beginner", "some_experience", "intermediate"]
 export const METHODS: readonly LearningMethod[] = ["hands_on_projects", "reading_docs", "video_walkthroughs", "quizzes_drills"]
+export const SOURCES: readonly ResourceSource[] = ["youtube", "official_documentation", "articles", "courses"]
+
+export const sourceKeyMap: Record<ResourceSource, string> = {
+  youtube: "sourceYoutube",
+  official_documentation: "sourceDocs",
+  articles: "sourceArticles",
+  courses: "sourceCourses",
+}
+
+/**
+ * Toggles a source while keeping the learner's priority order (contract §12:
+ * array order is priority): a new pick goes last, removing one moves the rest up.
+ */
+export function toggleSource(sources: readonly ResourceSource[], source: ResourceSource): ResourceSource[] {
+  return sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
+}
 
 export const levelKeyMap: Record<SelfAssessedLevel, string> = {
   complete_beginner: "beginner",
