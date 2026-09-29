@@ -362,6 +362,10 @@ Returns `200`, or `404 learning_profile_not_found` when it does not exist.
       "hands_on_projects",
       "reading_docs"
     ],
+    "preferred_resource_sources": [
+      "official_documentation",
+      "youtube"
+    ],
     "created_at": "2026-09-10T09:43:04.000000Z",
     "updated_at": "2026-09-10T09:43:04.000000Z"
   },
@@ -372,7 +376,7 @@ Returns `200`, or `404 learning_profile_not_found` when it does not exist.
 ```
 
 Legacy incomplete records can return `desired_outcome` or
-`preferred_learning_methods` as `null`.
+`preferred_learning_methods` or `preferred_resource_sources` as `null`.
 
 ### `PUT /me/learning-profile`
 
@@ -387,13 +391,17 @@ This is an idempotent create-or-replace operation, not a partial update.
   "preferred_learning_methods": [
     "hands_on_projects",
     "reading_docs"
+  ],
+  "preferred_resource_sources": [
+    "official_documentation",
+    "youtube"
   ]
 }
 ```
 
 Validation:
 
-- All five fields are required.
+- All six fields are required.
 - `goal`: maximum 1,000 characters.
 - `desired_outcome`: maximum 2,000 characters.
 - `available_minutes_per_week`: integer from 15 to 10,080.
@@ -401,6 +409,9 @@ Validation:
   `intermediate`.
 - `preferred_learning_methods`: 1-4 unique values from
   `hands_on_projects`, `reading_docs`, `video_walkthroughs`, `quizzes_drills`.
+- `preferred_resource_sources`: 1-4 unique values from `youtube`,
+  `official_documentation`, `articles`, and `courses`. Array order is the
+  user's source-priority order.
 - Extra fields are rejected.
 
 Returns `201` when created and `200` on later replacements. Both return the
@@ -430,6 +441,7 @@ self_assessed_level
 desired_outcome
 available_minutes_per_week
 preferred_learning_methods
+preferred_resource_sources
 resource_language
 ```
 
@@ -567,6 +579,25 @@ contract remains asynchronous regardless of whether the deployment uses a
 synchronous queue driver. Gemini calls use structured output and `store=false`.
 Only the immutable learning snapshot is submitted; user identity and tokens are
 excluded. Provider/model details and provider response bodies are not public.
+The snapshot schema is version 2 and includes `preferred_resource_sources`.
+Legacy version-1 queued requests remain readable and default to official
+documentation behavior.
+
+Generation treats `goal` and `desired_outcome` as a strict scope boundary and
+starts from `self_assessed_level`. For example, an intermediate frontend goal
+must remain frontend, omit unrelated backend/DevOps topics, and continue from
+intermediate material instead of restarting beginner fundamentals unless a
+named prerequisite is essential. Task formats follow
+`preferred_learning_methods`; resource types follow the selected source list.
+
+When `youtube` is selected, the backend discards generated video URLs and
+searches YouTube Data API v3 once per task. Searches use the goal and task
+title, selected resource language, strict safe search, embeddable/syndicated
+video filters, a configurable recent window (five years by default), and
+YouTube's `rating` order. Only returned 11-character video IDs become canonical
+`https://www.youtube.com/watch?v=...` resources. Empty results or provider
+failures terminate safely as `roadmap_provider_failed`; invented fallback links
+are never persisted.
 
 Possible public `failure_code` values are `invalid_generated_roadmap`,
 `roadmap_provider_failed`, and `roadmap_generation_failed`. On provider failure,
@@ -941,6 +972,10 @@ GEMINI_MODEL=<available-model>
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 GEMINI_TIMEOUT_SECONDS=60
 GEMINI_MAX_OUTPUT_TOKENS=8192
+YOUTUBE_API_KEY=<secret>
+YOUTUBE_BASE_URL=https://www.googleapis.com/youtube/v3
+YOUTUBE_TIMEOUT_SECONDS=10
+YOUTUBE_MAX_AGE_YEARS=5
 QUEUE_CONNECTION=sync
 ```
 
@@ -957,7 +992,9 @@ rule must update this file in the same PR. Before merging:
 1. compare the endpoint matrix with `routes/api.php`;
 2. compare inputs with every FormRequest;
 3. compare examples with every JsonResource;
-4. compare errors with `bootstrap/app.php`;
-5. compare transitions with actions and enums;
-6. run focused and full tests, Pint, PHPStan, Composer validation, route-list
+4. keep learning-profile source enums, snapshot schema, Gemini scope rules, and
+   YouTube environment variables synchronized;
+5. compare errors with `bootstrap/app.php`;
+6. compare transitions with actions and enums;
+7. run focused and full tests, Pint, PHPStan, Composer validation, route-list
    verification, and `git diff --check`.
