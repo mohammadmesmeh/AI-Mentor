@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import { LogOut, Menu, Sparkles, X } from "lucide-react"
+import { LogOut, Menu, X } from "lucide-react"
 
 import { Link, usePathname, useRouter } from "@/i18n/navigation"
 import { apiSlice, useLogoutMutation } from "@/lib/api/apiSlice"
@@ -11,6 +11,7 @@ import { useT } from "@/shared/hooks/useT"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 import { Avatar } from "@/shared/components/ui/Avatar"
+import { BrandLogo } from "@/shared/components/ui/BrandLogo"
 import { cn } from "@/lib/utils"
 import type { RootState } from "@/redux/store"
 import { WORKSPACE_NAV, isActive, type NavItem } from "./navItems"
@@ -45,19 +46,17 @@ function WorkspaceLink({ item, active, label, badge }: { item: NavItem; active: 
   )
 }
 
-/** The brand: navy icon box + name, linking home. */
+/** The brand: the Khatwa logo, linking home (light/dark version follows the theme). */
 function WorkspaceBrand() {
   const t = useT("nav")
   return (
     <Link
       href="/"
-      className="flex min-h-11 items-center gap-3 rounded-md px-2 no-underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      title={t("brand", "Khatwa")}
+      className="flex min-h-11 items-center rounded-md px-2 no-underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-icon bg-primary-900 text-white dark:bg-secondary-300/20">
-        <Sparkles className="size-5" />
-      </span>
-      <span dir="ltr" className="font-display text-[1.375rem] font-extrabold text-ink">
-        {t("brand", "AI Mentor")}
+      <span dir="ltr">
+        <BrandLogo className="h-10" />
       </span>
     </Link>
   )

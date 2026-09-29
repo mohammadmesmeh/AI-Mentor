@@ -58,7 +58,7 @@ export function Features() {
           <FadeInView as="p" className="mt-4 text-lg text-muted-foreground" delay={0.15}>
             {t(
               "subheading",
-              "AI Mentor combines personalized guidance, structured milestones, and on-demand support to help you learn smarter, not harder."
+              "Khatwa combines personalized guidance, structured milestones, and on-demand support to help you learn smarter, not harder."
             )}
           </FadeInView>
         </div>

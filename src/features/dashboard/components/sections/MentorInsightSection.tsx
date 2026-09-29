@@ -16,7 +16,7 @@ function MentorInsightSection() {
         icon={Sparkles}
         titleAs="h2"
         titleId="mentor-insight-heading"
-        title={t("mentorInsightTitle", "AI Mentor Insight")}
+        title={t("mentorInsightTitle", "Khatwa Insight")}
         badge={tw("comingSoon")}
         description={t("insightUnavailableDescription")}
       />
