@@ -1,8 +1,8 @@
 "use client"
 
 import { Link, usePathname } from "@/i18n/navigation"
-import { Terminal } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
+import { BrandLogo } from "@/shared/components/ui/BrandLogo"
 import { isWorkspacePath } from "@/lib/workspaceRoutes"
 
 const footerLinks = [
@@ -14,6 +14,7 @@ const footerLinks = [
 
 function Footer() {
   const t = useT("footer")
+  const tn = useT("nav")
   const pathname = usePathname()
 
   if (
@@ -28,15 +29,12 @@ function Footer() {
       <div className="mx-auto flex max-w-(--container-content) flex-col items-center gap-8 md:flex-row md:items-center md:justify-between">
         <Link
           href="/"
-          aria-label="AI Mentor"
-          title="AI Mentor"
-          className="group flex items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/30"
+          title={tn("brand", "Khatwa")}
+          className="group flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/30"
         >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform duration-300 group-hover:scale-110">
-            <Terminal className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <span className="font-display text-xl font-extrabold text-white">
-            AI Mentor
+          {/* The footer is navy in both themes: always the on-dark logo. */}
+          <span className="transition-transform duration-300 group-hover:scale-[1.03]" dir="ltr">
+            <BrandLogo tone="onDark" className="h-12" />
           </span>
         </Link>
 
@@ -67,7 +65,7 @@ function Footer() {
         <p className="text-sm text-white/50">
           {t(
             "copyright",
-            "© 2025 AI Mentor Inc. Precision intelligence for human mastery."
+            "© 2025 Khatwa Inc. Learn with clarity. Grow with confidence."
           )}
         </p>
       </div>

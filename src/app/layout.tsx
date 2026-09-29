@@ -81,8 +81,8 @@ const nunito = Nunito({
 })
 
 export const metadata: Metadata = {
-  title: "AI Mentor",
-  description: "AI Mentor is your personal AI mentor that builds your learning path from goals to growth.",
+  title: "Khatwa",
+  description: "Khatwa is your personal AI mentor that builds your learning path from goals to growth.",
 };
 
 export default async function RootLayout({

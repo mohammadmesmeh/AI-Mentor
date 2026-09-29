@@ -13,7 +13,7 @@
     "title": "Your Personalized Learning Path"
   },
   "auth": {
-    "accessTitle": "Welcome to AI Mentor",
+    "accessTitle": "Welcome to Khatwa",
     "applyEarlyAccess": "Create New Account",
     "backToSignIn": "Back to Sign In",
     "continue": "Continue",
@@ -24,7 +24,7 @@
       "noAccountWithEmail": "We couldn't find an account with this email.",
       "invalidCredentials": "The email or password is incorrect. Please try again.",
       "registrationFailed": "We couldn't create your account. Please try again.",
-      "serviceUnavailable": "AI Mentor is temporarily unavailable. Please try again in a moment.",
+      "serviceUnavailable": "Khatwa is temporarily unavailable. Please try again in a moment.",
       "tooManyRequests": "Too many attempts. Please wait a moment before trying again.",
       "unexpectedError": "Something went wrong. Please try again."
     },
@@ -32,12 +32,12 @@
     "confirmPasswordPlaceholder": "Enter your password again",
     "email": "Email Address",
     "emailPlaceholder": "you@example.com",
-    "findUsOn": "Follow AI Mentor on:",
+    "findUsOn": "Follow Khatwa on:",
     "forgotPassword": "Forgot your password?",
-    "githubLabel": "AI Mentor on GitHub",
+    "githubLabel": "Khatwa on GitHub",
     "googleUnavailable": "Google sign-in isn't available right now. No changes were made to your account.",
     "hidePassword": "Hide password",
-    "linkedinLabel": "AI Mentor on LinkedIn",
+    "linkedinLabel": "Khatwa on LinkedIn",
     "loggingIn": "Signing you in...",
     "name": "Full Name",
     "namePlaceholder": "Enter your full name",
@@ -67,7 +67,7 @@
     "welcomeDescription": "Sign in and continue learning from where you left off.",
     "workEmail": "Work or Student Email",
     "workEmailPlaceholder": "name@organization.com",
-    "xLabel": "AI Mentor on X"
+    "xLabel": "Khatwa on X"
   },
   "cta": {
     "button": "Start Learning Free",
@@ -78,19 +78,19 @@
   "dashboard": {
     "continueLearningTitle": "Continue Learning",
     "insightUnavailableDescription": "Personalized observations from your AI mentor will appear here once the service supports them.",
-    "mentorInsightTitle": "AI Mentor Insight",
+    "mentorInsightTitle": "Khatwa Insight",
     "navLabel": "Learning workspace navigation",
     "navMenuCloseAria": "Close navigation",
     "navMenuOpenAria": "Open navigation",
     "navOverview": "Overview",
     "noFocusTasksDescription": "Your priority tasks will appear here when you have an active lesson.",
     "noFocusTasksTitle": "No focus tasks yet",
-    "noRoadmapDescription": "You haven't created a learning roadmap yet. Answer a few quick questions and AI Mentor will build one around your goals.",
+    "noRoadmapDescription": "You haven't created a learning roadmap yet. Answer a few quick questions and Khatwa will build one around your goals.",
     "reviewRoadmap": "View Your Roadmap",
     "todayFocusTitle": "Today's Focus",
     "welcomeHeading": "Welcome back, {name}",
     "roadmapGenerationTitle": "Create Your Learning Roadmap",
-    "roadmapGenerationDescription": "Your learning profile is complete. AI Mentor will turn it into a personalized learning path.",
+    "roadmapGenerationDescription": "Your learning profile is complete. Khatwa will turn it into a personalized learning path.",
     "generateRoadmap": "Create My Roadmap",
     "generationInProgress": "We're building your personalized roadmap. This may take a moment.",
     "checkAgain": "Check Again",
@@ -153,7 +153,7 @@
       "description": "Ask questions whenever you get stuck and get clear, helpful answers from your AI mentor without searching through endless forums.",
       "title": "Get Help When You Need It"
     },
-    "badge": "Why AI Mentor",
+    "badge": "Why Khatwa",
     "heading": "Everything You Need to Learn With Confidence",
     "personalizedPlans": {
       "description": "Your learning path is built around your goals, experience, and available time instead of a one-size-fits-all course.",
@@ -167,12 +167,12 @@
       "description": "Get practical feedback after each task and milestone, not just a final grade. As your skills grow, the feedback grows with you — pointing out what to review, what to practice more, and what you're ready to move past.",
       "title": "Feedback That Adapts to You"
     },
-    "subheading": "AI Mentor combines a personalized learning plan, clear milestones, and on-demand guidance to help you learn with less guesswork."
+    "subheading": "Khatwa combines a personalized learning plan, clear milestones, and on-demand guidance to help you learn with less guesswork."
   },
   "faq": {
     "badge": "Common Questions",
     "heading": "Frequently Asked Questions",
-    "subheading": "Everything you need to know about AI Mentor today and what's coming next.",
+    "subheading": "Everything you need to know about Khatwa today and what's coming next.",
     "items": {
       "multipleRoadmaps": {
         "question": "Can I create more than one roadmap?",
@@ -187,13 +187,13 @@
         "answer": "Not yet. Community features aren't available in the current Free plan, but they're planned for Pro."
       },
       "moreAiModels": {
-        "question": "Will AI Mentor support more AI models?",
+        "question": "Will Khatwa support more AI models?",
         "answer": "Yes. Support for multiple AI models is planned for future paid plans, giving you more flexibility in how your roadmap and feedback are generated."
       }
     }
   },
   "footer": {
-    "copyright": "© 2025 AI Mentor Inc. Learn with clarity. Grow with confidence.",
+    "copyright": "© 2025 Khatwa Inc. Learn with clarity. Grow with confidence.",
     "links": {
       "privacy": "Privacy Policy",
       "status": "System Status",
@@ -203,21 +203,21 @@
   },
   "hero": {
     "title": "Your Personalized Learning Roadmap, Built by AI",
-    "description": "Tell AI Mentor what you want to learn, where you are today, and where you want to go. Get a personalized roadmap that guides you step by step toward your goal.",
+    "description": "Tell Khatwa what you want to learn, where you are today, and where you want to go. Get a personalized roadmap that guides you step by step toward your goal.",
     "ctaPrimary": "Create My Free Roadmap",
     "ctaSecondary": "Explore Learning Paths"
   },
   "howItWork": {
-    "badge": "How AI Mentor Works",
+    "badge": "How Khatwa Works",
     "title": "A Learning Path That Adapts With You",
     "subtitle": "Start with your goals, learn at your own pace, and get a roadmap that evolves as you make progress.",
     "step1": {
       "title": "Tell Us About Your Goals",
-      "description": "Share what you want to learn, your current experience, and how much time you have each week. AI Mentor uses these details to understand exactly where you're starting from, so every step that follows is built around your reality — not a generic average."
+      "description": "Share what you want to learn, your current experience, and how much time you have each week. Khatwa uses these details to understand exactly where you're starting from, so every step that follows is built around your reality — not a generic average."
     },
     "step2": {
       "title": "Get Your Personalized Roadmap",
-      "description": "AI Mentor turns your goals and experience into a clear learning path with practical steps and milestones."
+      "description": "Khatwa turns your goals and experience into a clear learning path with practical steps and milestones."
     },
     "step3": {
       "title": "Learn by Doing",
@@ -229,11 +229,11 @@
     }
   },
   "metadata": {
-    "description": "AI Mentor creates a personalized learning roadmap around your goals, experience, and schedule.",
-    "title": "AI Mentor — Your Personalized AI Learning Mentor"
+    "description": "Khatwa creates a personalized learning roadmap around your goals, experience, and schedule.",
+    "title": "Khatwa — Your Personalized AI Learning Mentor"
   },
   "home": {
-    "welcome ": "Hi, I'm AI Mentor",
+    "welcome ": "Hi, I'm Khatwa",
     "domains": {
       "title": "Learn any of this, and more",
       "items": {
@@ -258,7 +258,7 @@
     "text": "Loading"
   },
   "nav": {
-    "brand": "AI Mentor",
+    "brand": "Khatwa",
     "closeMenu": "Close menu",
     "logout": "Log Out",
     "mainNavigation": "Main navigation",
@@ -297,7 +297,7 @@
     "continue": "Continue",
     "domain": "What You Want to Learn",
     "edit": "Edit",
-    "generatingDescription": "AI Mentor is creating a learning path based on your goals and preferences. This should only take a moment...",
+    "generatingDescription": "Khatwa is creating a learning path based on your goals and preferences. This should only take a moment...",
     "generatingTitle": "Creating Your Personalized Roadmap",
     "goal": "Goal",
     "handsOn": "Hands-on practice",
@@ -312,7 +312,7 @@
     "someExperience": "Some experience",
     "someExperienceDesc": "I've dabbled a bit and know a few basics, but I want a clearer foundation.",
     "step": "Step {current} of {total}",
-    "stepFiveDescription": "Tell us what you want to achieve, and AI Mentor will build a learning plan around your goal.",
+    "stepFiveDescription": "Tell us what you want to achieve, and Khatwa will build a learning plan around your goal.",
     "stepFiveError": "Please enter your goal to continue.",
     "stepFivePlaceholder": "e.g. I want to become a Full-Stack Developer within 6 months...",
     "stepFivePreferencesDescription": "Choose the learning formats that work best for you.",
@@ -406,12 +406,12 @@
     "free": {
       "name": "Free",
       "priceSuffix": "current plan",
-      "description": "Get everything AI Mentor offers today — at no cost and with no commitment. It's not a limited trial: your roadmap, progress, and feedback are all included from day one.",
+      "description": "Get everything Khatwa offers today — at no cost and with no commitment. It's not a limited trial: your roadmap, progress, and feedback are all included from day one.",
       "cta": "Start Learning Free",
       "features": {
         "roadmap": "1 active learning roadmap",
         "noCommunity": "Community features coming soon",
-        "mvp": "Everything AI Mentor offers today"
+        "mvp": "Everything Khatwa offers today"
       }
     },
     "pro": {

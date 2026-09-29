@@ -77,7 +77,7 @@ export function Hero() {
           >
             {t(
               "description",
-              "Tell AI Mentor what you want to master. It synthesizes your roadmap from your goals, level, and schedule — then guides you through every milestone, one task at a time."
+              "Tell Khatwa what you want to master. It synthesizes your roadmap from your goals, level, and schedule — then guides you through every milestone, one task at a time."
             )}
           </FadeInView>
 
