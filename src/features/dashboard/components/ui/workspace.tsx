@@ -1,170 +1,154 @@
-"use client"
-
 import type { LucideIcon } from "lucide-react"
-import { ArrowLeft, CheckCircle2, Circle, Clock, Lock, PlayCircle } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
+import { Card, CardDescription, CardTitle } from "@/components/ui/card"
 import { buttonVariants } from "@/shared/components/ui/Button"
-import type { StageStatus } from "@/lib/api/types"
+import { toneMark } from "@/shared/components/ui/status-tone"
 import type { TaskDisplayStatus } from "../../lib/learningItems"
+import { TASK_STATUS_STYLE } from "../../lib/statusStyles"
 
 /*
- * Shared building blocks for every workspace page (design.md): cards 16px
- * (rounded-lg), icon boxes 12px, inputs/buttons 8px (rounded-md), chips as
- * full pills. Purple (accent-700) marks only the current task and the active
- * stage. Motion is a short fade that reduced-motion turns off.
+ * Shared building blocks for every workspace page: glass cards 16px
+ * (rounded-lg), icon boxes 12px (rounded-icon), inputs/buttons 8px
+ * (rounded-md). Statuses are a dot + text or a round mark, never a pill.
+ * Purple marks only the current task and the active stage.
  */
 
-/** The page's single h1, with an optional line of context and one main action. */
+/** The page's single h1 (display font), a line of context, meta and one main action. */
 export function PageHeader({
-  eyebrow,
   title,
   description,
+  meta,
   action,
   titleDir,
 }: {
-  eyebrow?: string
   title: string
   description?: string
+  /** A row of MetaItems under the title. */
+  meta?: React.ReactNode
   action?: React.ReactNode
-  /** "auto" for server/AI text (e.g. a task title) that may be in either language. */
+  /** "auto" for server/AI text (e.g. a goal) that may be in either language. */
   titleDir?: "auto"
 }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0 flex-1 basis-72 space-y-1">
-        {eyebrow && (
-          <p className="text-sm font-medium tracking-wide text-secondary-700 dark:text-secondary-300">{eyebrow}</p>
-        )}
+      <div className="min-w-0 flex-1 basis-72 space-y-2">
         <h1
           dir={titleDir}
-          className="wrap-break-word font-display text-heading-md font-bold text-foreground sm:text-heading-lg"
+          className="m-0 wrap-break-word font-display text-[1.75rem] leading-snug font-extrabold text-ink sm:text-[2.125rem]"
         >
           {title}
         </h1>
         {description && (
-          <p dir="auto" className="max-w-2xl wrap-break-word text-muted-foreground">
+          <p dir="auto" className="m-0 max-w-2xl wrap-break-word text-sm text-muted-foreground">
             {description}
           </p>
         )}
+        {meta}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </header>
   )
 }
 
-export function Panel({
-  className,
+/** A glass card with a titled header: the section every workspace page is made of. */
+export function WorkspaceCard({
+  titleId,
+  title,
+  description,
+  action,
   children,
-  ...props
-}: React.HTMLAttributes<HTMLElement> & { as?: "section" | "div" }) {
+  className,
+  headerClassName,
+}: {
+  titleId: string
+  title: string
+  description?: string
+  /** Trailing header content: a link, a status, a button. */
+  action?: React.ReactNode
+  children: React.ReactNode
+  className?: string
+  headerClassName?: string
+}) {
   return (
-    <section
-      className={cn("rounded-lg border border-border/70 bg-card text-card-foreground shadow-card", className)}
-      {...props}
-    >
-      {children}
-    </section>
+    <Card as="section" variant="glass" aria-labelledby={titleId} className={cn("flex flex-col", className)}>
+      <div className={cn("flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 pt-5 sm:px-6 sm:pt-6", headerClassName)}>
+        <div className="min-w-0 space-y-0.5">
+          <CardTitle as="h2" id={titleId}>
+            {title}
+          </CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </div>
+        {action}
+      </div>
+      <div className="flex flex-1 flex-col p-5 sm:p-6">{children}</div>
+    </Card>
   )
 }
 
+const ICON_BOX_TONE = {
+  soft: "bg-secondary-100 text-secondary-700 dark:bg-secondary-300/15 dark:text-secondary-300",
+  navy: "bg-primary-900 text-secondary-100 dark:bg-secondary-300/20 dark:text-secondary-100",
+  current: "bg-status-current/10 text-status-current-text",
+  muted: "bg-segment text-status-neutral",
+} as const
+
 export function IconBox({
   icon: Icon,
-  tone = "primary",
+  tone = "soft",
+  size = "md",
   className,
 }: {
   icon: LucideIcon
-  tone?: "primary" | "accent" | "muted" | "success"
+  tone?: keyof typeof ICON_BOX_TONE
+  size?: "sm" | "md" | "lg"
   className?: string
 }) {
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]",
-        tone === "primary" && "bg-primary/10 text-primary dark:bg-primary-300/15 dark:text-primary-200",
-        tone === "accent" && "bg-accent-700/10 text-accent-700 dark:text-accent-300",
-        tone === "muted" && "bg-muted text-muted-foreground",
-        tone === "success" && "bg-success-500/10 text-success-600 dark:text-success-500",
+        "flex shrink-0 items-center justify-center rounded-icon",
+        size === "sm" && "size-9 [&_svg]:size-[1.125rem]",
+        size === "md" && "size-10 [&_svg]:size-5",
+        size === "lg" && "size-14 [&_svg]:size-7",
+        ICON_BOX_TONE[tone],
         className
       )}
     >
-      <Icon className="h-5 w-5" />
+      <Icon />
     </span>
   )
 }
 
-/** Panel heading row: icon box, h2, optional trailing content. */
-export function PanelHeader({
-  id,
-  icon,
-  title,
-  trailing,
-  className,
+/**
+ * The round mark in front of a task (check, play, lock…), colored by status.
+ * The label is read by assistive technology; the mark itself is decorative.
+ */
+export function TaskStatusMark({
+  status,
+  label,
+  size = "md",
 }: {
-  id: string
-  icon: LucideIcon
-  title: string
-  trailing?: React.ReactNode
-  className?: string
+  status: TaskDisplayStatus
+  label: string
+  size?: "sm" | "md"
 }) {
+  const { tone, icon: Icon } = TASK_STATUS_STYLE[status]
   return (
-    <div className={cn("flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-5", className)}>
-      <div className="flex min-w-0 items-center gap-3">
-        <IconBox icon={icon} />
-        <h2 id={id} className="font-display text-heading-sm font-semibold text-foreground">
-          {title}
-        </h2>
-      </div>
-      {trailing}
-    </div>
-  )
-}
-
-const TASK_CHIP: Record<TaskDisplayStatus, { className: string; icon: LucideIcon }> = {
-  current: { className: "bg-accent-700 text-white", icon: PlayCircle },
-  available: {
-    className: "bg-secondary-700/10 text-secondary-700 dark:bg-secondary-300/15 dark:text-secondary-200",
-    icon: Circle,
-  },
-  completed: { className: "badge-success", icon: CheckCircle2 },
-  locked: { className: "bg-muted text-muted-foreground", icon: Lock },
-  upcoming: { className: "bg-muted text-muted-foreground", icon: Clock },
-  skip_pending: { className: "bg-muted text-muted-foreground", icon: Clock },
-  skipped: { className: "bg-muted text-muted-foreground", icon: Circle },
-  replaced: { className: "bg-muted text-muted-foreground", icon: Circle },
-}
-
-export function TaskStatusChip({ status, label }: { status: TaskDisplayStatus; label: string }) {
-  const { className, icon: Icon } = TASK_CHIP[status]
-  return (
-    <span className={cn("badge-base shrink-0 rounded-full px-2.5 py-1 text-xs font-medium", className)}>
-      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      {label}
-    </span>
-  )
-}
-
-export function StageStatusChip({ status, label }: { status: StageStatus; label: string }) {
-  return (
-    <span
-      className={cn(
-        "badge-base shrink-0 rounded-full px-2.5 py-1 text-xs font-medium",
-        status === "active" && "bg-accent-700 text-white",
-        status === "completed" && "badge-success",
-        status === "upcoming" && "bg-muted text-muted-foreground"
-      )}
-    >
-      {label}
-    </span>
-  )
-}
-
-/** A neutral pill for metadata (type, duration, "Optional"…). */
-export function MetaChip({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span className={cn("badge-base rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground", className)}>
-      {children}
+    <span className="flex shrink-0">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex items-center justify-center rounded-full",
+          size === "sm" ? "size-7 [&_svg]:size-3.5" : "size-8 [&_svg]:size-[0.9375rem]",
+          toneMark[tone]
+        )}
+      >
+        <Icon strokeWidth={2.4} />
+      </span>
+      <span className="sr-only">{label}</span>
     </span>
   )
 }
@@ -175,22 +159,22 @@ export function PageState({
   title,
   description,
   action,
-  tone = "primary",
+  tone = "soft",
   role,
 }: {
   icon: LucideIcon
   title: string
   description?: string
   action?: React.ReactNode
-  tone?: "primary" | "muted"
+  tone?: "soft" | "muted"
   role?: "alert" | "status"
 }) {
   return (
     <div role={role} className="mx-auto flex max-w-md animate-fade-in flex-col items-center gap-4 py-16 text-center">
-      <IconBox icon={icon} tone={tone} className="h-14 w-14 [&_svg]:h-7 [&_svg]:w-7" />
+      <IconBox icon={icon} tone={tone} size="lg" />
       <div className="space-y-2">
-        <h1 className="font-display text-heading-md font-bold text-foreground">{title}</h1>
-        {description && <p className="text-muted-foreground">{description}</p>}
+        <h1 className="m-0 font-display text-heading-md font-extrabold text-ink">{title}</h1>
+        {description && <p className="m-0 text-muted-foreground">{description}</p>}
       </div>
       {action}
     </div>
@@ -206,11 +190,11 @@ export function LinkButton({
 }: {
   href: string
   children: React.ReactNode
-  variant?: "primary" | "secondary"
+  variant?: "primary" | "glass"
   className?: string
 }) {
   return (
-    <Link href={href} className={cn(buttonVariants({ variant, size: "lg" }), "min-h-11", className)}>
+    <Link href={href} className={cn(buttonVariants({ variant, size: "lg" }), "min-h-11 no-underline", className)}>
       {children}
     </Link>
   )
@@ -221,17 +205,38 @@ export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center gap-2 rounded-md px-1 text-sm font-medium text-secondary-700 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:text-secondary-300"
+      className="inline-flex min-h-11 items-center gap-2 self-start rounded-md px-1 text-sm font-semibold text-secondary-700 no-underline transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:text-secondary-300"
     >
-      <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" aria-hidden="true" />
+      <ArrowLeft className="size-4 rtl:-scale-x-100" aria-hidden="true" />
       {label}
+    </Link>
+  )
+}
+
+/** A text link inside a card header ("All tasks", "View plan"). */
+export function CardLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-11 items-center rounded-md text-[0.8125rem] font-semibold text-secondary-700 no-underline underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 dark:text-secondary-300"
+    >
+      {children}
     </Link>
   )
 }
 
 /** A placeholder block with the size of the content it stands for (no layout shift). */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden="true" className={cn("animate-pulse rounded-md bg-muted motion-reduce:animate-none", className)} />
+  return <div aria-hidden="true" className={cn("animate-pulse rounded-md bg-segment motion-reduce:animate-none", className)} />
+}
+
+/** A glass card-shaped placeholder. */
+export function CardSkeleton({ className, children }: { className?: string; children?: React.ReactNode }) {
+  return (
+    <div aria-hidden="true" className={cn("glass rounded-lg p-5 sm:p-6", className)}>
+      {children}
+    </div>
+  )
 }
 
 /** Busy wrapper: announces loading once, hides the placeholder shapes from AT. */

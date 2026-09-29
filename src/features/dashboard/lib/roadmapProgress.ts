@@ -4,7 +4,6 @@ import type {
   RoadmapStage,
   RoadmapTask,
   RoadmapVersion,
-  StageStatus,
 } from "@/lib/api/types"
 
 /**
@@ -26,7 +25,6 @@ export interface RoadmapProgress {
   countedTasks: number
   percent: number
   allCompleted: boolean
-  stageStatuses: { id: string; title: string; status: StageStatus }[]
 }
 
 const byPosition = <T extends { position: number }>(a: T, b: T) => a.position - b.position
@@ -108,7 +106,6 @@ export function roadmapProgress(stages: RoadmapStage[], server?: Progress): Road
     allCompleted: server
       ? server.totalTasks > 0 && server.completedTasks >= server.totalTasks
       : countedTasks > 0 && counted.every((t) => t.status === "completed" || t.status === "skipped"),
-    stageStatuses: stages.map(({ id, title, status }) => ({ id, title, status })),
   }
 }
 
