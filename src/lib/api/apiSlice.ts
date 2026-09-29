@@ -1,5 +1,5 @@
 import { createApi, type BaseQueryFn, type FetchArgs } from "@reduxjs/toolkit/query/react"
-import { baseQueryWithReauth, setSession, clearSession, getSession } from "./auth"
+import { baseQueryWithReauth, endSession, setSession, clearSession, getSession, storeRefreshToken } from "./auth"
 import { isRetryableCategory, type ApiError } from "./errors"
 import type {
   LearningMethod,
@@ -11,6 +11,7 @@ import type {
   RoadmapGenerationRequest,
   SelfAssessedLevel,
   Session,
+  TaskDetail,
   UiLocale,
   User,
 } from "./types"
@@ -51,9 +52,9 @@ export interface RoadmapGenerationArg {
   idempotencyKey: string
 }
 
+/** What login/register resolve with. No token ever enters Redux (FR-007). */
 export interface AuthData {
   user: User
-  session: Session
 }
 
 function isReadRequest(args: unknown): boolean {
@@ -90,99 +91,91 @@ const apiBaseQuery: BaseQueryFn<string | FetchArgs, unknown, ApiError> = async (
   return result
 }
 
-function toAuthData(data: {
+interface WireAuthResponse {
   tokenType?: string
+  accessToken?: string
   expiresIn?: number
+  refreshToken?: string
   refreshExpiresIn?: number
   user?: User
-  accessToken?: string
-  refreshToken?: string
-}): AuthData {
-  const now = Date.now()
+}
+
+/**
+ * Login/register go from the browser to the backend (so its per-IP limits see
+ * the learner's own IP). The access token is kept in memory; the refresh token
+ * is handed straight to the session route, which stores it in an HttpOnly
+ * cookie so a reload can restore the session (contract §3 rule 4). Neither token
+ * is returned into the Redux cache.
+ */
+const establishSession = async (
+  args: FetchArgs,
+  api: Parameters<BaseQueryFn>[1],
+  extraOptions: Parameters<BaseQueryFn>[2]
+): Promise<{ data: AuthData } | { error: ApiError }> => {
+  const result = await baseQueryWithReauth(args, api, extraOptions)
+  if (result.error) return { error: result.error }
+  const data = result.data as WireAuthResponse
   const session: Session = {
     tokenType: data.tokenType ?? "Bearer",
     accessToken: data.accessToken ?? "",
-    expiresAt: now + (data.expiresIn ?? 0) * 1000,
-    refreshToken: data.refreshToken ?? "",
-    refreshExpiresAt: now + (data.refreshExpiresIn ?? 0) * 1000,
+    expiresAt: Date.now() + (data.expiresIn ?? 0) * 1000,
   }
-  return { user: data.user ?? ({} as User), session }
-}
-
-type OnStartedHandler = (
-  arg: unknown,
-  api: { dispatch: unknown; queryFulfilled: unknown }
-) => Promise<void>
-
-function authPersistHandler(
-  _arg: unknown,
-  { dispatch, queryFulfilled }: { dispatch: (action: unknown) => unknown; queryFulfilled: Promise<{ data: AuthData }> }
-): Promise<void> {
-  return queryFulfilled
-    .then(({ data }) => {
-      setSession(data.session)
-      dispatch(sessionEstablished(data.user))
-    })
-    // A failed mutation is surfaced to the caller through the mutation's own
-    // result/unwrap(); swallowing it here only prevents an unhandled
-    // rejection from this side-channel promise.
-    .catch(() => {})
+  setSession(session)
+  // If the cookie can't be stored, this tab still works; only a reload would
+  // sign the learner out.
+  if (data.refreshToken) await storeRefreshToken(data.refreshToken, data.refreshExpiresIn)
+  const user = data.user ?? ({} as User)
+  api.dispatch(sessionEstablished(user))
+  return { data: { user } }
 }
 
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: apiBaseQuery,
-  tagTypes: ["Me", "Preferences", "LearningProfile", "OnboardingStatus", "Roadmap"],
+  tagTypes: ["Me", "Preferences", "LearningProfile", "OnboardingStatus", "Roadmap", "ActiveRoadmap", "Task"],
   endpoints: (build) => ({
     register: build.mutation<AuthData, RegisterArg>({
-      query: (body) => ({
-        url: "/auth/register",
-        method: "POST",
-        body: {
-          name: body.name,
-          email: body.email,
-          password: body.password,
-          password_confirmation: body.passwordConfirmation,
-        },
-      }),
-      transformResponse: (data: unknown) => toAuthData(data as Parameters<typeof toAuthData>[0]),
-      onQueryStarted: authPersistHandler as unknown as OnStartedHandler,
+      queryFn: (body, api, extraOptions) =>
+        establishSession(
+          {
+            url: "/auth/register",
+            method: "POST",
+            body: {
+              name: body.name,
+              email: body.email,
+              password: body.password,
+              password_confirmation: body.passwordConfirmation,
+            },
+          },
+          api,
+          extraOptions
+        ),
     }),
 
     login: build.mutation<AuthData, LoginArg>({
-      query: (body) => ({
-        url: "/auth/login",
-        method: "POST",
-        body,
-      }),
-      transformResponse: (data: unknown) => toAuthData(data as Parameters<typeof toAuthData>[0]),
-      onQueryStarted: authPersistHandler as unknown as OnStartedHandler,
+      queryFn: (body, api, extraOptions) =>
+        establishSession({ url: "/auth/login", method: "POST", body }, api, extraOptions),
     }),
 
-    logout: build.mutation<void, void>({
-      query: () => ({
-        url: "/auth/logout",
-        method: "POST",
-        body: { refresh_token: getSession()?.refreshToken ?? null },
-      }),
-      onQueryStarted: async (
-        _arg: void,
-        { dispatch, queryFulfilled }: {
-          dispatch: (action: unknown) => unknown
-          queryFulfilled: Promise<unknown>
-        }
-      ) => {
-        // FR-006: clear local session state before awaiting the response, and
-        // again on failure — never conditional on network success.
+    logout: build.mutation<null, void>({
+      queryFn: async (_arg, api) => {
+        // The bearer is captured before the local session is cleared: the
+        // backend needs it (plus the cookie's refresh token) to revoke the
+        // session (contract §9).
+        const current = getSession()
+        // FR-006 / contract §3 rule 7: local sign-out never waits on the network.
         clearSession()
-        dispatch(clearLocalSession())
-        try {
-          await queryFulfilled
-        } catch {
-          dispatch(clearLocalSession())
-        } finally {
-          dispatch(apiSlice.util.resetApiState())
-        }
+        api.dispatch(clearLocalSession())
+        // The route revokes on the backend and clears the cookie even if that fails.
+        await endSession(current)
+        // RTK Query needs a defined `data`, hence null.
+        return { data: null }
+      },
+      // Drop every cached server response once the call has settled —
+      // resetting inside queryFn would abort this very mutation.
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+        await queryFulfilled.catch(() => undefined)
+        dispatch(apiSlice.util.resetApiState())
       },
     }),
 
@@ -276,6 +269,79 @@ export const apiSlice = createApi({
       providesTags: ["Roadmap"],
       transformResponse: (data: unknown) => data as Roadmap,
     }),
+
+    /**
+     * The learner's roadmap that owns the active slot (contract §17). "No active
+     * roadmap" (404 active_roadmap_not_found) is a valid empty state, not a
+     * failure — including after a roadmap is completed, which clears the slot.
+     */
+    getActiveRoadmap: build.query<Roadmap | null, void>({
+      queryFn: async (arg, api, extraOptions) => {
+        const result = await apiBaseQuery("/me/active-roadmap", api, extraOptions)
+        if (!result.error) {
+          return { data: result.data as Roadmap }
+        }
+        if (result.error.code === "active_roadmap_not_found") {
+          return { data: null }
+        }
+        return { error: result.error }
+      },
+      providesTags: ["ActiveRoadmap"],
+    }),
+
+    /**
+     * Makes a ready/active roadmap the active one (contract §18). Idempotent on
+     * the server; 409 roadmap_activation_conflict for other states. No UI uses
+     * it yet.
+     */
+    activateRoadmap: build.mutation<Roadmap, string>({
+      query: (id) => ({ url: `/roadmaps/${id}/activate`, method: "POST", body: {} }),
+      transformResponse: (data: unknown) => data as Roadmap,
+      onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(apiSlice.util.upsertQueryData("getRoadmap", data.id, data))
+          dispatch(apiSlice.util.upsertQueryData("getActiveRoadmap", undefined, data))
+        } catch {
+          // Surfaced to the caller through the mutation result.
+        }
+      },
+    }),
+
+    /** Task detail incl. the server's `canComplete` (contract §19). No UI uses it yet. */
+    getTask: build.query<TaskDetail, string>({
+      query: (id) => `/tasks/${id}`,
+      providesTags: (_result, _error, id) => [{ type: "Task", id }],
+      transformResponse: (data: unknown) => data as TaskDetail,
+    }),
+
+    /**
+     * Completes a task (contract §20). The server owns every state change and
+     * returns the updated complete roadmap, which replaces the cached copy —
+     * nothing is changed locally before the server confirms. Repeating a
+     * successful completion is idempotent server-side; like every mutation here
+     * it is never auto-retried.
+     */
+    completeTask: build.mutation<Roadmap, string>({
+      query: (taskId) => ({ url: `/tasks/${taskId}/complete`, method: "POST", body: {} }),
+      transformResponse: (data: unknown) => data as Roadmap,
+      invalidatesTags: (_result, _error, taskId) => [{ type: "Task", id: taskId }],
+      onQueryStarted: async (_taskId, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(apiSlice.util.upsertQueryData("getRoadmap", data.id, data))
+          // A completed roadmap loses the active slot (§17), so the active
+          // query must be re-asked rather than handed the completed tree.
+          if (data.status === "completed") {
+            dispatch(apiSlice.util.invalidateTags(["ActiveRoadmap"]))
+          } else {
+            dispatch(apiSlice.util.upsertQueryData("getActiveRoadmap", undefined, data))
+          }
+        } catch {
+          // Surfaced to the caller through the mutation result.
+        }
+      },
+    }),
   }),
 })
 
@@ -293,4 +359,8 @@ export const {
   useGetGenerationStatusQuery,
   useLazyGetGenerationStatusQuery,
   useGetRoadmapQuery,
+  useGetActiveRoadmapQuery,
+  useActivateRoadmapMutation,
+  useGetTaskQuery,
+  useCompleteTaskMutation,
 } = apiSlice

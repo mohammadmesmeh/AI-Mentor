@@ -1,4 +1,6 @@
 import type {
+  Progress,
+  Roadmap,
   RoadmapStage,
   RoadmapTask,
   RoadmapVersion,
@@ -80,11 +82,17 @@ export function focusTasks(stages: RoadmapStage[], limit = 3): CurrentTaskRef[] 
   return refs.slice(0, limit)
 }
 
-/** FR-009: counts exclude `replaced` tasks; skipped tasks count toward the total, not as completed. */
-export function roadmapProgress(stages: RoadmapStage[]): RoadmapProgress {
+/**
+ * FR-009. When the roadmap carries the server's `progress` (contract §16 —
+ * required tasks only, floored percentage) those figures are used as-is: the
+ * server owns progress. The local count (all tasks except `replaced`; skipped
+ * counts toward the total, not as completed) is only a fallback for a payload
+ * without it.
+ */
+export function roadmapProgress(stages: RoadmapStage[], server?: Progress): RoadmapProgress {
   const counted = stages.flatMap((s) => s.tasks).filter((t) => t.status !== "replaced")
-  const completedTasks = counted.filter((t) => t.status === "completed").length
-  const countedTasks = counted.length
+  const completedTasks = server ? server.completedTasks : counted.filter((t) => t.status === "completed").length
+  const countedTasks = server ? server.totalTasks : counted.length
 
   const activeIndex = stages.findIndex((s) => s.status === "active")
   const openIndex = stages.findIndex((s) => s.status !== "completed")
@@ -96,9 +104,27 @@ export function roadmapProgress(stages: RoadmapStage[]): RoadmapProgress {
     stageCount: stages.length,
     completedTasks,
     countedTasks,
-    percent: countedTasks === 0 ? 0 : Math.floor((completedTasks / countedTasks) * 100),
-    allCompleted:
-      countedTasks > 0 && counted.every((t) => t.status === "completed" || t.status === "skipped"),
+    percent: server ? server.percentage : countedTasks === 0 ? 0 : Math.floor((completedTasks / countedTasks) * 100),
+    allCompleted: server
+      ? server.totalTasks > 0 && server.completedTasks >= server.totalTasks
+      : countedTasks > 0 && counted.every((t) => t.status === "completed" || t.status === "skipped"),
     stageStatuses: stages.map(({ id, title, status }) => ({ id, title, status })),
   }
+}
+
+/**
+ * Contract §19/§20 `can_complete`, derived from the roadmap tree the dashboard
+ * already holds: the roadmap is active (the active status and the active slot
+ * go together, §18), the task is `available` or `current`, and every task it
+ * depends on is completed. The server re-checks and answers 409
+ * task_completion_conflict otherwise, so this only decides whether to offer
+ * the action.
+ */
+export function canCompleteTask(roadmap: Roadmap, task: RoadmapTask): boolean {
+  if (roadmap.status !== "active") return false
+  if (task.status !== "available" && task.status !== "current") return false
+  const completed = new Set(
+    (roadmap.currentVersion?.stages ?? []).flatMap((s) => s.tasks).filter((t) => t.status === "completed").map((t) => t.id)
+  )
+  return task.dependsOnTaskIds.every((id) => completed.has(id))
 }

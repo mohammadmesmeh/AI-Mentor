@@ -43,14 +43,21 @@ function categoryFromCode(code: string): ApiErrorCategory {
     case "learning_profile_not_found":
     case "roadmap_generation_request_not_found":
     case "roadmap_not_found":
+    case "active_roadmap_not_found":
+    case "task_not_found":
       return "not_found"
     case "onboarding_incomplete":
     case "roadmap_generation_in_progress":
+    case "roadmap_activation_conflict":
+    case "task_completion_conflict":
       return "conflict"
     case "too_many_requests":
       return "rate_limited"
     case "authentication_service_unavailable":
+    // Our own session route (src/app/api/session) could not reach the backend.
+    case "session_upstream_unavailable":
       return "unavailable"
+    case "internal_error":
     default:
       return "unexpected"
   }
@@ -106,9 +113,35 @@ export function toApiError(
   }
 }
 
+function isApiError(value: unknown): value is ApiError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as ApiError).code === "string" &&
+    typeof (value as ApiError).category === "string"
+  )
+}
+
+/**
+ * Normalizes anything a failed call can throw. RTK Query's `unwrap()` rejects
+ * with the ApiError the base query already built — handing that to
+ * `toApiError()` (which expects a raw server body) loses the code and always
+ * yields `internal_error`. Use this in every `catch` around `unwrap()`.
+ */
+export function asApiError(error: unknown): ApiError {
+  if (isApiError(error)) return error
+  // A FetchBaseQueryError-shaped value ({ status, data }) from a raw fetchBaseQuery.
+  if (typeof error === "object" && error !== null && "status" in error) {
+    const { status, data, error: message } = error as { status: unknown; data?: unknown; error?: unknown }
+    const code = typeof status === "number" || typeof status === "string" ? status : undefined
+    return toApiError(data ?? message, undefined, code)
+  }
+  return toApiError(error)
+}
+
 /**
  * Recognized roadmap-generation failure codes → friendly explanation keys.
- * The list is small because the current backend ships only these two values;
+ * The contract (§15) lists exactly these three public values;
  * anything unrecognized falls back to "generationFailedGeneric" (FR-023).
  */
 export function generationFailureKey(failureCode: string | null): string {
@@ -117,6 +150,8 @@ export function generationFailureKey(failureCode: string | null): string {
       return "generationFailedValidation"
     case "roadmap_generation_failed":
       return "generationFailedInternal"
+    case "roadmap_provider_failed":
+      return "generationFailedProvider"
     default:
       return "generationFailedGeneric"
   }

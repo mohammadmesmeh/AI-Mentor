@@ -69,8 +69,6 @@ describe("sign-out clears local state immediately (FR-006)", () => {
       tokenType: "Bearer",
       accessToken: "access",
       expiresAt: Date.now() + 900000,
-      refreshToken: "refresh",
-      refreshExpiresAt: Date.now() + 2592000000,
     })
 
     store.dispatch(sessionEstablished(TEST_USER))

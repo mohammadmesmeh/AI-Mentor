@@ -11,22 +11,47 @@ import type { GenerationPhase } from "../hooks/useRoadmapGenerationPolling"
  * The single place that decides which dashboard screen to render (spec 007
  * data-model "Resolution order"). Pure so every rule is unit-testable.
  *
+ * Which roadmap: a request started in this session wins; otherwise a roadmap
+ * pinned in this session (after a task completion returned it — a completed
+ * roadmap leaves the active slot, contract §17); otherwise the server's active
+ * roadmap from `GET /me/active-roadmap`, which is how a reload or a new sign-in
+ * finds the learner's roadmap again (spec 007 gate G-1).
+ *
  * Invariant (FR-002): `start` is only reachable when the server reported no
- * request or a cancelled one — a failed load always resolves to `load-error`.
+ * active roadmap or a cancelled request — a failed load always resolves to
+ * `load-error`. That includes the onboarding-status gate: a failed gate check is
+ * an error state with a retry, never a fall-through to the generation screen.
+ *
+ * A roadmap the learner works on must be the active one (contract §18, §20): a
+ * `ready` roadmap is shown as `activating` while it is activated automatically,
+ * or as `activation-failed` with a retry — never as the workspace.
+ *
+ * An authentication failure is never reported as a generation failure.
  */
 
+/** Why POST /roadmap-generation-requests was refused, for the message shown. */
+export type StartErrorReason = "rate_limited" | "unavailable" | "generic"
+
 export type DashboardView =
+  | { view: "signed-out" }
   | { view: "loading" }
   | { view: "onboarding-incomplete"; missingFields: MissingField[] }
   | { view: "start" }
-  | { view: "start-error" }
+  | { view: "start-error"; reason: StartErrorReason }
   | { view: "generating" }
   | { view: "timed-out" }
   | { view: "failed"; failureCode: string | null }
   | { view: "roadmap-not-ready" }
   | { view: "roadmap-inactive" }
+  | { view: "activating" }
+  | { view: "activation-failed"; conflict: boolean }
   | { view: "ready"; roadmap: Roadmap }
   | { view: "load-error" }
+
+export interface ActivationState {
+  phase: "idle" | "activating" | "failed"
+  error: ApiError | null
+}
 
 interface QueryState<T> {
   isLoading: boolean
@@ -35,30 +60,36 @@ interface QueryState<T> {
 }
 
 export interface DashboardViewInput {
-  onboarding: { isLoading: boolean; data: OnboardingStatus | undefined }
+  /**
+   * Whether a session exists. After a reload it is restored from the session
+   * route's cookie; until then `restoring` is true.
+   */
+  authenticated: boolean
+  /** The cookie session is still being checked on app load (SessionRestorer). */
+  restoring: boolean
+  onboarding: QueryState<OnboardingStatus>
 
   startError: ApiError | null
-  /** Set once the learner clicks Generate in this session; takes precedence over `latest`. */
+  /** POST /roadmap-generation-requests is in flight (it takes ~20s on Render). */
+  requesting: boolean
+  /** Set once generation starts in this session; takes precedence over `active`. */
   sessionRequestId: string | null
   polling: { phase: GenerationPhase; request: RoadmapGenerationRequest | null }
-  latest: QueryState<RoadmapGenerationRequest | null>
+  /** Automatic activation of a `ready` roadmap (contract §18). */
+  activation: ActivationState
+  /** A roadmap id pinned in this session; `roadmap` then holds that roadmap. */
+  pinnedRoadmap: boolean
+  /** `GET /me/active-roadmap`: the roadmap, or null when none is active. */
+  active: QueryState<Roadmap | null>
+  /** The roadmap fetched by id (in-session generation result or pinned id). */
   roadmap: QueryState<Roadmap>
 }
 
-const ACTIVE_REQUEST_STATUSES = new Set(["queued", "running", "validating"])
-
-export function isActiveRequest(request: RoadmapGenerationRequest | null | undefined): boolean {
-  return !!request && ACTIVE_REQUEST_STATUSES.has(request.status)
-}
-
-function fromPolling(
-  phase: GenerationPhase,
-  request: RoadmapGenerationRequest | null,
-  roadmap: DashboardViewInput["roadmap"]
-): DashboardView {
+function fromPolling(input: DashboardViewInput): DashboardView {
+  const { phase, request } = input.polling
   switch (phase) {
     case "ready":
-      return fromRoadmap(roadmap)
+      return fromRoadmap(input.roadmap, input.activation)
     case "failed":
       return { view: "failed", failureCode: request?.failureCode ?? null }
     case "cancelled":
@@ -72,7 +103,10 @@ function fromPolling(
   }
 }
 
-function fromRoadmap({ isLoading, isError, data }: DashboardViewInput["roadmap"]): DashboardView {
+function fromRoadmap(
+  { isLoading, isError, data }: DashboardViewInput["roadmap"],
+  activation: ActivationState
+): DashboardView {
   if (isError) return { view: "load-error" }
   if (isLoading || !data) return { view: "loading" }
   switch (data.status) {
@@ -84,30 +118,45 @@ function fromRoadmap({ isLoading, isError, data }: DashboardViewInput["roadmap"]
     case "archived":
     case "failed":
       return { view: "roadmap-inactive" }
+    case "ready":
+      return activation.phase === "failed"
+        ? { view: "activation-failed", conflict: activation.error?.code === "roadmap_activation_conflict" }
+        : { view: "activating" }
   }
   if (!data.currentVersion) return { view: "roadmap-not-ready" }
   return { view: "ready", roadmap: data }
 }
 
-export function resolveDashboardView(input: DashboardViewInput): DashboardView {
-  const { onboarding, startError, sessionRequestId, polling, latest, roadmap } = input
+function fromStartError(error: ApiError, onboarding: OnboardingStatus): DashboardView {
+  if (error.category === "access_denied") return { view: "signed-out" }
+  if (error.code === "onboarding_incomplete") {
+    const fields = (error.details as { missing_fields?: MissingField[] } | undefined)?.missing_fields
+    return { view: "onboarding-incomplete", missingFields: fields ?? onboarding.missingFields }
+  }
+  if (error.category === "rate_limited") return { view: "start-error", reason: "rate_limited" }
+  if (error.category === "unavailable") return { view: "start-error", reason: "unavailable" }
+  return { view: "start-error", reason: "generic" }
+}
 
-  if (onboarding.isLoading) return { view: "loading" }
-  if (onboarding.data && !onboarding.data.completed) {
+export function resolveDashboardView(input: DashboardViewInput): DashboardView {
+  const { authenticated, onboarding, startError, requesting, sessionRequestId, pinnedRoadmap, active, roadmap } = input
+
+  if (input.restoring) return { view: "loading" }
+  if (!authenticated) return { view: "signed-out" }
+  if (onboarding.isError) return { view: "load-error" }
+  if (onboarding.isLoading || !onboarding.data) return { view: "loading" }
+  if (!onboarding.data.completed) {
     return { view: "onboarding-incomplete", missingFields: onboarding.data.missingFields }
   }
-  if (startError) return { view: "start-error" }
+  if (startError) return fromStartError(startError, onboarding.data)
+  if (requesting) return { view: "generating" }
 
-  if (sessionRequestId) {
-    return fromPolling(polling.phase, polling.request, roadmap)
-  }
+  if (sessionRequestId) return fromPolling(input)
 
-  if (latest.isError) return { view: "load-error" }
-  if (latest.isLoading || latest.data === undefined) return { view: "loading" }
+  if (pinnedRoadmap) return fromRoadmap(roadmap, input.activation)
 
-  const request = latest.data
-  if (!request || request.status === "cancelled") return { view: "start" }
-  if (isActiveRequest(request)) return fromPolling(polling.phase, polling.request, roadmap)
-  if (request.status === "failed") return { view: "failed", failureCode: request.failureCode }
-  return fromRoadmap(roadmap)
+  if (active.isError) return { view: "load-error" }
+  if (active.isLoading || active.data === undefined) return { view: "loading" }
+  if (active.data === null) return { view: "start" }
+  return fromRoadmap({ isLoading: false, isError: false, data: active.data }, input.activation)
 }

@@ -12,7 +12,7 @@ import type { RootState } from "@/redux/store"
 import type { AuthViewMode } from "../../types/auth.types"
 
 function AuthPage() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated, restoring } = useSelector((state: RootState) => state.auth)
   const t = useTranslations("footer")
   // Lifted out of AuthForm so the brand panel can vary its copy with the
   // view too, instead of always showing the sign-in marketing content.
@@ -20,6 +20,11 @@ function AuthPage() {
 
   if (isAuthenticated) {
     return <SessionRouter />
+  }
+  // A reload may still have a cookie session being restored: don't offer the
+  // form yet — an established session routes onward instead.
+  if (restoring) {
+    return <div className="flex-1" aria-busy="true" />
   }
 
   return (

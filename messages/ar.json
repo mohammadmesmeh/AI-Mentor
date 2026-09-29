@@ -116,7 +116,7 @@
     "welcomeTitle": "أهلًا بعودتك",
     "yourRoadmap": "مسار تعلمك",
     "roadmapGenerationTitle": "أنشئ مسار تعلمك",
-    "roadmapGenerationDescription": "أجب عن بضعة أسئلة سريعة حول أهدافك وخبرتك وجدولك الزمني، وسيحوّل AI Mentor إجاباتك إلى مسار تعلم مخصص.",
+    "roadmapGenerationDescription": "اكتمل ملفك التعليمي. سيحوّله AI Mentor إلى مسار تعلّم مخصص لك.",
     "generateRoadmap": "أنشئ مساري",
     "generationStarting": "جارٍ البدء...",
     "generationInProgress": "نبني الآن مسار تعلمك المخصص. قد يستغرق ذلك لحظة.",
@@ -124,7 +124,6 @@
     "pollingTimedOut": "يستغرق إنشاء مسارك وقتًا أطول قليلًا من المتوقع. تحقّق مرة أخرى بعد قليل.",
     "retryGeneration": "أعد المحاولة",
     "backToOnboarding": "أكمل ملفك الشخصي",
-    "generationCancelled": "تم إلغاء إنشاء مسار التعلم",
     "stageCompleted": "مكتملة",
     "stageActive": "قيد التنفيذ",
     "stageUpcoming": "قادمة",
@@ -133,7 +132,7 @@
     "taskUpcoming": "قادمة",
     "taskComplete": "وضع علامة كمكتملة",
     "taskSkip": "تخطٍّ",
-    "taskResources": "مصادر",
+    "taskResources": "{count, plural, zero {لا مصادر} one {مصدر واحد} two {مصدران} few {# مصادر} many {# مصدرًا} other {# مصدر}}",
     "taskType": {
       "read": "قراءة",
       "watch": "فيديو",
@@ -160,7 +159,6 @@
     "tasksCompletedOfTotal": "أُنجزت {done} من {total} مهام",
     "progressBarLabel": "نسبة إنجاز المسار",
     "taskMinutes": "{count, plural, zero {# دقيقة} one {دقيقة واحدة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
-    "taskActionUnavailable": "متاح قريبًا",
     "resourceOpensNewTab": "(يُفتح في علامة تبويب جديدة)",
     "resourceLinkUnavailable": "الرابط غير متاح",
     "roadmapNotReadyTitle": "جارٍ تجهيز مسار تعلمك",
@@ -169,7 +167,27 @@
     "roadmapInactiveDescription": "أنشئ مسار تعلم جديدًا لتواصل التعلم.",
     "dashboardLoadErrorTitle": "تعذّر تحميل لوحة التحكم",
     "dashboardLoadErrorDescription": "غالبًا ما يكون هذا مؤقتًا. يرجى المحاولة مرة أخرى.",
-    "retryLoad": "أعد المحاولة"
+    "retryLoad": "أعد المحاولة",
+    "signedOutTitle": "سجّل الدخول للمتابعة",
+    "signedOutDescription": "جلستك غير نشطة في هذه الصفحة. سجّل الدخول مرة أخرى لفتح لوحة التحكم.",
+    "signInAgain": "تسجيل الدخول",
+    "generationFailedProvider": "تعذّر على خدمة الذكاء الاصطناعي إنشاء مسار تعلمك هذه المرة. يرجى المحاولة مرة أخرى.",
+    "taskCompleting": "جارٍ الإكمال…",
+    "taskCompleteConflict": "لا يمكن إكمال هذه المهمة بعد. تم تحديث مسار تعلمك.",
+    "taskCompleteFailed": "تعذّر تحديد هذه المهمة كمكتملة. يرجى المحاولة مرة أخرى.",
+    "taskCompleteLocked": "أكمل المهام التي تعتمد عليها هذه المهمة أولًا.",
+    "taskCompleteNeedsActive": "يمكن تحديث مسار تعلمك النشط فقط.",
+    "taskSkipUnavailable": "التخطي سيتوفر قريبًا.",
+    "taskCompletedAnnouncement": "تم تحديد المهمة كمكتملة.",
+    "generatingTitle": "نُنشئ مسار تعلّمك المخصص",
+    "startErrorRateLimited": "محاولات كثيرة خلال وقت قصير. انتظر دقيقة ثم حاول مرة أخرى.",
+    "startErrorUnavailable": "الخدمة غير متاحة مؤقتًا. حاول مرة أخرى بعد قليل.",
+    "activatingTitle": "نجهّز مسار تعلّمك",
+    "activatingDescription": "مسارك جاهز، ونفتحه لك الآن…",
+    "activationFailedTitle": "تعذّر فتح مسار تعلّمك",
+    "activationFailedDescription": "أُنشئ مسارك لكن تعذّر جعله مسارك النشط. حاول مرة أخرى.",
+    "activationConflictDescription": "تغيّرت حالة مسارك أثناء فتحه. حاول مرة أخرى للتحقق منه.",
+    "retryActivation": "حاول مرة أخرى"
   },
   "features": {
     "aiAnswers": {
@@ -398,7 +416,9 @@
     "missingFieldsLabel": "لا يزال ناقصًا:",
     "onboardingIncompleteTitle": "لا تزال بعض التفاصيل ناقصة",
     "onboardingIncompleteDescription": "أكمل هذه التفاصيل لإنشاء مسار تعلمك المخصص:",
-    "video": "فيديو"
+    "video": "فيديو",
+    "loadingProfile": "جارٍ تحميل بياناتك…",
+    "submitSessionExpired": "انتهت جلستك. سجّل الدخول مجددًا ثم أرسل إجاباتك."
   },
   "pricing": {
     "badge": "الخطط",

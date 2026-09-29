@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom/vitest"
-import { describe, expect, it } from "vitest"
-import { cleanup, render, screen } from "@testing-library/react"
+import { describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { IntlWrapper } from "@tests/helpers/intl"
-import { RoadmapView } from "@/features/dashboard/components/RoadmapView"
+import { RoadmapView, type TaskCompletion } from "@/features/dashboard/components/RoadmapView"
 import type { Roadmap } from "@/lib/api/types"
 import enMessages from "../../../messages/en.json"
 import arMessages from "../../../messages/ar.json"
@@ -134,14 +134,19 @@ describe("roadmap view (FR-017)", () => {
 })
 describe("roadmap view — spec 007", () => {
   const LOCALES = [
-    { locale: "en", messages: enMessages, linkUnavailable: "Link unavailable", soon: "Available soon" },
-    { locale: "ar", messages: arMessages, linkUnavailable: "الرابط غير متاح", soon: "متاح قريبًا" },
+    { locale: "en", messages: enMessages, linkUnavailable: "Link unavailable", skipSoon: "Skipping is coming soon." },
+    { locale: "ar", messages: arMessages, linkUnavailable: "الرابط غير متاح", skipSoon: "التخطي سيتوفر قريبًا." },
   ] as const
 
-  function renderIn(locale: string, messages: Record<string, unknown>, roadmap: Roadmap) {
+  function renderIn(
+    locale: string,
+    messages: Record<string, unknown>,
+    roadmap: Roadmap,
+    completion?: TaskCompletion
+  ) {
     return render(
       <IntlWrapper locale={locale} messages={messages}>
-        <RoadmapView roadmap={roadmap} />
+        <RoadmapView roadmap={roadmap} completion={completion} />
       </IntlWrapper>
     )
   }
@@ -175,7 +180,7 @@ describe("roadmap view — spec 007", () => {
     }),
   ])
 
-  for (const { locale, messages, linkUnavailable, soon } of LOCALES) {
+  for (const { locale, messages, linkUnavailable, skipSoon } of LOCALES) {
     describe(locale, () => {
       it("has no h1 and titles the section with the goal as h2#roadmap-heading", () => {
         const { container } = renderIn(locale, messages, roadmap)
@@ -189,7 +194,7 @@ describe("roadmap view — spec 007", () => {
           "First stage",
           "Second stage",
         ])
-        const anchors = [...container.querySelectorAll("[id^='task-']:not([id$='-actions-note'])")]
+        const anchors = [...container.querySelectorAll("[id^='task-']:not([id$='-note'])")]
         expect(anchors.map((el) => el.id)).toEqual(["task-t1", "task-t2", "task-t3"])
         expect(anchors[0]).toHaveAttribute("tabindex", "-1")
       })
@@ -206,18 +211,77 @@ describe("roadmap view — spec 007", () => {
         expect(screen.getByText(`(${linkUnavailable})`)).toBeInTheDocument()
       })
 
-      it("keeps complete/skip disabled and describes why", () => {
+      it("keeps Skip disabled (no endpoint) and says so", () => {
         renderIn(locale, messages, roadmap)
-        const buttons = screen.getAllByRole("button")
-        expect(buttons).toHaveLength(4) // 2 actionable tasks × (complete + skip)
-        for (const button of buttons) {
+        const skips = screen.getAllByRole("button", { name: messages.dashboard.taskSkip })
+        expect(skips).toHaveLength(2) // 2 actionable tasks
+        for (const button of skips) {
           expect(button).toBeDisabled()
           const noteId = button.getAttribute("aria-describedby")
-          expect(noteId && document.getElementById(noteId)?.textContent).toBe(soon)
+          expect(noteId && document.getElementById(noteId)?.textContent).toBe(skipSoon)
         }
       })
     })
   }
+
+  describe("Mark complete (contract §20)", () => {
+    const t = enMessages.dashboard
+    const task = (id: string, overrides = {}) => makeTask({ id, title: id, position: 1, ...overrides })
+    const tree = (status: Roadmap["status"], tasks: ReturnType<typeof makeTask>[]) =>
+      makeRoadmap({ status }, [makeStage({ id: "s1", status: "active", tasks })])
+    const idle = (onComplete = vi.fn()): TaskCompletion => ({ pendingTaskId: null, error: null, onComplete })
+    const completeButton = () => screen.getByRole("button", { name: t.taskComplete })
+
+    it("is enabled for an eligible task in the active roadmap and calls onComplete with its id", () => {
+      const onComplete = vi.fn()
+      renderIn("en", enMessages, tree("active", [task("t1", { status: "available" })]), idle(onComplete))
+      expect(completeButton()).toBeEnabled()
+      fireEvent.click(completeButton())
+      expect(onComplete).toHaveBeenCalledWith("t1")
+    })
+
+    it("is disabled until the tasks it depends on are completed, and says why", () => {
+      renderIn(
+        "en",
+        enMessages,
+        tree("active", [
+          task("dep", { status: "upcoming", position: 1 }),
+          task("t2", { status: "available", position: 2, dependsOnTaskIds: ["dep"] }),
+        ]),
+        idle()
+      )
+      expect(completeButton()).toBeDisabled()
+      expect(screen.getByText(t.taskCompleteLocked)).toBeInTheDocument()
+    })
+
+    it("is disabled when the roadmap is not the active one, and says why", () => {
+      renderIn("en", enMessages, tree("ready", [task("t1", { status: "available" })]), idle())
+      expect(completeButton()).toBeDisabled()
+      expect(screen.getByText(t.taskCompleteNeedsActive)).toBeInTheDocument()
+    })
+
+    it("shows a pending label and blocks a second click while the request runs", () => {
+      const onComplete = vi.fn()
+      renderIn("en", enMessages, tree("active", [task("t1", { status: "available" })]), {
+        pendingTaskId: "t1",
+        error: null,
+        onComplete,
+      })
+      const button = screen.getByRole("button", { name: t.taskCompleting })
+      expect(button).toBeDisabled()
+      fireEvent.click(button)
+      expect(onComplete).not.toHaveBeenCalled()
+    })
+
+    it("announces a 409 conflict on that task as an alert", () => {
+      renderIn("en", enMessages, tree("active", [task("t1", { status: "available" })]), {
+        pendingTaskId: null,
+        error: { taskId: "t1", kind: "conflict" },
+        onComplete: vi.fn(),
+      })
+      expect(screen.getByRole("alert")).toHaveTextContent(t.taskCompleteConflict)
+    })
+  })
 
   it("formats durations through the plural message", () => {
     renderIn("en", enMessages, roadmap)

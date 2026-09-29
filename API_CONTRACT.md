@@ -1,21 +1,24 @@
-# AI Mentor Backend API Contract
+# Masar / AI Mentor Backend API Contract
 
-This is the frontend integration contract for the API currently implemented in
-`Backend/`. It documents current behavior only; planned endpoints are listed as
-gaps at the end.
+This is the canonical frontend integration contract for the API implemented in
+this repository. It documents current behavior only. If this document and the
+running API disagree, the running API is authoritative and this file must be
+updated in the same change.
 
 ## 1. Connection
 
 | Environment | Base URL |
 | --- | --- |
 | Local | `http://localhost:8000/api/v1` |
-| Production | Not assigned yet |
+| Production | `https://masar-startup.onrender.com/api/v1` |
 
 Recommended frontend variable:
 
 ```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_BASE_URL=https://masar-startup.onrender.com/api/v1
 ```
+
+Do not append another `/api/v1`, and avoid a trailing slash.
 
 Every request should send:
 
@@ -72,7 +75,8 @@ Error responses use:
 `error.code`; keep `meta.request_id` for support and diagnostics. Do not build
 UI behavior by matching the English `message` text.
 
-Every response includes:
+The server generates a new ULID for every request. Client-supplied
+`X-Request-ID` values are not adopted. Every response includes:
 
 ```http
 X-Request-ID: 01...
@@ -92,6 +96,12 @@ IDs are ULID strings. Dates are ISO-8601 UTC strings or `null`.
 | `429` | `too_many_requests` | Disable retry temporarily; honor `Retry-After` if present. |
 | `503` | `authentication_service_unavailable` | Show a temporary-service error; do not clear tokens immediately. |
 | `500` | `internal_error` | Show a generic retry state and retain `request_id`. |
+
+Endpoint-specific codes currently include `user_preferences_not_found`,
+`learning_profile_not_found`, `roadmap_generation_request_not_found`,
+`roadmap_not_found`, `active_roadmap_not_found`, `task_not_found`,
+`onboarding_incomplete`, `roadmap_generation_in_progress`,
+`roadmap_activation_conflict`, and `task_completion_conflict`.
 
 ## 3. Authentication and token handling
 
@@ -156,9 +166,13 @@ Token responses include `Cache-Control: no-store` and `Pragma: no-cache`.
 | `GET` | `/me/learning-profile` | Bearer | `200` |
 | `PUT` | `/me/learning-profile` | Bearer | `201` first time, then `200` |
 | `GET` | `/me/onboarding-status` | Bearer | `200` |
+| `GET` | `/me/active-roadmap` | Bearer | `200` |
 | `POST` | `/roadmap-generation-requests` | Bearer + idempotency | `202` or replay `200` |
 | `GET` | `/roadmap-generation-requests/{id}` | Bearer | `200` |
 | `GET` | `/roadmaps/{id}` | Bearer | `200` |
+| `POST` | `/roadmaps/{id}/activate` | Bearer | `200` |
+| `GET` | `/tasks/{id}` | Bearer | `200` |
+| `POST` | `/tasks/{id}/complete` | Bearer | `200` |
 
 ## 5. Health
 
@@ -548,8 +562,17 @@ Polling rules:
 6. On `failed`, show a retry action that creates a **new** idempotency key.
 7. On `cancelled`, return to the generation screen.
 
-The currently implemented local generator usually completes quickly, but the
-frontend must preserve the asynchronous contract for a future AI provider.
+Production can use Google Gemini through the Interactions API. The public
+contract remains asynchronous regardless of whether the deployment uses a
+synchronous queue driver. Gemini calls use structured output and `store=false`.
+Only the immutable learning snapshot is submitted; user identity and tokens are
+excluded. Provider/model details and provider response bodies are not public.
+
+Possible public `failure_code` values are `invalid_generated_roadmap`,
+`roadmap_provider_failed`, and `roadmap_generation_failed`. On provider failure,
+create a new request with a new idempotency key. The backend never returns the
+prompt, raw provider response, validated output, snapshot, hashes, provider
+metadata, token counts, or internal failure message.
 
 ## 16. Get roadmap
 
@@ -567,6 +590,12 @@ Representative response:
     "goal": "تعلم Laravel",
     "status": "active",
     "activated_at": "2026-09-10T09:47:00.000000Z",
+    "completed_at": null,
+    "progress": {
+      "completed_tasks": 1,
+      "total_tasks": 9,
+      "percentage": 11
+    },
     "current_version": {
       "id": "01...",
       "version_number": 1,
@@ -580,6 +609,11 @@ Representative response:
           "position": 1,
           "status": "active",
           "estimated_minutes": 120,
+          "progress": {
+            "completed_tasks": 1,
+            "total_tasks": 3,
+            "percentage": 33
+          },
           "tasks": [
             {
               "id": "01...",
@@ -630,7 +664,154 @@ Values currently possible in the response:
 Sort stages, tasks, and resources by `position`; the API already returns them in
 that order, but treating `position` as authoritative is safest.
 
-## 17. Recommended frontend flow
+Progress counts only tasks with `is_required=true`. It is calculated at response
+time and is never accepted from the client. Percentage is the floored integer
+`completed_tasks / total_tasks * 100`; a zero total returns zero percent.
+
+The authenticated user must own the roadmap. Unknown and foreign IDs both
+return `404 roadmap_not_found`.
+
+## 17. Get the active roadmap
+
+### `GET /me/active-roadmap`
+
+Returns `200` with the same complete roadmap resource documented above for the
+authenticated user's roadmap whose `active_slot=1`. If no roadmap is currently
+active, returns `404 active_roadmap_not_found`. A completed roadmap has its
+active slot cleared and is therefore no longer returned here.
+
+## 18. Activate a roadmap
+
+### `POST /roadmaps/{roadmap}/activate`
+
+The authenticated user must own the URL ID. Missing and foreign IDs both return
+`404 roadmap_not_found`. The request supplies no lifecycle state or timestamps.
+
+Only `ready` and `active` roadmaps can be activated. Other states return `409
+roadmap_activation_conflict`. Activation is transactional and:
+
+1. clears the prior roadmap's active slot and changes it to `ready`;
+2. changes the target to `active` and assigns the single active slot;
+3. sets `activated_at` only on first activation;
+4. on first activation, makes the first upcoming stage `active` and its first
+   upcoming task `available`;
+5. preserves existing task/stage progress when reactivating a used roadmap;
+6. is idempotent when the target is already active.
+
+Returns `200` with the complete active roadmap resource.
+
+## 19. Task details
+
+### `GET /tasks/{task}`
+
+The task must belong to the authenticated user through task -> stage -> roadmap
+version -> roadmap. Missing and foreign IDs both return `404 task_not_found`.
+
+```json
+{
+  "data": {
+    "id": "01...",
+    "type": "project",
+    "title": "Build a Laravel API",
+    "instructions": "Implement and test the endpoint.",
+    "position": 2,
+    "status": "available",
+    "is_required": true,
+    "estimated_minutes": 90,
+    "completed_at": null,
+    "can_complete": true,
+    "depends_on_task_ids": ["01..."],
+    "dependencies": [
+      {
+        "id": "01...",
+        "title": "Read routing documentation",
+        "status": "completed"
+      }
+    ],
+    "resources": [
+      {
+        "id": "01...",
+        "title": "Laravel Documentation",
+        "url": "https://laravel.com/docs",
+        "type": "documentation",
+        "position": 1
+      }
+    ],
+    "stage": {
+      "id": "01...",
+      "title": "API Foundations",
+      "position": 1,
+      "status": "active",
+      "progress": {
+        "completed_tasks": 1,
+        "total_tasks": 3,
+        "percentage": 33
+      }
+    },
+    "roadmap": {
+      "id": "01...",
+      "goal": "Learn Laravel",
+      "status": "active",
+      "active": true,
+      "progress": {
+        "completed_tasks": 1,
+        "total_tasks": 9,
+        "percentage": 11
+      }
+    }
+  },
+  "meta": {"request_id": "01..."}
+}
+```
+
+`can_complete=true` only when the roadmap is active and owns the active slot,
+the task status is `available` or `current`, and every dependency is completed.
+The roadmap-summary `active` flag uses the same roadmap status/slot rule.
+
+## 20. Complete a task
+
+### `POST /tasks/{task}/complete`
+
+The endpoint accepts no client status, timestamps, user ID, roadmap ID, or
+progress. `{}` or an empty body may be used. Missing and foreign IDs return `404
+task_not_found`.
+
+A task is eligible when it belongs to the roadmap's current version, its roadmap
+is active and owns the active slot, its status is `available` or `current`, and
+all prerequisites are completed. Otherwise the endpoint returns `409
+task_completion_conflict` without mutation. Repeating a successful completion
+is idempotent and preserves the original `completed_at`.
+
+Completion locks and updates the execution tree transactionally. On first
+completion it:
+
+1. marks the task `completed` and sets `completed_at` once;
+2. unlocks eligible upcoming tasks in active stages;
+3. marks the stage completed after all required tasks are completed;
+4. activates the next upcoming stage by position and unlocks its eligible tasks;
+5. marks the roadmap completed and clears `active_slot` after every required
+   task in the current version is completed.
+
+Optional tasks do not contribute to progress and do not block stage/roadmap
+completion. Returns `200` with the updated complete roadmap resource, not the
+task-detail resource.
+
+## 21. Lifecycle reference
+
+```text
+Generation: queued -> running -> validating -> succeeded
+                         |             +-----> failed
+                         +--------------------> cancelled (internal state only)
+
+Roadmap: ready -> active -> completed
+Stage:   upcoming -> active -> completed
+Task:    upcoming -> available/current -> completed
+```
+
+The schema also recognizes `skip_pending`, `skipped`, and `replaced`, but there
+is no public skip, replace, reopen, or reset endpoint.
+
+## 22. Recommended frontend flow
 
 ```text
 App starts
@@ -645,7 +826,9 @@ Onboarding status
   │    └─ GET then PUT /me/learning-profile
   │         └─ re-fetch /me/onboarding-status
   └─ completed=true
-       └─ enable Generate Roadmap
+       └─ GET /me/active-roadmap
+            ├─ 200 → render active roadmap/progress
+            └─ 404 → enable Generate Roadmap
 
 Generate Roadmap
   ├─ create one idempotency key for the click
@@ -654,7 +837,17 @@ Generate Roadmap
   │    ├─ active → keep polling with backoff
   │    ├─ failed/cancelled → stop and show recovery
   │    └─ succeeded → GET /roadmaps/{roadmap_id}
-  └─ render stages → tasks → dependencies/resources
+  ├─ first roadmap may already be active
+  └─ later ready roadmap → POST /roadmaps/{roadmap_id}/activate
+
+Learn
+  ├─ GET /me/active-roadmap
+  ├─ render ordered stages/tasks and server progress
+  ├─ GET /tasks/{task_id} for a detail page
+  ├─ enable Complete only when can_complete=true
+  ├─ POST /tasks/{task_id}/complete
+  ├─ replace cached roadmap with the returned roadmap
+  └─ continue until roadmap.status=completed
 ```
 
 Suggested client state boundaries:
@@ -663,41 +856,108 @@ Suggested client state boundaries:
   serialized.
 - Onboarding: preferences, learning profile, derived completion status.
 - Roadmap generation: request ID, status, failure code, roadmap ID.
-- Roadmap: current loaded roadmap tree.
+- Roadmap: current loaded tree, active roadmap, and calculated progress.
+- Task details: selected task and completion mutation state.
 
 Do not duplicate server-derived onboarding logic in the frontend. Client-side
 validation improves UX, but `GET /me/onboarding-status` remains authoritative.
 
-## 18. Current API gaps the frontend must account for
+## 23. Current API gaps the frontend must account for
 
 These endpoints do not exist yet:
 
-- Get/list the user's current or historical roadmaps without already knowing an
-  ID.
-- Mark tasks complete, skip tasks, or track progress.
-- Activate a later `ready` roadmap.
+- List historical or ready roadmaps without already knowing an ID.
 - Cancel an active generation request.
+- Reopen/uncomplete, skip, replace, or manually mark a task current.
+- Edit or regenerate an existing roadmap through a public endpoint.
 - Password reset or email verification.
 - Update account name/email/password.
-- AI mentor chat or real external AI generation.
+- AI mentor chat.
+- Evidence uploads, certificates, streaks, analytics, notifications,
+  gamification, and admin APIs.
 
 Consequences for the current frontend:
 
-- Keep the returned generation request ID and roadmap ID in app state while the
-  flow is active.
-- A page reload cannot reliably rediscover an existing roadmap using the
-  current API alone.
-- Render roadmap content read-only; task action controls must stay disabled or
-  hidden until their backend endpoints exist.
+- Keep IDs for ready/historical roadmaps because only the active roadmap can be
+  rediscovered without an ID.
+- Keep unimplemented controls hidden or disabled.
 
-## 19. CORS
+## 24. CORS
 
 For local development the backend must include the frontend origin, normally:
 
 ```env
-CORS_ALLOWED_ORIGINS=http://localhost:3000
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://ai-mentor-pi.vercel.app
 ```
 
 The browser may send `Accept`, `Authorization`, `Content-Type`,
 `Idempotency-Key`, and `X-Request-ID`. Credentials/cookies are disabled.
-Currently only `X-Request-ID` is exposed to browser JavaScript.
+Only `X-Request-ID` is exposed to browser JavaScript. Origins are exact and
+must not contain a trailing slash. Allowed methods are unrestricted, origin
+patterns are empty, and preflight caching uses `max_age=0`.
+
+## 25. Rate limits
+
+| Endpoint | Key | Limit |
+| --- | --- | --- |
+| `POST /auth/register` | IP | 3/minute |
+| `POST /auth/login` | normalized email + IP | 5/minute |
+| `POST /auth/refresh` | IP | 10/minute |
+| `POST /roadmap-generation-requests` | authenticated user ID, fallback IP | 3/minute |
+
+Other implemented endpoints currently have no dedicated named application
+throttle beyond deployment/platform protections.
+
+## 26. Ownership and consistency invariants
+
+- Identity comes only from the verified JWT, never client `user_id` input.
+- Missing and foreign generation requests, roadmaps, and tasks are deliberately
+  indistinguishable.
+- Only one roadmap per user may own `active_slot=1`.
+- Only one generation request per user may be active.
+- Lifecycle states, timestamps, and progress are server-owned.
+- Roadmap activation and task completion are transactional.
+- Generation persistence is atomic across the roadmap tree and request success.
+- Revocation verification fails closed when Redis is unavailable.
+- Production absolute URLs use `APP_URL` plus trusted forwarded protocol and
+  port. Forwarded host is intentionally not trusted.
+
+## 27. Server integration configuration
+
+These settings affect the public integration. Secrets must never be committed:
+
+```env
+APP_URL=https://masar-startup.onrender.com
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://ai-mentor-pi.vercel.app
+JWT_SECRET=<base64-of-at-least-32-random-bytes>
+JWT_ISSUER=ai-mentor-backend
+JWT_AUDIENCE=ai-mentor-clients
+JWT_ACCESS_TTL_MINUTES=15
+JWT_REFRESH_TTL_DAYS=30
+JWT_CLOCK_SKEW_SECONDS=30
+ROADMAP_GENERATOR=gemini
+GEMINI_API_KEY=<secret>
+GEMINI_MODEL=<available-model>
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+GEMINI_TIMEOUT_SECONDS=60
+GEMINI_MAX_OUTPUT_TOKENS=8192
+QUEUE_CONNECTION=sync
+```
+
+`QUEUE_CONNECTION=sync` is suitable for the current Render free prototype. A
+dedicated worker is recommended before production-scale AI traffic. The public
+generation contract stays asynchronous in shape in either deployment mode.
+
+## 28. Contract maintenance checklist
+
+Any change to a route, request field, validation rule, response field, enum,
+status transition, error code, auth rule, rate limit, CORS rule, or ownership
+rule must update this file in the same PR. Before merging:
+
+1. compare the endpoint matrix with `routes/api.php`;
+2. compare inputs with every FormRequest;
+3. compare examples with every JsonResource;
+4. compare errors with `bootstrap/app.php`;
+5. compare transitions with actions and enums;
+6. run focused and full tests, Pint, PHPStan, Composer validation, route-list
+   verification, and `git diff --check`.

@@ -116,7 +116,7 @@
     "welcomeTitle": "Welcome Back",
     "yourRoadmap": "Your Learning Roadmap",
     "roadmapGenerationTitle": "Create Your Learning Roadmap",
-    "roadmapGenerationDescription": "Answer a few quick questions about your goals, experience, and schedule. AI Mentor will turn your answers into a personalized learning path.",
+    "roadmapGenerationDescription": "Your learning profile is complete. AI Mentor will turn it into a personalized learning path.",
     "generateRoadmap": "Create My Roadmap",
     "generationStarting": "Getting started...",
     "generationInProgress": "We're building your personalized roadmap. This may take a moment.",
@@ -124,7 +124,6 @@
     "pollingTimedOut": "Your roadmap is taking a little longer than expected. Check again in a moment.",
     "retryGeneration": "Try Again",
     "backToOnboarding": "Complete Your Profile",
-    "generationCancelled": "Roadmap creation was cancelled",
     "stageCompleted": "Completed",
     "stageActive": "In Progress",
     "stageUpcoming": "Coming Up",
@@ -133,7 +132,7 @@
     "taskUpcoming": "Coming Up",
     "taskComplete": "Mark as Complete",
     "taskSkip": "Skip",
-    "taskResources": "resources",
+    "taskResources": "{count, plural, one {# resource} other {# resources}}",
     "taskType": {
       "read": "Reading",
       "watch": "Video",
@@ -160,7 +159,6 @@
     "tasksCompletedOfTotal": "{done} of {total} tasks completed",
     "progressBarLabel": "Roadmap completion",
     "taskMinutes": "{count, plural, one {# min} other {# min}}",
-    "taskActionUnavailable": "Available soon",
     "resourceOpensNewTab": "(opens in a new tab)",
     "resourceLinkUnavailable": "Link unavailable",
     "roadmapNotReadyTitle": "Your roadmap is being prepared",
@@ -169,7 +167,27 @@
     "roadmapInactiveDescription": "Create a new roadmap to keep learning.",
     "dashboardLoadErrorTitle": "We couldn't load your dashboard",
     "dashboardLoadErrorDescription": "This is usually temporary. Please try again.",
-    "retryLoad": "Try again"
+    "retryLoad": "Try again",
+    "signedOutTitle": "Sign in to continue",
+    "signedOutDescription": "Your session isn't active in this tab. Sign in again to open your dashboard.",
+    "signInAgain": "Sign in",
+    "generationFailedProvider": "The AI service couldn't create your roadmap this time. Please try again.",
+    "taskCompleting": "Completing…",
+    "taskCompleteConflict": "This task can't be completed yet. Your roadmap has been refreshed.",
+    "taskCompleteFailed": "We couldn't mark this task complete. Please try again.",
+    "taskCompleteLocked": "Finish the tasks this one depends on first.",
+    "taskCompleteNeedsActive": "Only your active roadmap can be updated.",
+    "taskSkipUnavailable": "Skipping is coming soon.",
+    "taskCompletedAnnouncement": "Task marked complete.",
+    "generatingTitle": "Creating your personalized roadmap",
+    "startErrorRateLimited": "Too many attempts in a short time. Wait a minute, then try again.",
+    "startErrorUnavailable": "The service is temporarily unavailable. Please try again shortly.",
+    "activatingTitle": "Setting up your roadmap",
+    "activatingDescription": "Your roadmap is ready. We're opening it for you…",
+    "activationFailedTitle": "We couldn't open your roadmap",
+    "activationFailedDescription": "Your roadmap was created, but we couldn't make it your active roadmap. Please try again.",
+    "activationConflictDescription": "Your roadmap changed while we were opening it. Try again to check it.",
+    "retryActivation": "Try again"
   },
   "features": {
     "aiAnswers": {
@@ -398,7 +416,9 @@
     "missingFieldsLabel": "Still needed:",
     "onboardingIncompleteTitle": "A few details are still missing",
     "onboardingIncompleteDescription": "Complete these details to create your personalized roadmap:",
-    "video": "Video"
+    "video": "Video",
+    "loadingProfile": "Loading your details…",
+    "submitSessionExpired": "Your session has ended. Sign in again, then submit your answers."
   },
   "pricing": {
     "badge": "Plans",

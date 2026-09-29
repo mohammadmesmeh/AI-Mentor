@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useT, type TranslateFn } from "@/shared/hooks/useT"
 import type { Resource, Roadmap, RoadmapStage, RoadmapTask, StageStatus, TaskStatus } from "@/lib/api/types"
 import { cn } from "@/lib/utils"
-import { orderedStages } from "../lib/roadmapProgress"
+import { canCompleteTask, orderedStages } from "../lib/roadmapProgress"
 import { safeExternalUrl } from "../lib/safeExternalUrl"
 import { taskAnchorId } from "../lib/focusTask"
 import { taskIcon } from "../lib/taskIcon"
@@ -52,17 +52,36 @@ function taskStatusBadge(status: TaskStatus, t: TranslateFn) {
   return <span className="text-xs text-muted-foreground">{t("taskUpcoming", "Upcoming")}</span>
 }
 
-interface RoadmapViewProps {
-  roadmap: Roadmap
+/**
+ * Mark-complete wiring (contract §20). The server owns every state change: the
+ * page passes the pending task and the last failure, and the tree re-renders
+ * from the roadmap the server returns — nothing is toggled locally.
+ */
+export interface TaskCompletion {
+  pendingTaskId: string | null
+  error: { taskId: string; kind: "conflict" | "failed" } | null
+  onComplete: (taskId: string) => void
 }
 
-function RoadmapStageView({ stage, t }: { stage: RoadmapStage; t: TranslateFn }) {
+interface RoadmapViewProps {
+  roadmap: Roadmap
+  completion?: TaskCompletion
+}
+
+interface RowContext {
+  roadmap: Roadmap
+  completion?: TaskCompletion
+  t: TranslateFn
+}
+
+function RoadmapStageView({ stage, ctx }: { stage: RoadmapStage; ctx: RowContext }) {
+  const { t } = ctx
   return (
     <Card>
       {/* flex-wrap: on narrow screens the badge drops under the title rather
           than squeezing it into mid-word breaks. */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-5">
-        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
+        <div className="flex min-w-0 flex-1 basis-64 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <span className="font-display text-sm font-bold text-primary">
               {String(stage.position).padStart(2, "0")}
@@ -81,7 +100,7 @@ function RoadmapStageView({ stage, t }: { stage: RoadmapStage; t: TranslateFn })
       </div>
       <CardContent className="divide-y divide-border/50 p-0">
         {stage.tasks.map((task) => (
-          <TaskRow key={task.id} task={task} t={t} />
+          <TaskRow key={task.id} task={task} ctx={ctx} />
         ))}
       </CardContent>
     </Card>
@@ -118,9 +137,23 @@ function ResourceItem({ resource, t }: { resource: Resource; t: TranslateFn }) {
   )
 }
 
-function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
+function TaskRow({ task, ctx }: { task: RoadmapTask; ctx: RowContext }) {
+  const { roadmap, completion, t } = ctx
   const actionable = task.status === "available" || task.status === "current"
-  const actionsNoteId = `${taskAnchorId(task.id)}-actions-note`
+  const anchor = taskAnchorId(task.id)
+  const completeNoteId = `${anchor}-complete-note`
+  const skipNoteId = `${anchor}-skip-note`
+
+  const canComplete = !!completion && canCompleteTask(roadmap, task)
+  const pending = completion?.pendingTaskId === task.id
+  const busy = completion?.pendingTaskId != null
+  const error = completion?.error?.taskId === task.id ? completion.error.kind : null
+  // Why "Mark complete" is unavailable, when it is.
+  const lockedReason = canComplete
+    ? null
+    : roadmap.status !== "active"
+      ? t("taskCompleteNeedsActive")
+      : t("taskCompleteLocked")
 
   return (
     <div
@@ -137,7 +170,8 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
       >
         {taskIcon(task.type)}
       </div>
-      <div className="min-w-0 flex-1">
+      {/* basis-56: on narrow screens the actions wrap below instead of squeezing the title. */}
+      <div className="min-w-0 flex-1 basis-56">
         <p
           dir="auto"
           className={cn(
@@ -154,7 +188,7 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
           )}
           {task.resources.length > 0 && (
             <span>
-              · {task.resources.length} {t("taskResources", "resources")}
+              · {t("taskResources", undefined, { count: task.resources.length })}
             </span>
           )}
         </div>
@@ -168,29 +202,43 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
       </div>
       {taskStatusBadge(task.status, t)}
       {actionable ? (
-        // Task actions have no backend endpoint yet (spec 007 FR-014): the
-        // controls stay disabled and say so — no handler, no local change.
         <div className="flex shrink-0 flex-col items-end gap-1">
           <div className="flex gap-2">
             <button
               type="button"
-              disabled
-              aria-describedby={actionsNoteId}
-              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!canComplete || busy}
+              aria-describedby={error || lockedReason ? completeNoteId : undefined}
+              onClick={() => completion?.onComplete(task.id)}
+              className={cn(
+                "rounded-md px-2 py-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                canComplete
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+                  : "text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
+              )}
             >
-              {t("taskComplete", "Mark Complete")}
+              {pending ? t("taskCompleting") : t("taskComplete", "Mark Complete")}
             </button>
+            {/* No skip endpoint exists (contract §21/§23): stays disabled. */}
             <button
               type="button"
               disabled
-              aria-describedby={actionsNoteId}
+              aria-describedby={skipNoteId}
               className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border disabled:cursor-not-allowed disabled:opacity-50"
             >
               {t("taskSkip", "Skip")}
             </button>
           </div>
-          <span id={actionsNoteId} className="text-xs text-muted-foreground">
-            {t("taskActionUnavailable")}
+          {error ? (
+            <span id={completeNoteId} role="alert" className="text-xs text-danger-500">
+              {t(error === "conflict" ? "taskCompleteConflict" : "taskCompleteFailed")}
+            </span>
+          ) : lockedReason ? (
+            <span id={completeNoteId} className="text-xs text-muted-foreground">
+              {lockedReason}
+            </span>
+          ) : null}
+          <span id={skipNoteId} className="text-xs text-muted-foreground">
+            {t("taskSkipUnavailable")}
           </span>
         </div>
       ) : null}
@@ -198,8 +246,9 @@ function TaskRow({ task, t }: { task: RoadmapTask; t: TranslateFn }) {
   )
 }
 
-function RoadmapView({ roadmap }: RoadmapViewProps) {
+function RoadmapView({ roadmap, completion }: RoadmapViewProps) {
   const t = useT("dashboard")
+  const ctx: RowContext = { roadmap, completion, t }
   const stages = orderedStages(roadmap.currentVersion)
 
   if (stages.length === 0) {
@@ -223,7 +272,7 @@ function RoadmapView({ roadmap }: RoadmapViewProps) {
         </h2>
       </header>
       {stages.map((stage) => (
-        <RoadmapStageView key={stage.id} stage={stage} t={t} />
+        <RoadmapStageView key={stage.id} stage={stage} ctx={ctx} />
       ))}
     </section>
   )

@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
+import { skipToken } from "@reduxjs/toolkit/query"
 import { useRouter } from "@/i18n/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { useDispatch, useSelector } from "react-redux"
@@ -14,14 +15,16 @@ import {
   setSubmitError,
   type SubmitStatus,
 } from "@/redux/slices/onboardingSlice"
-import type { RootState } from "@/redux/store"
+import type { AppDispatch, RootState } from "@/redux/store"
 import {
   useGetOnboardingStatusQuery,
   useGetLearningProfileQuery,
   useGetPreferencesQuery,
   usePutLearningProfileMutation,
 } from "@/lib/api/apiSlice"
-import { toApiError } from "@/lib/api/errors"
+import { asApiError } from "@/lib/api/errors"
+import { Button } from "@/shared/components/ui/Button"
+import { startRoadmapGeneration } from "@/features/dashboard/hooks/useGenerateRoadmap"
 import { OnboardingLayout } from "../OnboardingLayout"
 import { StepOneDomain } from "../StepOneDomain"
 import { StepTwoSkillLevel } from "../StepTwoSkillLevel"
@@ -34,16 +37,55 @@ import { StepSevenReview } from "../StepSevenReview"
 const TOTAL_STEPS = 7
 
 function OnboardingPage() {
-  const dispatch = useDispatch()
+  // Tokens live only in memory (FR-007): without a session every call below
+  // would go out unauthenticated and 401 — ask for sign-in instead.
+  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const restoring = useSelector((state: RootState) => state.auth.restoring)
+  if (restoring) return <OnboardingRestoring />
+  if (!authenticated) return <OnboardingSignedOut />
+  return <OnboardingFlow />
+}
+
+function OnboardingRestoring() {
+  const t = useTranslations("onboarding")
+  return (
+    <OnboardingLayout currentStep={1} totalSteps={TOTAL_STEPS}>
+      <p className="py-8 text-center text-muted-foreground" aria-live="polite">
+        {t("loadingProfile")}
+      </p>
+    </OnboardingLayout>
+  )
+}
+
+function OnboardingSignedOut() {
+  const t = useTranslations("dashboard")
+  return (
+    <OnboardingLayout currentStep={1} totalSteps={TOTAL_STEPS}>
+      <div className="mx-auto max-w-md py-12 text-center">
+        <h1 className="mb-2 text-heading-md font-semibold text-foreground">{t("signedOutTitle")}</h1>
+        <p className="mb-6 text-muted-foreground">{t("signedOutDescription")}</p>
+        <Button variant="primary" href="/auth">
+          {t("signInAgain")}
+        </Button>
+      </div>
+    </OnboardingLayout>
+  )
+}
+
+function OnboardingFlow() {
+  const t = useTranslations("onboarding")
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const locale = useLocale()
   const onboarding = useSelector((state: RootState) => state.onboarding)
   const { currentStep, form, preferences, submitStatus, submitError } = onboarding
   const stepRegionRef = useRef<HTMLDivElement>(null)
 
-  const { data: preferencesQuery } = useGetPreferencesQuery()
-  const { data: profileQuery, isLoading: profileLoading } = useGetLearningProfileQuery()
-  const { data: onboardingQuery } = useGetOnboardingStatusQuery()
+  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  const gate = authenticated ? undefined : skipToken
+  const { data: preferencesQuery } = useGetPreferencesQuery(gate)
+  const { data: profileQuery, isLoading: profileLoading } = useGetLearningProfileQuery(gate)
+  const { data: onboardingQuery } = useGetOnboardingStatusQuery(gate)
   const [putLearningProfile] = usePutLearningProfileMutation()
 
   useEffect(() => {
@@ -125,10 +167,18 @@ function OnboardingPage() {
         preferredLearningMethods: form.preferredLearningMethods,
       }).unwrap()
       dispatch(setSubmitStatus("succeeded"))
+      // Contract §22: generation starts as soon as onboarding completes — the
+      // success screen promises it. The thunk keeps running after the redirect
+      // and the dashboard polls the request. A learner has one roadmap, so
+      // nothing is generated when one is already active.
+      void dispatch(startRoadmapGeneration({ unlessActive: true }))
     } catch (error) {
-      toApiError(error)
+      // unwrap() rejects with the normalized ApiError. A 401 whose refresh
+      // failed is a session problem, never "couldn't save" (or a generation
+      // failure): say so and offer sign-in.
+      const { category } = asApiError(error)
       dispatch(setSubmitStatus("failed"))
-      dispatch(setSubmitError("stepSixSubmitFailed"))
+      dispatch(setSubmitError(category === "access_denied" ? "submitSessionExpired" : "stepSixSubmitFailed"))
     }
   }
 
@@ -199,7 +249,7 @@ function OnboardingPage() {
     <OnboardingLayout currentStep={currentStep} totalSteps={TOTAL_STEPS}>
       {profileLoading && preferences === null ? (
         <p className="py-8 text-center text-muted-foreground" aria-live="polite">
-          Loading…
+          {t("loadingProfile")}
         </p>
       ) : (
         <AnimatePresence mode="wait">
