@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>المصادر</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&amp;family=Zain:wght@700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div dir="rtl" style="width: 1440px; height: 1120px; box-sizing: border-box; display: flex; background-color: #EDF2F9; background-image: radial-gradient(560px 440px at 88% 6%, rgba(70,131,203,0.26), transparent 70%), radial-gradient(640px 520px at 10% 58%, rgba(18,49,77,0.14), transparent 70%), radial-gradient(480px 380px at 62% 100%, rgba(29,78,137,0.14), transparent 70%); color: #12314D; font-family: 'Noto Sans Arabic', system-ui, sans-serif; line-height: 1.7; overflow: hidden">
+
+<div style="width: 264px; flex-shrink: 0">
+<dc-import name="Sidebar" active="resources" hint-size="264px,1120px"></dc-import>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="height: 72px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.75)">
+<div style="font-size: 13px; color: #667085">التعلّم / <span style="color: #0A1930; font-weight: 600">المصادر</span></div>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" style="height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.7); color: #12314D; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">English</button>
+<button type="button" aria-label="تبديل السمة" style="width: 44px; height: 44px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.7); color: #12314D; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path></svg>
+</button>
+</div>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 24px">
+
+<section style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 34px; font-weight: 800; color: #0A1930; line-height: 1.4">المصادر</h1>
+<p style="margin: 0; font-size: 14px; color: #667085">كل المصادر المرتبطة بمهام خطتك، في مكان واحد.</p>
+</section>
+
+<div role="tablist" aria-label="تصفية حسب النوع" style="display: inline-flex; align-self: flex-start; gap: 4px; padding: 4px; border-radius: 10px; background: rgba(18,49,77,0.07)">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{f.sel}}" style="display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 0; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; {{f.style}}">
+<span>{{f.label}}</span>
+<span style="font-size: 13px; {{f.countStyle}}">{{f.count}}</span>
+</button>
+</sc-for>
+</div>
+
+<section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{ items }}" as="r" hint-placeholder-count="9">
+<article style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; {{r.boxStyle}}">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.icon}}"></path></svg>
+</div>
+<span style="font-size: 13px; font-weight: 700; color: #1D4E89">{{r.type}}</span>
+<span style="margin-inline-start: auto; font-size: 12px; color: #667085">{{r.time}}</span>
+</div>
+<h2 style="margin: 0; font-size: 15px; font-weight: 700; color: #0A1930; line-height: 1.6">{{r.title}}</h2>
+<div style="font-size: 13px; color: #667085">{{r.source}}</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; margin-top: auto; border-top: 1px solid rgba(18,49,77,0.08)">
+<a href="#" style="font-size: 12px; font-weight: 600; color: #1D4E89; text-decoration: none; min-width: 0">{{r.task}}</a>
+<a href="#" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(18,49,77,0.1); color: #12314D; font-size: 13px; font-weight: 600; text-decoration: none; flex-shrink: 0">
+<span>فتح</span>
+<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
+</a>
+</div>
+</article>
+</sc-for>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+const T = {
+video: { type: 'فيديو', icon: 'M8 5l11 7-11 7z', boxStyle: 'background: #12314D; color: #ffffff' },
+article: { type: 'مقال', icon: 'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5', boxStyle: 'background: #EAF1FB; color: #1D4E89' },
+docs: { type: 'توثيق', icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM20 17v4H6.5', boxStyle: 'background: #EAF1FB; color: #1D4E89' }
+};
+const r = (k, title, source, time, task) => Object.assign({ title, source, time, task: 'للمهمة: ' + task }, T[k]);
+const f = (label, count, sel) => ({ label, count, sel: sel ? 'true' : 'false',
+style: sel ? 'background: #ffffff; color: #0A1930; box-shadow: 0 1px 2px rgba(18,49,77,0.12)' : 'background: transparent; color: #475467',
+countStyle: sel ? 'color: #667085' : 'color: #98A2B3' });
+return {
+filters: [f('الكل', '9', true), f('فيديو', '3'), f('مقال', '3'), f('توثيق', '3')],
+items: [
+r('article', 'دليل عناصر ‏HTML‏ الدلالية', 'developer.mozilla.org', '12 د قراءة', 'مقدمة إلى HTML الدلالي'),
+r('video', '‏Flexbox‏ في 20 دقيقة', 'youtube.com', '20 د', 'تنسيق الصفحات باستخدام Flexbox'),
+r('docs', 'دليل ‏JavaScript‏ الحديث', 'javascript.info', '30 د قراءة', 'أساسيات JavaScript الحديثة'),
+r('article', 'كتابة الواجهات باستخدام ‏JSX‏', 'react.dev', '10 د قراءة', 'مفهوم المكوّنات وJSX'),
+r('video', 'بناء مكوّنات ‏React‏ خطوة بخطوة', 'youtube.com', '18 د', 'بناء مكوّنات قابلة لإعادة الاستخدام'),
+r('docs', 'مرجع ‏useState‏', 'react.dev', '15 د قراءة', 'إدارة الحالة باستخدام useState'),
+r('article', 'كيف تخطّط لمشروع واجهات أمامية', 'web.dev', '14 د قراءة', 'تخطيط المشروع التطبيقي'),
+r('video', 'بناء واجهة تطبيق كاملة', 'youtube.com', '45 د', 'بناء واجهة المشروع'),
+r('docs', 'نشر تطبيقات ‏React‏', 'vercel.com', '10 د قراءة', 'مراجعة المشروع ونشره')
+]
+};
+}
+}
+</script>
+</body>
+</html>

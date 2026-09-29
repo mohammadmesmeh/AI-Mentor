@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>الإعدادات</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&amp;family=Zain:wght@700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div dir="rtl" style="width: 1440px; height: 1120px; box-sizing: border-box; display: flex; background-color: #EDF2F9; background-image: radial-gradient(560px 440px at 88% 6%, rgba(70,131,203,0.26), transparent 70%), radial-gradient(640px 520px at 10% 58%, rgba(18,49,77,0.14), transparent 70%), radial-gradient(480px 380px at 62% 100%, rgba(29,78,137,0.14), transparent 70%); color: #12314D; font-family: 'Noto Sans Arabic', system-ui, sans-serif; line-height: 1.7; overflow: hidden">
+
+<div style="width: 264px; flex-shrink: 0">
+<dc-import name="Sidebar" active="settings" hint-size="264px,1120px"></dc-import>
+</div>
+
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="height: 72px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.75)">
+<div style="font-size: 13px; color: #667085">الحساب / <span style="color: #0A1930; font-weight: 600">الإعدادات</span></div>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" style="height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.7); color: #12314D; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">English</button>
+<button type="button" aria-label="تبديل السمة" style="width: 44px; height: 44px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.7); color: #12314D; display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path></svg>
+</button>
+</div>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 32px; display: flex; flex-direction: column; gap: 20px; max-width: 980px">
+
+<h1 style="margin: 0; font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 34px; font-weight: 800; color: #0A1930; line-height: 1.4">الإعدادات</h1>
+
+<section aria-labelledby="ui" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 24px 28px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="ui" style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #0A1930">الواجهة</h2>
+<sc-for list="{{ ui }}" as="row" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid rgba(18,49,77,0.08)">
+<div>
+<div style="font-size: 15px; font-weight: 600; color: #0A1930">{{row.label}}</div>
+<div style="font-size: 13px; color: #667085">{{row.hint}}</div>
+</div>
+<div role="radiogroup" aria-label="{{row.label}}" style="display: flex; padding: 4px; border-radius: 10px; background: rgba(18,49,77,0.07); gap: 4px">
+<sc-for list="{{ row.opts }}" as="o" hint-placeholder-count="2">
+<button type="button" role="radio" aria-checked="{{o.sel}}" style="height: 38px; padding: 0 16px; border: 0; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; {{o.style}}">{{o.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</section>
+
+<section aria-labelledby="lr" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 24px 28px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="lr" style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #0A1930">التعلّم</h2>
+<sc-for list="{{ learn }}" as="row" hint-placeholder-count="1">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid rgba(18,49,77,0.08)">
+<div>
+<div style="font-size: 15px; font-weight: 600; color: #0A1930">{{row.label}}</div>
+<div style="font-size: 13px; color: #667085">{{row.hint}}</div>
+</div>
+<div role="radiogroup" aria-label="{{row.label}}" style="display: flex; padding: 4px; border-radius: 10px; background: rgba(18,49,77,0.07); gap: 4px">
+<sc-for list="{{ row.opts }}" as="o" hint-placeholder-count="3">
+<button type="button" role="radio" aria-checked="{{o.sel}}" style="height: 38px; padding: 0 16px; border: 0; border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; {{o.style}}">{{o.label}}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid rgba(18,49,77,0.08)">
+<div>
+<label for="tz" style="font-size: 15px; font-weight: 600; color: #0A1930">المنطقة الزمنية</label>
+<div style="font-size: 13px; color: #667085">تُستخدم لحساب مهام اليوم.</div>
+</div>
+<select id="tz" style="height: 44px; min-width: 240px; padding: 0 12px; border-radius: 8px; border: 1px solid rgba(18,49,77,0.16); background: rgba(255,255,255,0.7); color: #0A1930; font-family: inherit; font-size: 14px">
+<option>UTC+03:00</option>
+</select>
+</div>
+</section>
+
+<section aria-labelledby="ac" style="background: rgba(255,255,255,0.58); backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); border: 1px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 10px 30px rgba(18,49,77,0.07), inset 0 1px 0 rgba(255,255,255,0.9); padding: 24px 28px; display: flex; flex-direction: column; gap: 4px">
+<h2 id="ac" style="margin: 0 0 8px; font-size: 17px; font-weight: 600; color: #0A1930">الحساب</h2>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 0; border-top: 1px solid rgba(18,49,77,0.08)">
+<div>
+<div style="font-size: 15px; font-weight: 600; color: #0A1930">تسجيل الخروج</div>
+<div style="font-size: 13px; color: #667085">تسجيل الخروج من هذا الجهاز.</div>
+</div>
+<button type="button" style="height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid rgba(18,49,77,0.16); background: rgba(255,255,255,0.7); color: #12314D; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">تسجيل الخروج</button>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 12px; padding: 18px; border-radius: 12px; border: 1px solid rgba(18,49,77,0.12); background: rgba(255,255,255,0.45)">
+<div>
+<div style="font-size: 15px; font-weight: 700; color: #0A1930">حذف الحساب</div>
+<div style="font-size: 13px; color: #475467">يحذف حسابك وخطتك وتقدّمك نهائياً، ولا يمكن التراجع عنه.</div>
+</div>
+<button type="button" style="height: 44px; padding: 0 18px; border-radius: 8px; border: 1px solid rgba(18,49,77,0.2); background: rgba(255,255,255,0.7); color: #12314D; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">حذف الحساب</button>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() {
+const on = 'background: #ffffff; color: #0A1930; box-shadow: 0 1px 2px rgba(18,49,77,0.12)';
+const off = 'background: transparent; color: #475467';
+const o = (label, sel) => ({ label, sel: sel ? 'true' : 'false', style: sel ? on : off });
+return {
+ui: [
+{ label: 'لغة الواجهة', hint: 'لغة القوائم والأزرار.', opts: [o('العربية', true), o('English')] },
+{ label: 'السمة', hint: 'مظهر التطبيق.', opts: [o('فاتح', true), o('داكن')] }
+],
+learn: [
+{ label: 'لغة المصادر', hint: 'لغة الفيديوهات والمقالات المقترحة.', opts: [o('العربية'), o('الإنجليزية'), o('كلاهما', true)] }
+]
+};
+}
+}
+</script>
+</body>
+</html>
