@@ -410,7 +410,27 @@
     "onboardingIncompleteDescription": "Complete these details to create your personalized roadmap:",
     "video": "Video",
     "loadingProfile": "Loading your details…",
-    "submitSessionExpired": "Your session has ended. Sign in again, then submit your answers."
+    "submitSessionExpired": "Your session has ended. Sign in again, then submit your answers.",
+    "methodsGroupLabel": "Learning formats",
+    "sourcesTitle": "Where do you like to learn from?",
+    "sourcesDescription": "Pick up to 4. The order you pick them in is your priority.",
+    "sourceYoutube": "YouTube videos",
+    "sourceDocs": "Official documentation",
+    "sourceArticles": "Articles",
+    "sourceCourses": "Courses",
+    "sourcePriority": "Priority {n}",
+    "sourcesError": "Choose at least one source.",
+    "missingResourceSources": "Preferred resource sources",
+    "sources": "Sources",
+    "reviewFieldsInvalid": "Some answers weren't accepted. Fix the highlighted items, then submit again.",
+    "fieldError": {
+      "goal": "Enter what you want to learn, up to 1,000 characters.",
+      "self_assessed_level": "Choose one of the levels.",
+      "desired_outcome": "Describe what success looks like, up to 2,000 characters.",
+      "available_minutes_per_week": "Enter a whole number of minutes per week, from 15 to 10,080.",
+      "preferred_learning_methods": "Choose 1 to 4 different ways to learn.",
+      "preferred_resource_sources": "Choose 1 to 4 different sources."
+    }
   },
   "pricing": {
     "badge": "Plans",
@@ -603,6 +623,7 @@
     "savedShort": "Saved",
     "savingShort": "Saving…",
     "saveFailedShort": "Couldn't save. Try again.",
-    "fieldInvalid": "Check this field."
+    "sources": "Preferred sources",
+    "sourcesHint": "The order you pick them in is your priority."
   }
 }

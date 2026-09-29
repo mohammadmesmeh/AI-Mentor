@@ -31,6 +31,7 @@ const PROFILE = {
   desired_outcome: "Use Git daily",
   available_minutes_per_week: 120,
   preferred_learning_methods: ["reading_docs", "quizzes_drills"],
+  preferred_resource_sources: ["youtube", "official_documentation"],
   created_at: "2026-09-28T08:00:00Z",
   updated_at: "2026-09-28T08:00:00Z",
 }
@@ -101,7 +102,13 @@ describe("Profile", () => {
     expect(screen.queryByRole("textbox", { name: a.name })).toBeNull()
   })
 
-  it("edits the learning profile with one PUT of all five fields, and never generates a roadmap", async () => {
+  it("shows the preferred sources in priority order", async () => {
+    backend()
+    renderPage(signedInStore(), <ProfilePage />)
+    expect(await screen.findByText(`1. ${o.sourceYoutube} · 2. ${o.sourceDocs}`)).toBeInTheDocument()
+  })
+
+  it("edits the learning profile with one PUT of all six fields, and never generates a roadmap", async () => {
     const calls = backend()
     renderPage(signedInStore(), <ProfilePage />)
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
@@ -119,6 +126,7 @@ describe("Profile", () => {
         desired_outcome: "Use Git daily",
         available_minutes_per_week: 240,
         preferred_learning_methods: ["reading_docs", "quizzes_drills"],
+        preferred_resource_sources: ["youtube", "official_documentation"],
       },
     ])
     expect(calls.generation).toBe(0)
@@ -134,8 +142,55 @@ describe("Profile", () => {
 
     expect(await screen.findByText(o.minutesInvalid)).toBeInTheDocument()
     expect(screen.getByText(a.methodsRequired)).toBeInTheDocument()
+    expect(screen.getByText(o.sourcesError)).toBeInTheDocument()
     expect(screen.getByLabelText(o.minutesPerWeek)).toHaveAttribute("aria-invalid", "true")
     expect(calls.puts).toHaveLength(0)
+  })
+
+  it("a legacy profile without sources must pick one before saving; picks are sent in priority order", async () => {
+    const calls = backend()
+    server.use(http.get(`${API_BASE}/me/learning-profile`, () => envelope({ ...PROFILE, preferred_resource_sources: null })))
+    renderPage(signedInStore(), <ProfilePage />)
+    fireEvent.click(await screen.findByRole("button", { name: a.edit }))
+    fireEvent.click(screen.getByRole("button", { name: a.save }))
+    expect(await screen.findByText(o.sourcesError)).toBeInTheDocument()
+    expect(calls.puts).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(o.sourceCourses) }))
+    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(o.sourceYoutube) }))
+    expect(screen.getByText("Priority 2")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: a.save }))
+    await waitFor(() => expect(calls.puts).toHaveLength(1))
+    expect((calls.puts[0] as { preferred_resource_sources: string[] }).preferred_resource_sources).toEqual([
+      "courses",
+      "youtube",
+    ])
+  })
+
+  it("a 422 on an array item (preferred_resource_sources.0) shows the sources error next to that field (ar/en)", async () => {
+    backend()
+    server.use(
+      http.put(`${API_BASE}/me/learning-profile`, () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: "validation_failed",
+              message: "The selected preferred_resource_sources.0 is invalid.",
+              details: { "preferred_resource_sources.0": ["The selected preferred_resource_sources.0 is invalid."] },
+            },
+            meta: { request_id: "t" },
+          },
+          { status: 422 }
+        )
+      )
+    )
+    renderPage(signedInStore(), <ProfilePage />)
+    fireEvent.click(await screen.findByRole("button", { name: a.edit }))
+    fireEvent.click(screen.getByRole("button", { name: a.save }))
+    expect(await screen.findByText(o.fieldError.preferred_resource_sources)).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(a.saveFailed)
+    // The server's English message is never shown.
+    expect(screen.queryByText(/is invalid/)).toBeNull()
   })
 
   it("a 422 marks the rejected field and shows a failure message", async () => {
@@ -153,6 +208,7 @@ describe("Profile", () => {
     fireEvent.click(screen.getByRole("button", { name: a.save }))
     expect(await screen.findByRole("alert")).toHaveTextContent(a.saveFailed)
     expect(screen.getByLabelText(a.goal)).toHaveAttribute("aria-invalid", "true")
+    expect(screen.getByText(o.fieldError.goal)).toBeInTheDocument()
   })
 
   it("signed out: asks for sign-in", async () => {

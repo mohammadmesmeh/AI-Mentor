@@ -13,11 +13,14 @@ import type {
   SubmitStatus,
   OnboardingFormState,
 } from "@/redux/slices/onboardingSlice"
+import type { LearningProfileField } from "@/lib/api/validation"
 
 interface StepSevenReviewProps {
   form: OnboardingFormState
   status: SubmitStatus
   error: string | null
+  /** Fields the server rejected (422), flagged on their rows. */
+  fieldErrors?: readonly LearningProfileField[]
   onEdit: (step: number) => void
   onSubmit: () => void
   onRetry: () => void
@@ -28,6 +31,7 @@ function StepSevenReview({
   form,
   status,
   error,
+  fieldErrors = [],
   onEdit,
   onSubmit,
   onRetry,
@@ -73,7 +77,7 @@ function StepSevenReview({
         <p className="text-muted-foreground">{t("stepFiveReviewDescription")}</p>
       </div>
 
-      <ReviewSummary rows={rows} onEdit={onEdit} />
+      <ReviewSummary rows={rows} onEdit={onEdit} invalidFields={fieldErrors} />
 
       {status === "failed" && error && (
         <Card className="border-danger-500/20 bg-danger-500/[0.06]">
