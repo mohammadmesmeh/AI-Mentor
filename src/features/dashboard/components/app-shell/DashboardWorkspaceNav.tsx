@@ -2,128 +2,132 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
-import {
-  BookOpen,
-  LayoutGrid,
-  ListChecks,
-  LogOut,
-  Map as MapIcon,
-  Menu,
-  Settings,
-  UserRound,
-  X,
-  type LucideIcon,
-} from "lucide-react"
+import { LogOut, Menu, Sparkles, X } from "lucide-react"
 
 import { Link, usePathname, useRouter } from "@/i18n/navigation"
-import { useLogoutMutation } from "@/lib/api/apiSlice"
+import { apiSlice, useLogoutMutation } from "@/lib/api/apiSlice"
 import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
 import { useT } from "@/shared/hooks/useT"
-import { Logo } from "@/shared/components/layout/navbar/Logo"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
+import { Avatar } from "@/shared/components/ui/Avatar"
 import { cn } from "@/lib/utils"
 import type { RootState } from "@/redux/store"
+import { WORKSPACE_NAV, isActive, type NavItem } from "./navItems"
 
-interface NavItem {
-  href: string
-  icon: LucideIcon
-  labelKey: string
-}
-
-const LEARNING_LINKS: NavItem[] = [
-  { href: WORKSPACE_ROUTES.overview, icon: LayoutGrid, labelKey: "navOverview" },
-  { href: WORKSPACE_ROUTES.roadmap, icon: MapIcon, labelKey: "navRoadmap" },
-  { href: WORKSPACE_ROUTES.tasks, icon: ListChecks, labelKey: "navTasks" },
-  { href: WORKSPACE_ROUTES.resources, icon: BookOpen, labelKey: "navResources" },
-]
-
-const ACCOUNT_LINKS: NavItem[] = [
-  { href: WORKSPACE_ROUTES.profile, icon: UserRound, labelKey: "navProfile" },
-  { href: WORKSPACE_ROUTES.settings, icon: Settings, labelKey: "navSettings" },
-]
-
-/** A section is active on its own page and on pages below it (/tasks/123 → Tasks). */
-function isActive(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`)
-}
+// Read from the cache only: the sidebar never requests the roadmap itself.
+const selectActiveRoadmap = apiSlice.endpoints.getActiveRoadmap.select()
 
 const itemClass = (active: boolean) =>
   cn(
-    "relative flex min-h-11 w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200",
+    "flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm no-underline transition-colors duration-200",
     "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
     active
-      ? "bg-primary/10 text-foreground dark:bg-primary-300/15"
-      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+      ? "bg-primary-900 font-semibold text-white dark:bg-secondary-300/15 dark:text-ink"
+      : "font-medium text-ink hover:bg-segment"
   )
 
-function WorkspaceLink({ item, active, label }: { item: NavItem; active: boolean; label: string }) {
+function WorkspaceLink({ item, active, label, badge }: { item: NavItem; active: boolean; label: string; badge?: number }) {
   const Icon = item.icon
   return (
     <Link href={item.href} aria-current={active ? "page" : undefined} className={itemClass(active)}>
-      {active && (
-        <span aria-hidden="true" className="absolute inset-y-2 start-0 w-1 rounded-full bg-primary dark:bg-primary-200" />
+      <Icon
+        className={cn("size-[1.125rem] shrink-0", active ? "text-secondary-100" : "text-status-neutral")}
+        aria-hidden="true"
+      />
+      <span className="flex-1">{label}</span>
+      {badge !== undefined && (
+        <span className={cn("text-[0.8125rem] font-semibold tabular-nums", active ? "text-white/75" : "text-status-neutral")}>
+          {badge}
+        </span>
       )}
-      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-      <span>{label}</span>
     </Link>
   )
 }
 
-/**
- * The site navbar is hidden in the workspace, so sign-out lives here. The
- * local session ends at once (contract §3 rule 7); the revoke call runs in the
- * background.
- */
-function LogoutButton() {
+/** The brand: navy icon box + name, linking home. */
+function WorkspaceBrand() {
   const t = useT("nav")
-  const router = useRouter()
-  const [logout] = useLogoutMutation()
-  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
-  if (!authenticated) return null
   return (
-    <button
-      type="button"
-      onClick={() => {
-        void logout()
-        router.push("/")
-      }}
-      className={itemClass(false)}
+    <Link
+      href="/"
+      className="flex min-h-11 items-center gap-3 rounded-md px-2 no-underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <LogOut className="h-5 w-5 shrink-0 rtl:-scale-x-100" aria-hidden="true" />
-      <span>{t("logout", "Log Out")}</span>
-    </button>
+      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-icon bg-primary-900 text-white dark:bg-secondary-300/20">
+        <Sparkles className="size-5" />
+      </span>
+      <span dir="ltr" className="font-display text-[1.375rem] font-extrabold text-ink">
+        {t("brand", "AI Mentor")}
+      </span>
+    </Link>
   )
 }
 
 function NavSections({ pathname }: { pathname: string }) {
   const t = useT("workspace")
-  const headingClass = "px-3 pb-1 text-xs font-semibold tracking-wide text-muted-foreground"
+  const roadmap = useSelector((state: RootState) => selectActiveRoadmap(state).data)
+  const taskCount = roadmap?.progress?.totalTasks
   return (
-    <div className="flex flex-1 flex-col justify-between gap-6 overflow-y-auto p-3">
-      <div>
-        <p className={headingClass}>{t("navLearning")}</p>
-        <ul className="space-y-1">
-          {LEARNING_LINKS.map((item) => (
-            <li key={item.href}>
-              <WorkspaceLink item={item} active={isActive(pathname, item.href)} label={t(item.labelKey)} />
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div>
-        <p className={headingClass}>{t("navAccount")}</p>
-        <ul className="space-y-1">
-          {ACCOUNT_LINKS.map((item) => (
-            <li key={item.href}>
-              <WorkspaceLink item={item} active={isActive(pathname, item.href)} label={t(item.labelKey)} />
-            </li>
-          ))}
-          <li>
-            <LogoutButton />
-          </li>
-        </ul>
-      </div>
+    <div className="flex flex-col gap-6">
+      {WORKSPACE_NAV.map((group) => (
+        <div key={group.labelKey}>
+          <p className="m-0 px-3 pb-1.5 text-xs font-bold text-muted-foreground">{t(group.labelKey)}</p>
+          <ul className="m-0 list-none space-y-1 p-0">
+            {group.items.map((item) => (
+              <li key={item.href}>
+                <WorkspaceLink
+                  item={item}
+                  active={isActive(pathname, item.href)}
+                  label={t(item.labelKey)}
+                  badge={item.href === WORKSPACE_ROUTES.tasks ? taskCount : undefined}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * The learner card and sign-out. The site navbar is hidden in the workspace,
+ * so sign-out lives here. The local session ends at once (contract §3 rule 7);
+ * the revoke call runs in the background.
+ */
+function AccountFooter() {
+  const t = useT("nav")
+  const router = useRouter()
+  const [logout] = useLogoutMutation()
+  const user = useSelector((state: RootState) => state.auth.user)
+  const authenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+  if (!authenticated) return null
+  return (
+    <div className="flex flex-col gap-2">
+      {user && (
+        <div className="flex items-center gap-3 rounded-icon border border-line p-3">
+          <Avatar name={user.name} className="size-9 text-[0.9375rem]" />
+          <div className="min-w-0">
+            <p dir="auto" className="m-0 truncate text-sm font-semibold text-ink">
+              {user.name}
+            </p>
+            <p dir="ltr" className="m-0 truncate text-start text-xs text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={() => {
+          void logout()
+          router.push("/")
+        }}
+        className={cn(itemClass(false), "cursor-pointer")}
+      >
+        <LogOut className="size-[1.125rem] shrink-0 text-status-neutral rtl:-scale-x-100" aria-hidden="true" />
+        <span>{t("logout", "Log Out")}</span>
+      </button>
     </div>
   )
 }
@@ -165,31 +169,18 @@ function DashboardWorkspaceNav() {
 
   return (
     <>
-      <aside className="fixed inset-y-0 start-0 z-40 hidden w-64 flex-col border-e border-border/50 bg-card/60 backdrop-blur-md lg:flex">
-        <div className="flex h-16 items-center border-b border-border/50 px-4">
-          <Logo />
-        </div>
-        <nav aria-label={navLabel} className="flex flex-1 flex-col overflow-hidden">
+      <aside className="glass-bar fixed inset-y-0 start-0 z-40 hidden w-66 flex-col gap-7 overflow-y-auto border-e px-4 py-5 lg:flex">
+        <WorkspaceBrand />
+        <nav aria-label={navLabel}>
           <NavSections pathname={pathname} />
         </nav>
-        <div className="flex items-center gap-2 border-t border-border/50 p-3">
-          <LanguageSwitcher />
-          <ThemeToggle />
-          {learnerName && (
-            <span dir="auto" className="ms-auto min-w-0 truncate text-xs font-medium text-muted-foreground">
-              {learnerName}
-            </span>
-          )}
+        <div className="mt-auto">
+          <AccountFooter />
         </div>
       </aside>
 
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-border/40 bg-background/80 px-4 backdrop-blur-md lg:hidden">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-2 md:flex">
-            <LanguageSwitcher />
-            <ThemeToggle />
-          </div>
+      <header className="glass-bar sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b px-4 lg:hidden">
+        <div className="flex items-center gap-2.5">
           <button
             ref={toggleRef}
             type="button"
@@ -197,10 +188,18 @@ function DashboardWorkspaceNav() {
             aria-controls="dashboard-nav-drawer"
             aria-label={open ? t("navMenuCloseAria", "Close navigation") : t("navMenuOpenAria", "Open navigation")}
             onClick={() => setOpen((value) => !value)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border/50 text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="inline-flex size-11 cursor-pointer items-center justify-center rounded-md border border-line bg-glass-strong text-ink transition-colors hover:bg-card focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            {open ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+            {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
           </button>
+          <WorkspaceBrand />
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
+            <LanguageSwitcher workspace />
+            <ThemeToggle workspace />
+          </div>
+          {learnerName && <Avatar name={learnerName} className="size-9" />}
         </div>
       </header>
 
@@ -214,33 +213,36 @@ function DashboardWorkspaceNav() {
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       >
-        <div className="absolute inset-0 bg-black/40" onClick={close} aria-hidden="true" />
+        <div className="absolute inset-0 bg-primary-950/40" onClick={close} aria-hidden="true" />
         <div
           role="dialog"
           aria-modal="true"
           aria-label={navLabel}
           className={cn(
-            "absolute inset-y-0 start-0 flex w-72 max-w-[85%] flex-col border-e border-border/70 bg-background shadow-lg transition-transform duration-300 motion-reduce:transition-none",
+            "absolute inset-y-0 start-0 flex w-72 max-w-[85%] flex-col gap-6 overflow-y-auto border-e border-line bg-background px-4 py-4 shadow-lg transition-transform duration-300 motion-reduce:transition-none",
             open ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
           )}
         >
-          <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
-            <Logo />
+          <div className="flex items-center justify-between">
+            <WorkspaceBrand />
             <button
               type="button"
               aria-label={t("navMenuCloseAria", "Close navigation")}
               onClick={close}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="inline-flex size-11 cursor-pointer items-center justify-center rounded-md text-status-neutral transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
-              <X className="h-5 w-5" aria-hidden="true" />
+              <X className="size-5" aria-hidden="true" />
             </button>
           </div>
-          <nav aria-label={navLabel} className="flex flex-1 flex-col overflow-hidden">
+          <nav aria-label={navLabel}>
             <NavSections pathname={pathname} />
           </nav>
-          <div className="flex items-center gap-2 border-t border-border/50 p-4">
-            <LanguageSwitcher mobile />
-            <ThemeToggle mobile />
+          <div className="mt-auto flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher workspace />
+              <ThemeToggle workspace />
+            </div>
+            <AccountFooter />
           </div>
         </div>
       </div>
