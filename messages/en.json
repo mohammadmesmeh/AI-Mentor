@@ -72,9 +72,9 @@
   "cta": {
     "button": "Start Learning Free",
     "description": "Not sure what to learn next? Get a personalized roadmap built around your goals and start making progress today.",
-    "title": "Build a Learning Plan That <mark>Fits Your Goals</mark>",
-    "subtext": "No credit card required",
-    "badge": "Get Started"
+    "title": "Build a learning plan that <mark>fits your goals</mark>",
+    "subtext": "Free to start. No payment needed.",
+    "badge": "Get started"
   },
   "dashboard": {
     "continueLearningTitle": "Continue Learning",
@@ -155,7 +155,7 @@
       "title": "Get Help When You Need It"
     },
     "badge": "Why Khatwa",
-    "heading": "Everything You Need to Learn <mark>With Confidence</mark>",
+    "heading": "Everything you need to learn <mark>with confidence</mark>",
     "personalizedPlans": {
       "description": "Your learning path is built around your goals, experience, and available time instead of a one-size-fits-all course.",
       "title": "A Plan Built for You"
@@ -172,7 +172,7 @@
   },
   "faq": {
     "badge": "Common Questions",
-    "heading": "Frequently <mark>Asked Questions</mark>",
+    "heading": "Questions? <mark>We've got answers</mark>",
     "subheading": "Everything you need to know about Khatwa today and what's coming next.",
     "items": {
       "multipleRoadmaps": {
@@ -403,7 +403,7 @@
   },
   "pricing": {
     "badge": "Plans",
-    "heading": "<mark>Start Free.</mark> Grow When You're Ready.",
+    "heading": "<mark>Start free.</mark> Grow when you're ready.",
     "subheading": "Start with the current Free plan. More features and community support are planned for Pro.",
     "free": {
       "name": "Free",

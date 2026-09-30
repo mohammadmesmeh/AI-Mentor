@@ -25,7 +25,7 @@ function Footer() {
   }
 
   return (
-    <footer className="border-t border-white/10 bg-midnight px-6 py-12">
+    <footer className="bg-midnight px-6 py-12">
       <div className="mx-auto flex max-w-(--container-content) flex-col items-center gap-8 md:flex-row md:items-center md:justify-between">
         <Link
           href="/"
