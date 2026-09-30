@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { cn } from "@/lib/utils"
 
 interface SectionHeaderProps {
@@ -79,9 +78,8 @@ function sectionHighlight(chunks: ReactNode) {
  * h2 with one highlighted phrase, and an optional one-color description. No
  * bars, rules or gradients.
  *
- * The title reveals word by word (`HeadingReveal`, and with it the reduced-
- * motion and no-JavaScript fallbacks); the eyebrow and description fade in
- * behind it.
+ * All three fade in with `FadeInView`, the animation every other text on the
+ * page uses, top to bottom in 0.1s steps like the hero.
  */
 function SectionHeader({
   eyebrow,
@@ -104,7 +102,7 @@ function SectionHeader({
     >
       <FadeInView
         as="p"
-        delay={0.45}
+        delay={0}
         className={cn(
           "m-0! flex items-center gap-2.5 text-[0.9375rem] leading-normal! font-semibold",
           inverse ? "text-secondary-300" : "text-secondary-700 dark:text-secondary-300"
@@ -113,21 +111,21 @@ function SectionHeader({
         <BrandMark inverse={inverse} />
         {eyebrow}
       </FadeInView>
-      <HeadingReveal
+      <FadeInView
         as="h2"
         id={headingId}
-        delay={0}
+        delay={0.1}
         className={cn(
           "m-0! font-display text-3xl leading-[1.25] font-extrabold tracking-normal rtl:leading-[1.5] lg:text-[2.75rem]",
           inverse ? "text-white" : "text-ink"
         )}
       >
         {title}
-      </HeadingReveal>
+      </FadeInView>
       {description && (
         <FadeInView
           as="p"
-          delay={0.55}
+          delay={0.2}
           className={cn(
             "m-0! max-w-[38.75rem] text-lg leading-relaxed!",
             inverse ? "text-white/72" : "text-text-secondary"

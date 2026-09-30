@@ -108,15 +108,16 @@ describe("SectionHeader", () => {
     }
   })
 
-  it("reveals the title word by word without losing the spaces between them", () => {
-    const { container } = renderIn("en")
+  it("fades the title in whole, like the eyebrow and description — no word-by-word split", () => {
+    renderIn("en")
     const heading = screen.getByRole("heading", { level: 2 })
 
-    // The words are split for the animation, so what they add up to still has
-    // to be the title — spaces included, or it wraps and copies out wrong.
-    const words = container.querySelector("h2 [aria-hidden='true']")
-    expect(words?.textContent).toBe("A learning path that adapts with you")
-    expect(words?.querySelectorAll("[data-reveal-word]")).toHaveLength(7)
+    // Same FadeInView as the rest of the text: starts hidden and 8px low.
+    expect(heading.style.opacity).toBe("0")
+    expect(heading.style.transform).toContain("translateY(8px)")
+    expect(heading.textContent).toBe("A learning path that adapts with you")
+    expect(heading.querySelector("[data-reveal-word]")).toBeNull()
+    expect(heading.querySelector("[aria-hidden='true']")).toBeNull()
 
     const mark = heading.querySelector("mark")
     // Colour only: nothing paints a box behind the letters.
@@ -124,13 +125,13 @@ describe("SectionHeader", () => {
     expect(mark?.className).toContain("bg-transparent")
   })
 
-  it("reads the title out once, as plain text, however it was marked", () => {
-    renderIn("ar")
-    const heading = screen.getByRole("heading", { level: 2 })
-    expect(heading.querySelector(".sr-only")?.textContent).toBe("مسار تعلّم يتكيّف معك")
-    // The animated words are hidden from assistive tech so they are not
-    // announced on top of that one copy.
-    expect(heading.querySelectorAll("[aria-hidden='true']")).toHaveLength(1)
+  it("the eyebrow, title and description all start with the same hidden fade state", () => {
+    const { container } = renderIn("ar")
+    const heading = screen.getByRole("heading", { level: 2, name: "مسار تعلّم يتكيّف معك" })
+    const [eyebrow, description] = container.querySelectorAll("p")
+    for (const element of [eyebrow, heading, description]) {
+      expect(element.style.opacity).toBe("0")
+    }
   })
 
   it("reveals a plain-string heading too, and never renders an empty mark", () => {
