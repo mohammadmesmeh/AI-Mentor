@@ -6,14 +6,16 @@ import { cn } from "@/lib/utils"
 
 interface FadeInViewProps {
   children: ReactNode
-  as?: "div" | "p" | "span" | "section"
+  as?: "div" | "p" | "span" | "section" | "h2"
   className?: string
+  id?: string
   delay?: number
   once?: boolean
 }
 
-const motionTag: Record<string, typeof motion.div | typeof motion.p | typeof motion.span | typeof motion.section> = {
+const motionTag: Record<string, typeof motion.div | typeof motion.p | typeof motion.span | typeof motion.section | typeof motion.h2> = {
   div: motion.div,
+  h2: motion.h2,
   p: motion.p,
   span: motion.span,
   section: motion.section,
@@ -23,6 +25,7 @@ function FadeInView({
   children,
   as = "div",
   className,
+  id,
   delay = 0,
   once = true,
 }: FadeInViewProps) {
@@ -30,6 +33,7 @@ function FadeInView({
 
   return (
     <Tag
+      id={id}
       className={cn(className)}
       initial={{ opacity: 0, y: 8 }}
       whileInView={{
