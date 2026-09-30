@@ -2,10 +2,11 @@
 
 import { Target, Bot, TrendingUp, Lightbulb } from "lucide-react"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { useTranslations } from "next-intl"
 import { useT } from "@/shared/hooks/useT"
 import { FeatureCard } from "@/shared/components/ui/FeatureCard"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { cn } from "@/lib/utils"
 
@@ -31,6 +32,8 @@ const features = [
 
 export function Features() {
   const t = useT("features")
+  // Rich text: the heading marks its key phrase with <mark> in the messages.
+  const rich = useTranslations("features")
 
   return (
     <section
@@ -39,31 +42,14 @@ export function Features() {
       aria-labelledby="features-heading"
     >
       <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <FadeInView as="div" delay={0.05}>
-            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
-              {t("badge", "Core Capabilities")}
-            </span>
-          </FadeInView>
+        <SectionHeader
+          headingId="features-heading"
+          eyebrow={t("badge")}
+          title={rich.rich("heading", { mark: sectionHighlight })}
+          description={t("subheading")}
+        />
 
-          <HeadingReveal
-            as="h2"
-            id="features-heading"
-            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
-            delay={0.1}
-          >
-            {t("heading", "Everything You Need to Learn Faster")}
-          </HeadingReveal>
-
-          <FadeInView as="p" className="mt-4 text-lg text-muted-foreground" delay={0.15}>
-            {t(
-              "subheading",
-              "Khatwa combines personalized guidance, structured milestones, and on-demand support to help you learn smarter, not harder."
-            )}
-          </FadeInView>
-        </div>
-
-        <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
             <FadeInView
               key={feature.key}

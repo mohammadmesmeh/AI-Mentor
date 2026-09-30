@@ -779,6 +779,27 @@ html[dir="rtl"] {
   margin-block: -0.18em;
 }
 
+/* The word-by-word reveal (HeadingReveal) starts every word shifted down inside
+   its mask, a transform framer-motion writes inline when it renders. Two
+   visitors must never be left looking at a heading of empty masks:
+   - reduced motion, where the app's MotionConfig already drops the transform
+     but the inline style is still there to override;
+   - no scripting, where nothing ever runs and the words stay where the server
+     rendered them.
+   Both are reset to `none`, which leaves each word simply in place. `!important`
+   is what lets a stylesheet beat framer-motion's inline style. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal-word] {
+    transform: none !important;
+  }
+}
+
+@media (scripting: none) {
+  [data-reveal-word] {
+    transform: none !important;
+  }
+}
+
 /* Word spacing is the right spacing knob for Arabic — applied to every
    interactive/type surface so buttons and labels don't look denser than
    their English counterparts. */

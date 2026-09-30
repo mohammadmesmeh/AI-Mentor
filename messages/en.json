@@ -72,8 +72,9 @@
   "cta": {
     "button": "Start Learning Free",
     "description": "Not sure what to learn next? Get a personalized roadmap built around your goals and start making progress today.",
-    "title": "Build a Learning Plan That Fits Your Goals",
-    "subtext": "No credit card required"
+    "title": "Build a learning plan that <mark>fits your goals</mark>",
+    "subtext": "Free to start. No payment needed.",
+    "badge": "Get started"
   },
   "dashboard": {
     "continueLearningTitle": "Continue Learning",
@@ -154,7 +155,7 @@
       "title": "Get Help When You Need It"
     },
     "badge": "Why Khatwa",
-    "heading": "Everything You Need to Learn With Confidence",
+    "heading": "Everything you need to learn <mark>with confidence</mark>",
     "personalizedPlans": {
       "description": "Your learning path is built around your goals, experience, and available time instead of a one-size-fits-all course.",
       "title": "A Plan Built for You"
@@ -171,7 +172,7 @@
   },
   "faq": {
     "badge": "Common Questions",
-    "heading": "Frequently Asked Questions",
+    "heading": "Questions? <mark>We've got answers</mark>",
     "subheading": "Everything you need to know about Khatwa today and what's coming next.",
     "items": {
       "multipleRoadmaps": {
@@ -209,7 +210,7 @@
   },
   "howItWork": {
     "badge": "How Khatwa Works",
-    "title": "A Learning Path That Adapts With You",
+    "title": "A learning path that <mark>adapts with you</mark>",
     "subtitle": "Start with your goals, learn at your own pace, and get a roadmap that evolves as you make progress.",
     "step1": {
       "title": "Tell Us About Your Goals",
@@ -235,7 +236,7 @@
   "home": {
     "welcome ": "Hi, I'm Khatwa",
     "domains": {
-      "title": "Learn any of this, and more",
+      "title": "Learn <mark>any of this,</mark> and more",
       "items": {
         "webDevelopment": "Web Development",
         "uiUxDesign": "UI/UX Design",
@@ -251,7 +252,8 @@
         "publicSpeaking": "Public Speaking",
         "aiMachineLearning": "AI & Machine Learning",
         "mobileApps": "Mobile Apps"
-      }
+      },
+      "badge": "What You Can Learn"
     }
   },
   "loading": {
@@ -401,7 +403,7 @@
   },
   "pricing": {
     "badge": "Plans",
-    "heading": "Start Free. Grow When You're Ready.",
+    "heading": "<mark>Start free.</mark> Grow when you're ready.",
     "subheading": "Start with the current Free plan. More features and community support are planned for Pro.",
     "free": {
       "name": "Free",

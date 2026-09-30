@@ -2,9 +2,10 @@
 
 import { Check } from "lucide-react"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { SectionWave } from "@/shared/components/ui/SectionWave"
+import { useTranslations } from "next-intl"
 import { useT, type TranslateFn } from "@/shared/hooks/useT"
 import { useRouter } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
@@ -41,6 +42,7 @@ const plans: PricingPlan[] = [
 
 export function Pricing() {
   const t = useT("pricing")
+  const rich = useTranslations("pricing")
   const router = useRouter()
 
   return (
@@ -50,31 +52,14 @@ export function Pricing() {
       aria-labelledby="pricing-heading"
     >
       <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <FadeInView as="div" delay={0.05}>
-            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
-              {t("badge", "Plans")}
-            </span>
-          </FadeInView>
+        <SectionHeader
+          headingId="pricing-heading"
+          eyebrow={t("badge")}
+          title={rich.rich("heading", { mark: sectionHighlight })}
+          description={t("subheading")}
+        />
 
-          <HeadingReveal
-            as="h2"
-            id="pricing-heading"
-            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
-            delay={0.1}
-          >
-            {t("heading", "Simple Plans, Room To Grow")}
-          </HeadingReveal>
-
-          <FadeInView as="p" className="mt-4 text-lg text-muted-foreground" delay={0.15}>
-            {t(
-              "subheading",
-              "Start free today. Pro and Premium are on the way with expanded, community-driven capabilities."
-            )}
-          </FadeInView>
-        </div>
-
-        <div className="mt-16 grid grid-cols-1 gap-6 pb-20 sm:pb-24 lg:grid-cols-2 lg:items-stretch">
+        <div className="mt-12 grid grid-cols-1 gap-6 pb-20 sm:pb-24 lg:grid-cols-2 lg:items-stretch">
           {plans.map((plan, index) => (
             <FadeInView key={plan.key} className="h-full" delay={0.2 + index * 0.08}>
               <PlanCard

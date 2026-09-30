@@ -3,9 +3,10 @@
 import { ChevronRight } from "lucide-react"
 import { useId, useState } from "react"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { SectionWave } from "@/shared/components/ui/SectionWave"
+import { useTranslations } from "next-intl"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +19,7 @@ const faqItemKeys = [
 
 export function FAQ() {
   const t = useT("faq")
+  const rich = useTranslations("faq")
 
   return (
     <section
@@ -26,29 +28,14 @@ export function FAQ() {
       aria-labelledby="faq-heading"
     >
       <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <FadeInView as="div" delay={0.05}>
-            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
-              {t("badge", "Common Questions")}
-            </span>
-          </FadeInView>
-
-          <HeadingReveal
-            as="h2"
-            id="faq-heading"
-            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
-            delay={0.1}
-          >
-            {t("heading", "Frequently Asked Questions")}
-          </HeadingReveal>
-
-          <FadeInView as="p" className="mt-4 text-lg text-muted-foreground" delay={0.15}>
-            {t(
-              "subheading",
-              "Straight answers about what's available today and what's coming next."
-            )}
-          </FadeInView>
-        </div>
+        {/* Same column as the questions below, so the header starts where they do. */}
+        <SectionHeader
+          className="mx-auto max-w-3xl"
+          headingId="faq-heading"
+          eyebrow={t("badge")}
+          title={rich.rich("heading", { mark: sectionHighlight })}
+          description={t("subheading")}
+        />
 
         <FadeInView
           as="div"

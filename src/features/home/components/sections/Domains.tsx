@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { cn } from "@/lib/utils"
 
 const DOMAINS: { key: string; icon: LucideIcon }[] = [
@@ -197,18 +197,13 @@ export function Domains() {
       aria-labelledby="domains-heading"
     >
       <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <HeadingReveal
-            as="h2"
-            id="domains-heading"
-            className="font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
-            delay={0.1}
-          >
-            {t("title")}
-          </HeadingReveal>
-        </div>
+        <SectionHeader
+          headingId="domains-heading"
+          eyebrow={t("badge")}
+          title={t.rich("title", { mark: sectionHighlight })}
+        />
 
-        <div className="group mt-10 space-y-1 sm:mt-14" aria-hidden="true">
+        <div className="group mt-12 space-y-1" aria-hidden="true">
           {rows.map((row, r) => (
             <MarqueeRow
               key={r}
