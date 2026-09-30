@@ -13,7 +13,7 @@ import { apiSlice } from "@/lib/api/apiSlice"
 import { clearSession, setSession } from "@/lib/api/auth"
 import type { User } from "@/lib/api/types"
 import { DashboardPage } from "@/features/dashboard/components/pages/dashboard-page"
-import { SessionRestorer, resetSessionRestorerForTests } from "@/shared/components/providers/SessionRestorer"
+import { SessionRestorer } from "@/shared/components/providers/SessionRestorer"
 import enMessages from "../../../messages/en.json"
 import arMessages from "../../../messages/ar.json"
 
@@ -98,11 +98,16 @@ function counters() {
   return calls
 }
 
-function signedInStore() {
-  const store = configureStore({
+/** A page load: the store is still restoring the cookie session. */
+function loadingStore() {
+  return configureStore({
     reducer: { auth: authReducer, generation: generationReducer, workspace: workspaceReducer, [apiSlice.reducerPath]: apiSlice.reducer },
     middleware: (gdm) => gdm().concat(apiSlice.middleware),
   })
+}
+
+function signedInStore() {
+  const store = loadingStore()
   setSession({ tokenType: "Bearer", accessToken: "acc", expiresAt: Date.now() + 900_000 })
   store.dispatch(sessionEstablished({ id: "u1", name: "Learner", email: "l@example.com" } as User))
   return store
@@ -122,12 +127,11 @@ function renderIn(store: ReturnType<typeof signedInStore>, locale: "en" | "ar") 
 describe("language switch and leftover generation state", () => {
   beforeEach(() => {
     clearSession()
-    resetSessionRestorerForTests()
   })
 
   it("switching en → ar → en keeps the session and the cached roadmap and sends no generation request", async () => {
     const calls = counters()
-    const store = signedInStore()
+    const store = loadingStore()
 
     const first = renderIn(store, "en")
     expect(await screen.findByRole("link", { name: enMessages.workspace.openTask })).toBeInTheDocument()
