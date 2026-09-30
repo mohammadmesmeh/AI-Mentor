@@ -1,9 +1,9 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
-import { useT } from "@/shared/hooks/useT"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { useRouter } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 
@@ -13,7 +13,7 @@ const ctaBase =
   "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 
 export function CTA() {
-  const t = useT("cta")
+  const t = useTranslations("cta")
   const router = useRouter()
 
   return (
@@ -26,51 +26,35 @@ export function CTA() {
       </div>
 
       <Container>
-        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-          <HeadingReveal
-            as="h2"
-            id="cta-heading"
-            className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl"
-            delay={0.1}
-          >
-            {t(
-              "title",
-              "Ready to Synthesize Your AI Career Roadmap?"
-            )}
-          </HeadingReveal>
-
-          <FadeInView
-            as="p"
-            className="mt-5 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg"
-            delay={0.2}
-          >
-            {t(
-              "description",
-              "Stop guessing what to learn next. Get a personalized roadmap built by AI and start making real progress today."
-            )}
-          </FadeInView>
-
-          <FadeInView
-            as="div"
-            className="mt-10 flex w-full flex-col items-center gap-4 sm:w-auto"
-            delay={0.3}
-          >
-            <button
-              type="button"
-              onClick={() => router.push("/auth")}
-              className={cn(
-                ctaBase,
-                "w-full bg-primary text-primary-foreground shadow-md hover:bg-primary/80 sm:w-auto sm:px-10"
-              )}
-            >
-              {t("button", "Start Learning Free")}
-            </button>
-
-            <p className="text-sm text-white/60">
-              {t("subtext", "No credit card required")}
-            </p>
-          </FadeInView>
+        {/* This section is navy in both themes: `dark` gives the header its
+            on-dark colors here, whatever the app theme is. */}
+        <div className="dark">
+          <SectionHeader
+            headingId="cta-heading"
+            eyebrow={t("badge")}
+            title={t.rich("title", { mark: sectionHighlight })}
+            description={t("description")}
+          />
         </div>
+
+        <FadeInView
+          as="div"
+          className="mt-12 flex w-full flex-col items-start gap-4 sm:w-auto"
+          delay={0.15}
+        >
+          <button
+            type="button"
+            onClick={() => router.push("/auth")}
+            className={cn(
+              ctaBase,
+              "w-full bg-primary text-primary-foreground shadow-md hover:bg-primary/80 sm:w-auto sm:px-10"
+            )}
+          >
+            {t("button")}
+          </button>
+
+          <p className="text-sm text-white/60">{t("subtext")}</p>
+        </FadeInView>
       </Container>
     </section>
   )

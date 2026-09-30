@@ -1053,6 +1053,35 @@ html[dir="rtl"] {
   color: var(--color-canvas);
 }
 
+/* The highlighted phrase in a section title (SectionHeader's <mark>): a soft
+   blue block behind the words. An inline box paints its background over the
+   font's content area, which is not centred on the letters — and differs per
+   font — so the block is balanced with extra padding on one side:
+   --hl-top / --hl-bottom, set per script below. `clone` repeats the padding
+   and radius on every line when the phrase wraps. */
+@utility section-highlight {
+  /* Nunito: 11px above the capitals vs 15px below the baseline at 44px. */
+  --hl-top: 0.08em;
+  background-color: var(--color-secondary-100);
+  color: inherit;
+  border-radius: 6px;
+  padding-inline: 6px;
+  padding-block: var(--hl-top, 0) var(--hl-bottom, 0);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Zain's box is already tall and close to even around the letters; a little
+   room on top keeps hamza/tanween marks (أ، ً) off the edge. */
+[dir="rtl"] .section-highlight {
+  --hl-top: 0.05em;
+}
+
+/* On dark surfaces the soft blue becomes a translucent tint of the same hue. */
+.dark .section-highlight {
+  background-color: color-mix(in srgb, var(--color-secondary-400) 26%, transparent);
+}
+
 /* Fine dot-grid texture for dark sectional backdrops. Composes with
    `dark-section` (color from it, pattern from this). Statically drawn,
    so it is inherently reduced-motion safe; keep it decorative and mark
