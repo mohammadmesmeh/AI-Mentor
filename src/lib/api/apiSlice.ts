@@ -272,6 +272,23 @@ export const apiSlice = createApi({
       query: (id) => `/roadmaps/${id}`,
       providesTags: ["Roadmap"],
       transformResponse: (data: unknown) => data as Roadmap,
+      // A roadmap the server reports as `active` owns the active slot (§17).
+      // The backend activates a newly generated roadmap itself, so the cached
+      // GET /me/active-roadmap can still hold the `null` read before generation —
+      // and every page but the Overview reads that cache. Ask the server again
+      // (once) whenever the cache disagrees with the roadmap it just returned.
+      onQueryStarted: async (_id, { dispatch, getState, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled
+          if (data.status !== "active") return
+          const cached = apiSlice.endpoints.getActiveRoadmap.select()(getState() as never)
+          if (cached.isSuccess && cached.data?.id !== data.id) {
+            dispatch(apiSlice.util.invalidateTags(["ActiveRoadmap"]))
+          }
+        } catch {
+          // Surfaced to the caller through the query result.
+        }
+      },
     }),
 
     /**
