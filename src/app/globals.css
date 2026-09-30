@@ -779,6 +779,27 @@ html[dir="rtl"] {
   margin-block: -0.18em;
 }
 
+/* The word-by-word reveal (HeadingReveal) starts every word shifted down inside
+   its mask, a transform framer-motion writes inline when it renders. Two
+   visitors must never be left looking at a heading of empty masks:
+   - reduced motion, where the app's MotionConfig already drops the transform
+     but the inline style is still there to override;
+   - no scripting, where nothing ever runs and the words stay where the server
+     rendered them.
+   Both are reset to `none`, which leaves each word simply in place. `!important`
+   is what lets a stylesheet beat framer-motion's inline style. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal-word] {
+    transform: none !important;
+  }
+}
+
+@media (scripting: none) {
+  [data-reveal-word] {
+    transform: none !important;
+  }
+}
+
 /* Word spacing is the right spacing knob for Arabic — applied to every
    interactive/type surface so buttons and labels don't look denser than
    their English counterparts. */
@@ -1051,35 +1072,6 @@ html[dir="rtl"] {
 @utility dark-section {
   background-color: var(--color-midnight);
   color: var(--color-canvas);
-}
-
-/* The highlighted phrase in a section title (SectionHeader's <mark>): a soft
-   blue block behind the words. An inline box paints its background over the
-   font's content area, which is not centred on the letters — and differs per
-   font — so the block is balanced with extra padding on one side:
-   --hl-top / --hl-bottom, set per script below. `clone` repeats the padding
-   and radius on every line when the phrase wraps. */
-@utility section-highlight {
-  /* Nunito: 11px above the capitals vs 15px below the baseline at 44px. */
-  --hl-top: 0.08em;
-  background-color: var(--color-secondary-100);
-  color: inherit;
-  border-radius: 6px;
-  padding-inline: 6px;
-  padding-block: var(--hl-top, 0) var(--hl-bottom, 0);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
-
-/* Zain's box is already tall and close to even around the letters; a little
-   room on top keeps hamza/tanween marks (أ، ً) off the edge. */
-[dir="rtl"] .section-highlight {
-  --hl-top: 0.05em;
-}
-
-/* On dark surfaces the soft blue becomes a translucent tint of the same hue. */
-.dark .section-highlight {
-  background-color: color-mix(in srgb, var(--color-secondary-400) 26%, transparent);
 }
 
 /* Fine dot-grid texture for dark sectional backdrops. Composes with
