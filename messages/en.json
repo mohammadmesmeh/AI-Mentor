@@ -193,13 +193,14 @@
     }
   },
   "footer": {
-    "copyright": "© 2025 Khatwa Inc. Learn with clarity. Grow with confidence.",
+    "copyright": "© {year} Khatwa Inc. Learn with clarity. Grow with confidence.",
     "links": {
       "privacy": "Privacy Policy",
       "status": "System Status",
       "terms": "Terms of Service",
       "trust": "Content Trust Policy"
-    }
+    },
+    "navLabel": "Footer navigation"
   },
   "hero": {
     "title": "Your Personalized Learning Roadmap, Built by AI",
