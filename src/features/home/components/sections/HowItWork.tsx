@@ -2,15 +2,18 @@
 
 import { Activity, FlaskConical, Layers, RefreshCw } from "lucide-react"
 import { Container } from "@/shared/components/ui/Container"
-import { HeadingReveal } from "@/shared/components/animations/HeadingReveal"
 import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { StepCard } from "@/shared/components/ui/StepCard"
+import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { SectionWave } from "@/shared/components/ui/SectionWave"
+import { useTranslations } from "next-intl"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
 
 export const HowItWork = () => {
   const t = useT("howItWork")
+  // Rich text: the title marks its key phrase with <mark> in the messages.
+  const rich = useTranslations("howItWork")
 
   const steps = [
     {
@@ -61,37 +64,16 @@ export const HowItWork = () => {
       aria-labelledby="how-it-works-heading"
     >
       <Container>
-        <div className="mx-auto max-w-3xl text-center">
-          <FadeInView as="div" delay={0.05}>
-            <span className="inline-flex items-center rounded-full bg-light-blue-bg px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-light-blue-text">
-              {t("badge", "Precision Learning Pipeline")}
-            </span>
-          </FadeInView>
-
-          <HeadingReveal
-            as="h2"
-            id="how-it-works-heading"
-            className="mt-6 font-display text-3xl font-extrabold tracking-tight text-primary sm:text-4xl"
-            delay={0.1}
-          >
-            {t("title", "Bento Learning Architecture")}
-          </HeadingReveal>
-
-          <FadeInView
-            as="p"
-            className="mt-4 text-muted-foreground"
-            delay={0.15}
-          >
-            {t(
-              "subtitle",
-              "A four-phase curriculum engine that rebuilds your path as you learn — so every milestone stays sharp and achievable."
-            )}
-          </FadeInView>
-        </div>
+        <SectionHeader
+          headingId="how-it-works-heading"
+          eyebrow={t("badge")}
+          title={rich.rich("title", { mark: sectionHighlight })}
+          description={t("subtitle")}
+        />
 
         <ul
           role="list"
-          className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
           {steps.map((step, index) => (
             <li key={step.number} className="contents">

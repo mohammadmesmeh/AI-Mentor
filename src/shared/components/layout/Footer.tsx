@@ -18,8 +18,8 @@ const footerLinks = [
  * - Lateral margins 16px / 32px / 48px (mobile / tablet / desktop), 8pt rhythm.
  * - Body type: 15px on a 24px line.
  * - Links are tertiary/ghost buttons: text with a soft pill behind it on hover.
- * - Framed on the horizontal axis only: a fine rule above the footer and one
- *   between the brand row and the copyright line.
+ * - Framed on the horizontal axis only: a fine rule between the brand row and
+ *   the copyright line. No rule above: the navy CTA runs straight into it.
  */
 function Footer() {
   const t = useT("footer")
@@ -36,7 +36,7 @@ function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-white/10 bg-midnight px-4 py-12 md:px-8 lg:px-12">
+    <footer className="bg-midnight px-4 py-12 md:px-8 lg:px-12">
       <div className="mx-auto max-w-(--container-content)">
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between">
           <Link

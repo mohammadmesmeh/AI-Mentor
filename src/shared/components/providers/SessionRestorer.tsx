@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
-import { useDispatch } from "react-redux"
+import { useStore } from "react-redux"
 import { restoreSession } from "@/lib/api/auth"
-import { clearLocalSession, sessionEstablished } from "@/redux/slices/authSlice"
+import { clearLocalSession, sessionEstablished, type AuthState } from "@/redux/slices/authSlice"
 
 /**
  * On app load, restores the session from the session route's HttpOnly cookie
@@ -14,30 +14,30 @@ import { clearLocalSession, sessionEstablished } from "@/redux/slices/authSlice"
  * If the backend is temporarily unreachable the cookie is kept (a later reload
  * can still restore) but this load continues signed out.
  *
- * Once per page load. The providers live under the `[locale]` layout, so a
- * language switch remounts this component; the store (and the session in it)
- * survives, and restoring again would only rotate the refresh token for nothing.
+ * Once per store — in the app, once per page load. The providers live under the
+ * `[locale]` layout, so a language switch remounts this component; the store
+ * (and the session in it) survives, and restoring again would only rotate the
+ * refresh token for nothing. Keyed on the store rather than a plain module flag:
+ * a store created later (a dev hot reload re-evaluates `store.ts`) starts with
+ * `restoring: true`, and nothing but a restore would ever clear it.
  */
-let restoreStarted = false
+const restoredStores = new WeakSet<object>()
 
-/** Tests only: allow a fresh "page load". */
-export function resetSessionRestorerForTests() {
-  restoreStarted = false
-}
+type AuthRoot = { auth: AuthState }
 
 function SessionRestorer() {
-  const dispatch = useDispatch()
+  const store = useStore<AuthRoot>()
 
   useEffect(() => {
-    if (restoreStarted) return
-    restoreStarted = true
+    if (restoredStores.has(store) || !store.getState().auth.restoring) return
+    restoredStores.add(store)
     // Always report the outcome: the store outlives this component, and a
     // remount mid-restore must not leave `restoring` stuck on true.
     void restoreSession().then((outcome) => {
-      if (outcome.ok && outcome.user) dispatch(sessionEstablished(outcome.user))
-      else dispatch(clearLocalSession())
+      if (outcome.ok && outcome.user) store.dispatch(sessionEstablished(outcome.user))
+      else store.dispatch(clearLocalSession())
     })
-  }, [dispatch])
+  }, [store])
 
   return null
 }
