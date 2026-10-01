@@ -69,6 +69,34 @@
     color-scheme: light;
   }
 
+  /* Every scrollbar (page, sidebar, drawers, menus) is thin and uses the
+     theme's scrollbar tokens instead of the browser's gray one. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  /* Browsers without scrollbar-color (Safari) style the WebKit parts. */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: var(--scrollbar-track);
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: var(--scrollbar-thumb);
+      background-clip: padding-box;
+      border: 2px solid transparent;
+      border-radius: var(--radius-pill);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
+  }
+
   body {
     overflow-x: clip;
     width: 100%;
@@ -441,6 +469,7 @@
   --glass-bg: rgb(255 255 255 / 65%);
   --glass-border: rgb(222 234 251 / 60%);
   --scrollbar-thumb: var(--color-secondary-300);
+  --scrollbar-thumb-hover: var(--color-secondary-400);
   --scrollbar-track: transparent;
 
   /* Custom cursor — light mode */
@@ -519,6 +548,7 @@
   --glass-bg: rgb(17 25 41 / 55%);
   --glass-border: rgb(160 190 226 / 16%);
   --scrollbar-thumb: var(--color-secondary-800);
+  --scrollbar-thumb-hover: var(--color-secondary-700);
   --scrollbar-track: transparent;
 
   /* Custom cursor — theme-aware tokens */
@@ -1085,24 +1115,6 @@ html[dir="rtl"] {
     transparent 1.25px
   );
   background-size: 24px 24px;
-}
-
-/* Custom scrollbar — thin, theme-aware, non-intrusive */
-@utility scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb);
-    border-radius: var(--radius-pill);
-  }
-  &::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
 }
 
 /* Accessible, on-brand focus ring — use instead of the browser default */

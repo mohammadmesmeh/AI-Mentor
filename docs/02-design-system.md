@@ -131,7 +131,7 @@ Declared semantically: `--radius-sm .375rem` (chips) · `--radius-md .625rem` (i
 ## Utility classes (`@utility`)
 
 - **Typography**: `text-heading`, `text-body`, `text-label` (uppercase eyebrow — no-op in RTL), `text-button` — all dir-aware.
-- **Surfaces**: `glass-card` (blur+saturate), `gradient-bg-brand` (navy→purple, hero only), `gradient-bg-subtle`, `gradient-text` (one hero headline max), `dark-section` (local midnight canvas + light text regardless of theme), `dot-grid` (decorative, reduced-motion-safe, `aria-hidden`), `scrollbar-thin`.
+- **Surfaces**: `glass-card` (blur+saturate), `gradient-bg-brand` (navy→purple, hero only), `gradient-bg-subtle`, `gradient-text` (one hero headline max), `dark-section` (local midnight canvas + light text regardless of theme), `dot-grid` (decorative, reduced-motion-safe, `aria-hidden`). Scrollbars are styled globally from `--scrollbar-thumb` / `--scrollbar-thumb-hover` / `--scrollbar-track` (base layer), so no class is needed.
 - **Interactive**: `focus-ring`, `btn-base`, `btn` (padding 0.625/1.125, body-sm), `hover-lift`, `badge-base`, `nav-link`, `card` (surface-card, `border-default`, `radius-lg`, `shadow-card`, 1.25rem padding), `chat-message`, `roadmap-card` (card + `border-inline-start` 3px primary).
 - **Font facades**: `font-inter`, `font-space-grotesk`, `font-arabic`, `font-rubik`.
 
