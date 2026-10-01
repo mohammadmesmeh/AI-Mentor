@@ -26,6 +26,15 @@ const API_BASE_URL = (
   "http://localhost:8000/api/v1"
 ).replace(/\/$/, "")
 
+/**
+ * The backend can take ~30s to answer after sleeping (Render cold start). The
+ * function must outlive that: if the platform cut it off, the backend could
+ * still rotate the refresh token while the new cookie never reached the
+ * browser, and the next refresh (with the old token) would trip reuse
+ * detection and revoke the session.
+ */
+export const maxDuration = 60
+
 const SESSION_COOKIE = "masar_session"
 const COOKIE_PATH = "/api/session"
 /** Sent by src/lib/api/auth.ts. A cross-site form can't set it, and it forces a CORS preflight. */
@@ -129,7 +138,13 @@ function forwardedFor(request: NextRequest): Record<string, string> {
  * arrives just after the rotation (with the old cookie) gets the same result.
  */
 const refreshes = new Map<string, Promise<UpstreamResult>>()
-const REFRESH_GRACE_MS = 5000
+/**
+ * Long enough to cover a reload made while a slow (cold-start) refresh was in
+ * flight: that request's response, and its new cookie, never reach the
+ * browser, so the reload arrives with the old cookie and must get the same
+ * result rather than a second refresh with a token the backend already rotated.
+ */
+const REFRESH_GRACE_MS = 60_000
 
 function refreshOnce(token: string, request: NextRequest): Promise<UpstreamResult> {
   const existing = refreshes.get(token)
