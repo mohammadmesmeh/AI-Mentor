@@ -39,11 +39,12 @@ function TodayFocusSection({ tasks }: TodayFocusSectionProps) {
                   className="group flex min-h-11 items-center gap-3.5 rounded-md py-3.5 no-underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <TaskStatusMark status={status} label={label} />
-                  <span className="min-w-0 flex-1">
-                    <span dir="auto" className="block text-sm font-semibold wrap-break-word text-ink group-hover:underline">
-                      {task.title}
+                  {/* Title and meta share the page's side; the title keeps its own direction. */}
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-sm font-semibold wrap-break-word text-ink group-hover:underline">
+                      <bdi>{task.title}</bdi>
                     </span>
-                    <span className="block text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {t(`taskType.${task.type}`, task.type)}
                       {task.estimatedMinutes > 0 && ` · ${t("taskMinutes", undefined, { count: task.estimatedMinutes })}`}
                     </span>

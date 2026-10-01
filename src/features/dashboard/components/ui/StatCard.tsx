@@ -32,7 +32,11 @@ export function StatCard({
       >
         {value}
       </span>
-      {footer && <span dir="auto" className="text-[0.8125rem] wrap-break-word text-muted-foreground">{footer}</span>}
+      {footer && (
+        <span className="text-[0.8125rem] wrap-break-word text-muted-foreground">
+          <bdi>{footer}</bdi>
+        </span>
+      )}
     </Card>
   )
 }
