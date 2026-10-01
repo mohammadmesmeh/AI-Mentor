@@ -26,15 +26,16 @@ function ContinueLearningSection({ current, allCompleted }: ContinueLearningSect
     >
       {current ? (
         <div className="flex flex-col gap-3">
-          <p dir="auto" className="m-0 text-[0.8125rem] font-semibold wrap-break-word text-status-available">
+          {/* Server text sits in <bdi>: its own direction, but on the page's side like the rest. */}
+          <p className="m-0 text-[0.8125rem] font-semibold wrap-break-word text-status-available">
             {tw("stageLabel", undefined, { position: current.stage.position, title: current.stage.title })}
           </p>
-          <h3 dir="auto" className="m-0 font-sans text-lg leading-normal font-bold wrap-break-word text-ink sm:text-xl">
-            {current.task.title}
+          <h3 className="m-0 font-sans text-lg leading-normal font-bold wrap-break-word text-ink sm:text-xl">
+            <bdi>{current.task.title}</bdi>
           </h3>
           {current.task.instructions.trim() && (
-            <p dir="auto" className="m-0 line-clamp-2 text-sm wrap-break-word text-muted-foreground">
-              {current.task.instructions}
+            <p className="m-0 line-clamp-2 text-sm wrap-break-word text-muted-foreground">
+              <bdi>{current.task.instructions}</bdi>
             </p>
           )}
           <TaskMeta type={current.task.type} minutes={current.task.estimatedMinutes} />

@@ -1,15 +1,19 @@
 "use client"
 
 import { Link, usePathname } from "@/i18n/navigation"
+import { cn } from "@/lib/utils"
 import { useT } from "@/shared/hooks/useT"
 import { LanguageSwitcher } from "@/shared/components/ui/LanguageSwitcher"
 import { ThemeToggle } from "@/shared/components/ui/ThemeToggle"
 import { findNavItem } from "./navItems"
 
+const CRUMB_LINK =
+  "rounded-sm no-underline transition-colors hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+
 /**
- * The desktop top bar: where you are (group / page, and the parent page as a
- * link on pages below it) plus language and theme. Phones and tablets use the
- * header in DashboardWorkspaceNav instead.
+ * The desktop top bar: where you are as links (group → its first page, then
+ * the page; a detail page adds itself last) plus language and theme. Phones
+ * and tablets use the header in DashboardWorkspaceNav instead.
  */
 function WorkspaceTopBar() {
   const t = useT("workspace")
@@ -22,24 +26,28 @@ function WorkspaceTopBar() {
       {match ? (
         <nav aria-label={t("breadcrumbLabel")} className="text-[0.8125rem] text-muted-foreground">
           <ol className="m-0 flex list-none items-center gap-1.5 p-0">
-            <li>{t(match.group.labelKey)}</li>
+            <li>
+              <Link href={match.group.items[0].href} className={CRUMB_LINK}>
+                {t(match.group.labelKey)}
+              </Link>
+            </li>
             <li aria-hidden="true">/</li>
             <li>
-              {isChild ? (
-                <Link href={match.item.href} className="text-secondary-700 no-underline hover:underline dark:text-secondary-300">
-                  {t(match.item.labelKey)}
-                </Link>
-              ) : (
-                <span aria-current="page" className="font-semibold text-ink">
-                  {t(match.item.labelKey)}
-                </span>
-              )}
+              <Link
+                href={match.item.href}
+                aria-current={isChild ? undefined : "page"}
+                className={cn(CRUMB_LINK, isChild ? "text-secondary-700 dark:text-secondary-300" : "font-semibold text-ink")}
+              >
+                {t(match.item.labelKey)}
+              </Link>
             </li>
             {isChild && (
               <>
                 <li aria-hidden="true">/</li>
-                <li aria-current="page" className="font-semibold text-ink">
-                  {t("breadcrumbDetail")}
+                <li>
+                  <Link href={pathname} aria-current="page" className={cn(CRUMB_LINK, "font-semibold text-ink")}>
+                    {t("breadcrumbDetail")}
+                  </Link>
                 </li>
               </>
             )}
@@ -49,8 +57,8 @@ function WorkspaceTopBar() {
         <span />
       )}
       <div className="flex items-center gap-2">
-        <LanguageSwitcher workspace />
-        <ThemeToggle workspace />
+        <LanguageSwitcher />
+        <ThemeToggle />
       </div>
     </header>
   )
