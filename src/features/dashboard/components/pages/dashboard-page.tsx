@@ -144,7 +144,8 @@ function Overview({ roadmap }: { roadmap: Roadmap }) {
         minutesPerWeek={profile?.availableMinutesPerWeek}
       />
       <OverviewStats stats={stats} resources={resourceItems(roadmap)} />
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      {/* Cards side by side share their row's height. */}
+      <div className="grid gap-5 lg:grid-cols-2">
         <ContinueLearningSection current={findCurrentTask(stages)} allCompleted={summary.allCompleted} />
         <TodayFocusSection tasks={focusTasks(stages)} />
         <PlanStagesSection stages={stats.byStage} />
@@ -167,11 +168,11 @@ function OverviewSkeleton() {
           <StatCardSkeleton key={i} />
         ))}
       </div>
-      <div className="grid items-start gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <CardSkeleton className="h-80" />
-        <CardSkeleton className="h-72" />
+        <CardSkeleton className="h-80" />
         <CardSkeleton className="h-60" />
-        <CardSkeleton className="h-36" />
+        <CardSkeleton className="h-60" />
       </div>
     </LoadingRegion>
   )
