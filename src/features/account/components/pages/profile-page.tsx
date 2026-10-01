@@ -67,7 +67,7 @@ function ProfilePage() {
   if (!me.data || profile.data === undefined) return <ProfileSkeleton />
 
   return (
-    <div className="animate-fade-in max-w-245 space-y-6">
+    <div className="animate-fade-in space-y-6">
       <ProfileHeader />
       <AccountPanel name={me.data.name} email={me.data.email} createdAt={me.data.createdAt} />
       <LearningProfilePanel profile={profile.data} resourceLanguage={preferences.data?.resourceLanguage ?? null} />
