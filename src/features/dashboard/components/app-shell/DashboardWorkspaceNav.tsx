@@ -195,8 +195,8 @@ function DashboardWorkspaceNav() {
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden items-center gap-2 md:flex">
-            <LanguageSwitcher workspace />
-            <ThemeToggle workspace />
+            <LanguageSwitcher />
+            <ThemeToggle />
           </div>
           {learnerName && <Avatar name={learnerName} className="size-9" />}
         </div>
@@ -238,8 +238,8 @@ function DashboardWorkspaceNav() {
           </nav>
           <div className="mt-auto flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <LanguageSwitcher workspace />
-              <ThemeToggle workspace />
+              <LanguageSwitcher mobile />
+              <ThemeToggle mobile />
             </div>
             <AccountFooter />
           </div>

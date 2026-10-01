@@ -49,8 +49,8 @@ function WorkspaceTopBar() {
         <span />
       )}
       <div className="flex items-center gap-2">
-        <LanguageSwitcher workspace />
-        <ThemeToggle workspace />
+        <LanguageSwitcher />
+        <ThemeToggle />
       </div>
     </header>
   )
