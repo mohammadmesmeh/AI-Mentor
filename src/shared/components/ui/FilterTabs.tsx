@@ -39,7 +39,9 @@ export function FilterTabs<T extends string>({
       <TabsList
         aria-label={label}
         aria-labelledby={labelledBy}
-        className="h-auto max-w-full flex-wrap justify-start gap-1 rounded-icon bg-segment p-1"
+        // The base list fixes its height with a variant class (group-data-horizontal/tabs:h-8),
+        // which a plain h-auto can't override: the 36px tabs would spill out of the track.
+        className="h-auto max-w-full flex-wrap justify-start gap-1 rounded-icon bg-segment p-1 group-data-horizontal/tabs:h-auto"
       >
         {options.map((option) => (
           <TabsTrigger
