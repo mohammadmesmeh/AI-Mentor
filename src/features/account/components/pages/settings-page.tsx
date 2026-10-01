@@ -61,7 +61,7 @@ function useStatusLabels() {
 function SettingsContent({ preferences }: { preferences: Preferences | null }) {
   const t = useT("account")
   return (
-    <div className="animate-fade-in max-w-245 space-y-5">
+    <div className="animate-fade-in space-y-5">
       <PageHeader title={t("settingsTitle")} description={t("settingsDescription")} />
       <AppearancePanel />
       <LearningPreferencesPanel preferences={preferences} />
@@ -228,7 +228,7 @@ function SettingsSkeleton() {
   const t = useT("workspace")
   return (
     <LoadingRegion label={t("loading")}>
-      <div className="max-w-245 space-y-5">
+      <div className="space-y-5">
         <div className="space-y-2">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-5 w-72 max-w-full" />

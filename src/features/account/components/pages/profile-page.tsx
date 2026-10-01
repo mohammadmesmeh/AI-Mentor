@@ -67,7 +67,7 @@ function ProfilePage() {
   if (!me.data || profile.data === undefined) return <ProfileSkeleton />
 
   return (
-    <div className="animate-fade-in max-w-245 space-y-6">
+    <div className="animate-fade-in space-y-6">
       <ProfileHeader />
       <AccountPanel name={me.data.name} email={me.data.email} createdAt={me.data.createdAt} />
       <LearningProfilePanel profile={profile.data} resourceLanguage={preferences.data?.resourceLanguage ?? null} />
@@ -94,11 +94,12 @@ function AccountPanel({ name, email, createdAt }: { name: string; email: string;
     >
       <Avatar name={name} tone="navy" className="size-16 font-display text-[1.75rem] font-extrabold sm:size-19 sm:text-[2rem]" />
       <div className="min-w-0 flex-1 space-y-0.5">
-        <p dir="auto" className="m-0 font-display text-[1.625rem] leading-snug font-extrabold wrap-break-word text-ink">
-          {name}
+        {/* <bdi> keeps the text's own direction without moving it off the page's side. */}
+        <p className="m-0 font-display text-[1.625rem] leading-snug font-extrabold wrap-break-word text-ink">
+          <bdi>{name}</bdi>
         </p>
-        <p dir="ltr" className="m-0 text-start text-sm break-all text-muted-foreground">
-          {email}
+        <p className="m-0 text-sm break-all text-muted-foreground">
+          <bdi dir="ltr">{email}</bdi>
         </p>
         {since && (
           <p className="m-0 text-[0.8125rem] font-semibold text-status-available">
@@ -195,19 +196,19 @@ function LearningProfilePanel({
       titleId="learning-heading"
       title={t("learningSection")}
       action={
-          !editing && (
-            <Button
-              variant="glass"
-              className="min-h-11"
-              onClick={() => {
-                setSaved(false)
-                setEditing(true)
-              }}
-            >
-              {t("edit")}
-            </Button>
-          )
-        }
+        !editing && (
+          <Button
+            variant="glass"
+            className="min-h-11"
+            onClick={() => {
+              setSaved(false)
+              setEditing(true)
+            }}
+          >
+            {t("edit")}
+          </Button>
+        )
+      }
     >
       {editing ? (
         <LearningProfileForm
@@ -277,8 +278,8 @@ function ProfileRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div className={PROFILE_ROW}>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd dir="auto" className="m-0 font-semibold whitespace-pre-line wrap-break-word text-ink">
-        {value || <span className="font-normal text-muted-foreground">{t("notSet")}</span>}
+      <dd className="m-0 font-semibold whitespace-pre-line wrap-break-word text-ink">
+        {value ? <bdi>{value}</bdi> : <span className="font-normal text-muted-foreground">{t("notSet")}</span>}
       </dd>
     </div>
   )
@@ -528,7 +529,7 @@ function ProfileSkeleton() {
   const t = useT("workspace")
   return (
     <LoadingRegion label={t("loading")}>
-      <div className="max-w-245 space-y-6">
+      <div className="space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-5 w-72 max-w-full" />
