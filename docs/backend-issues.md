@@ -179,6 +179,18 @@ A new account also shows why saves failed before the frontend was updated: `PUT 
 
 ---
 
+## 11. Learners are signed out after the backend sleeps (cold start + refresh reuse detection)
+
+**What happened** — learners stay signed in, then a reload after some idle time shows "Sign in to continue". Measured on 2026-10-01: `GET /health` took **32.6 s** on the first call after idle and **0.65 s** right after (`X-Request-ID 01M3W9K0616JPZ93FPQWF7PA6D` on the warm call). Every reload calls `POST /auth/refresh` through the frontend's session route.
+
+**What the contract says** — §3: the refresh token "is rotated on every successful refresh"; §3 rule 5 and §8: reusing a rotated token is treated as reuse and "can … revoke the whole token family" (`401`, sign out).
+
+**User impact** — if the browser never receives a refresh response (the request is cut off or the learner reloads again while the backend is waking up), the backend has already rotated the token but the browser's cookie still holds the old one. The next refresh sends the old token, reuse detection revokes the family, and the learner is signed out for real. The frontend now waits up to 60 s, retries temporary failures, and briefly shares a refresh's result with a request that arrives with the old cookie, but that last part is in-memory on one server instance and can't cover every case.
+
+**Suggested change** — (1) a short reuse grace window: if the just-rotated (previous) refresh token is presented again within ~60 s, return the same new pair (or a fresh one) instead of revoking the family; (2) keep the service from sleeping (a paid Render instance or a health ping), so refreshes don't wait ~30 s.
+
+---
+
 ## Note: rate limits and the frontend's session route
 
 To keep learners signed in across reloads, the frontend now follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser.
