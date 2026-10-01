@@ -104,6 +104,7 @@ export function TaskTable({
                   taskId={task.id}
                   canComplete={canCompleteTask(roadmap, task)}
                   completion={completion}
+                  variant="circle"
                   className="items-end"
                 />
               </TableCell>
