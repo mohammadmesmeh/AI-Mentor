@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, CircleAlert, ClipboardList, Clock, ExternalLink, LogIn, Map as MapIcon } from "lucide-react"
+import { AlertTriangle, Check, CircleAlert, ClipboardList, Clock, ExternalLink, Loader2, LogIn, Map as MapIcon } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import { MetaItem, MetaList } from "@/shared/components/ui/MetaItem"
@@ -117,36 +117,73 @@ export function TaskMeta({
  * Mark complete (contract §20). Offered only when the server's rules allow it
  * (the list pages derive them from the roadmap tree; the task page uses
  * `can_complete`). Pending state, one request at a time, errors as alerts.
+ *
+ * `circle` is the compact form for task lists: an outlined check that fills
+ * like the completed mark on hover/focus (a 44px target around a 32px circle).
  */
 export function MarkCompleteButton({
   taskId,
   canComplete,
   completion,
   size = "default",
+  variant = "button",
   className,
 }: {
   taskId: string
   canComplete: boolean
   completion: TaskCompletionState
   size?: "default" | "lg"
+  variant?: "button" | "circle"
   className?: string
 }) {
   const td = useT("dashboard")
   if (!canComplete) return null
   const pending = completion.pendingTaskId === taskId
   const error = completion.error?.taskId === taskId ? completion.error.kind : null
+  const label = pending ? td("taskCompleting") : td("taskComplete")
+  const disabled = completion.pendingTaskId !== null
+  const onClick = () => void completion.complete(taskId)
   return (
     <span className={cn("flex flex-col items-stretch gap-1.5", className)}>
-      <Button
-        variant="primary"
-        size={size}
-        className={cn("min-h-11 px-4", size === "lg" && "min-h-12")}
-        disabled={completion.pendingTaskId !== null}
-        aria-busy={pending || undefined}
-        onClick={() => void completion.complete(taskId)}
-      >
-        {pending ? td("taskCompleting") : td("taskComplete")}
-      </Button>
+      {variant === "circle" ? (
+        <button
+          type="button"
+          aria-label={label}
+          title={label}
+          disabled={disabled}
+          aria-busy={pending || undefined}
+          onClick={onClick}
+          className="group/check inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-none disabled:cursor-not-allowed"
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              "flex size-8 items-center justify-center rounded-full border-2 transition-colors duration-200 motion-reduce:transition-none",
+              "group-focus-visible/check:ring-3 group-focus-visible/check:ring-ring/50",
+              pending
+                ? "border-status-completed bg-status-completed text-background"
+                : "border-status-completed/35 bg-card text-status-completed/45 group-hover/check:border-status-completed group-hover/check:bg-status-completed group-hover/check:text-background group-focus-visible/check:border-status-completed group-focus-visible/check:bg-status-completed group-focus-visible/check:text-background group-disabled/check:opacity-50"
+            )}
+          >
+            {pending ? (
+              <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+            ) : (
+              <Check className="size-4" strokeWidth={2.6} />
+            )}
+          </span>
+        </button>
+      ) : (
+        <Button
+          variant="primary"
+          size={size}
+          className={cn("min-h-11 px-4", size === "lg" && "min-h-12")}
+          disabled={disabled}
+          aria-busy={pending || undefined}
+          onClick={onClick}
+        >
+          {label}
+        </Button>
+      )}
       {error && (
         <span role="alert" className="flex items-start gap-1.5 text-xs font-medium text-ink">
           <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />

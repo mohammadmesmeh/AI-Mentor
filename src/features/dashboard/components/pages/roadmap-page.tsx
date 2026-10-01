@@ -174,7 +174,12 @@ function StageTaskRow({ item, roadmap, completion }: { item: TaskItem; roadmap: 
         {task.estimatedMinutes > 0 && ` · ${td("taskMinutes", undefined, { count: task.estimatedMinutes })}`}
         {!task.isRequired && ` · ${t("optional")}`}
       </span>
-      <MarkCompleteButton taskId={task.id} canComplete={canCompleteTask(roadmap, task)} completion={completion} />
+      <MarkCompleteButton
+        taskId={task.id}
+        canComplete={canCompleteTask(roadmap, task)}
+        completion={completion}
+        variant="circle"
+      />
     </li>
   )
 }
