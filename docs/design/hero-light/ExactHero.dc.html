@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exact hero (brand board)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&amp;family=Zain:wght@700;800&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<div style="width: 1440px; height: 1060px; box-sizing: border-box; padding: 56px 28px 0; background: linear-gradient(135deg, #A9C2E2 0%, #8EAFD8 55%, #7FA2CF 100%); font-family: {{body}}">
+<div dir="{{dir}}" lang="{{code}}" style="position: relative; height: 100%; border-radius: 18px 18px 0 0; overflow: hidden; background: linear-gradient(110deg, #F8FBFF 0%, #F1F6FE 45%, #E7EFFC 100%); box-shadow: 0 30px 80px rgba(18,49,77,0.25); color: #0A1930">
+
+<svg aria-hidden="true" width="1384" height="1004" viewBox="0 0 1384 1004" style="position: absolute; inset: 0; transform: {{flip}}">
+<defs>
+<linearGradient id="wA" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#E9F0FC"></stop><stop offset="1" stop-color="#DAE6F9"></stop></linearGradient>
+<linearGradient id="wB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3F7FE"></stop><stop offset="1" stop-color="#E4EDFB"></stop></linearGradient>
+<linearGradient id="mDot" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8DB6EC"></stop><stop offset="1" stop-color="#4F86D3"></stop></linearGradient>
+<linearGradient id="mC1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5D93DA"></stop><stop offset="1" stop-color="#2B60AF"></stop></linearGradient>
+<linearGradient id="mC2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A2C6F2"></stop><stop offset="1" stop-color="#5A91DA"></stop></linearGradient>
+<filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#2B60AF" flood-opacity="0.22"></feDropShadow></filter>
+</defs>
+<path d="M1050 0 C 1130 110, 1260 170, 1384 175 L 1384 0 Z" fill="url(#wB)"></path>
+<path d="M560 1004 C 700 880, 840 720, 960 560 C 1060 420, 1190 300, 1384 260 L 1384 1004 Z" fill="url(#wA)"></path>
+<path d="M760 1004 C 930 900, 1140 790, 1384 740 L 1384 1004 Z" fill="#EEF4FD" fill-opacity="0.85"></path>
+<path d="M590 800 C 740 712, 880 652, 1060 632 C 1210 616, 1300 568, 1384 520" fill="none" stroke="#B6CDEF" stroke-width="2.2"></path>
+<path d="M640 860 C 820 760, 1020 712, 1384 640" fill="none" stroke="#D3E1F6" stroke-width="1.6"></path>
+<circle cx="668" cy="694" r="5" fill="#8DB0DE"></circle>
+<circle cx="760" cy="722" r="3.5" fill="#A9C3E8"></circle>
+<circle cx="770" cy="712" r="2.5" fill="#A9C3E8"></circle>
+<g filter="url(#soft)">
+<circle cx="918" cy="500" r="38" fill="url(#mDot)"></circle>
+<path d="M992 400l92 96-92 96" fill="none" stroke="url(#mC1)" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M1110 412l82 84-82 84" fill="none" stroke="url(#mC2)" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"></path>
+</g>
+</svg>
+
+<header style="position: relative; height: 100px; box-sizing: border-box; padding: 0 84px; display: flex; align-items: center; justify-content: space-between">
+<div style="display: flex; align-items: center; gap: 10px">
+<svg width="46" height="30" viewBox="0 0 72 48" aria-hidden="true" style="transform: {{flip}}"><circle cx="9" cy="24" r="8" fill="#12314D"></circle><path d="M26 6l17 18-17 18" fill="none" stroke="#12314D" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path><path d="M47 6l17 18-17 18" fill="none" stroke="#325F9B" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<div style="display: flex; flex-direction: column; line-height: 1.05">
+<span style="font-family: 'Zain', 'Noto Sans Arabic', sans-serif; font-size: 26px; font-weight: 800; color: #0A1930">خطوة</span>
+<span lang="en" style="font-family: 'Nunito Sans', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #12314D">Khatwa</span>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 120px">
+<nav aria-label="{{navLabel}}" style="display: flex; gap: 40px; font-size: 15px; font-weight: 500">
+<sc-for list="{{ links }}" as="k" hint-placeholder-count="4"><a href="#" style="color: #12314D; text-decoration: none">{{k.t}}</a></sc-for>
+</nav>
+<a href="#" style="display: inline-flex; align-items: center; height: 40px; padding: 0 20px; border-radius: 999px; background: #12314D; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none">{{getStarted}}</a>
+</div>
+</header>
+
+<div style="position: relative; padding: 96px 84px 0; display: flex; flex-direction: column; gap: 22px; max-width: 640px">
+<h1 style="margin: 0; font-family: {{disp}}; font-size: {{hsize}}; font-weight: 800; line-height: {{hlh}}; letter-spacing: {{track}}; color: #0A1930">{{h1}}</h1>
+<p style="margin: 0; max-width: 520px; font-size: 18px; line-height: 28px; color: #43474D">{{desc}}</p>
+<div style="padding-top: 18px">
+<a href="#" style="display: inline-flex; align-items: center; gap: 12px; height: 48px; padding: 0 24px; border-radius: 999px; background: #12314D; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 10px 24px rgba(18,49,77,0.25)">
+<span>{{cta}}</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: {{flip}}"><path d="M5 12h14m-7-7 7 7-7 7"></path></svg>
+</a>
+</div>
+</div>
+
+<div style="position: absolute; left: 150px; right: 150px; top: 820px; bottom: -40px; background: #ffffff; border: 1px solid #DCE6F5; border-radius: 18px; box-shadow: 0 -6px 40px rgba(18,49,77,0.10); display: flex; overflow: hidden">
+<div style="width: 76px; flex-shrink: 0; border-inline-end: 1px solid #EDF2F9; display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 22px">
+<div style="width: 32px; height: 32px; border-radius: 999px; background: #DCE7F7; color: #12314D; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700">{{initial}}</div>
+<div style="width: 24px; height: 4px; border-radius: 4px; background: #E3EBF6"></div>
+<div style="width: 24px; height: 4px; border-radius: 4px; background: #E3EBF6"></div>
+</div>
+<div style="flex-grow: 1; padding: 20px 26px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<span style="font-family: {{disp}}; font-size: 17px; font-weight: 700; color: #0A1930">{{cont}}</span>
+<span style="font-size: 13px; color: #667085">{{example}}</span>
+</div>
+<div style="display: flex; gap: 14px">
+<div style="flex: 1.6; border: 1px solid #E4EBF5; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 14px">
+<div style="width: 40px; height: 40px; border-radius: 12px; background: #12314D; color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z"></path></svg></div>
+<div style="flex-grow: 1; min-width: 0">
+<div style="font-family: {{disp}}; font-size: 15px; font-weight: 700; color: #0A1930">{{task}}</div>
+<div style="font-size: 12px; color: #667085">{{taskMeta}}</div>
+</div>
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #6D28D9"><span style="width: 7px; height: 7px; border-radius: 999px; background: #7C3AED"></span>{{today}}</span>
+</div>
+<div style="flex: 1; border: 1px solid #E4EBF5; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 13px; color: #667085"><span>{{prog}}</span><span style="font-weight: 700; color: #0A1930">44%</span></div>
+<div style="height: 6px; border-radius: 999px; background: #E3EBF6; overflow: hidden"><div style="width: 44%; height: 6px; border-radius: 999px; background: #12314D"></div></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"lang":{"editor":"enum","options":["en","ar"],"default":"en"},"$preview":{"width":1440,"height":1060}}'>
+class Component extends DCLogic {
+renderVals() {
+const ar = this.props.lang === 'ar';
+return ar ? {
+code: 'ar', dir: 'rtl', flip: 'scaleX(-1)', navLabel: 'القائمة الرئيسية',
+body: "'Noto Sans Arabic', system-ui, sans-serif", disp: "'Zain', 'Noto Sans Arabic', sans-serif", hsize: '52px', hlh: 1.35, track: '0',
+links: [{ t: 'الرئيسية' }, { t: 'الميزات' }, { t: 'من نحن' }, { t: 'الخطط' }],
+getStarted: 'ابدأ الآن',
+h1: 'رحلتك التعليمية، يقودها الذكاء الاصطناعي',
+desc: 'تتكيّف خطوة مع أهدافك وسرعتك وأسلوبك، لتتعلّم بذكاء، وتتطوّر أسرع، وتصل إلى خطوتك التالية.',
+cta: 'ابدأ التعلّم', initial: 'م', cont: 'تابع رحلتك', example: 'مثال توضيحي',
+task: 'بناء مكوّنات قابلة لإعادة الاستخدام', taskMeta: 'مشروع تطبيقي · 40 دقيقة · المرحلة 2 من 3', today: 'خطوة اليوم', prog: 'تقدّمك في الخطة'
+} : {
+code: 'en', dir: 'ltr', flip: 'none', navLabel: 'Main navigation',
+body: "'Space Grotesk', system-ui, sans-serif", disp: "'Nunito Sans', system-ui, sans-serif", hsize: '48px', hlh: '56px', track: '-0.02em',
+links: [{ t: 'Home' }, { t: 'Features' }, { t: 'About' }, { t: 'Pricing' }],
+getStarted: 'Get Started',
+h1: 'Your Learning Journey, Powered by AI',
+desc: 'Khatwa adapts to your goals, pace, and style — so you can learn smarter, grow faster, and reach your next step.',
+cta: 'Start Learning', initial: 'M', cont: 'Continue your journey', example: 'Example',
+task: 'Build reusable components', taskMeta: 'Project · 40 min · Stage 2 of 3', today: "Today's step", prog: 'Plan progress'
+};
+}
+}
+</script>
+</body>
+</html>
