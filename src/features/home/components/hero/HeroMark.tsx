@@ -31,7 +31,7 @@ function HeroMark({ className }: { className?: string }) {
           <stop offset="1" style={{ stopColor: "var(--color-hero-mark-6)" }} />
         </linearGradient>
         <filter id="hero-mark-shadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="0" dy="14" stdDeviation="16" floodOpacity="0.22" style={{ floodColor: "var(--color-hero-mark-4)" }} />
+          <feDropShadow dx="0" dy="14" stdDeviation="16" style={{ floodColor: "var(--color-hero-glow)" }} />
         </filter>
       </defs>
       {/* The float is on the group, so it doesn't fight the svg's entrance fade. */}

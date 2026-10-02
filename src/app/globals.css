@@ -2,9 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* `dark:` applies inside .dark — except inside a .light area nested in it
-   (e.g. the home hero, which stays light in both themes). */
-@custom-variant dark (&:is(.dark *):not(.dark .light, .dark .light *));
+@custom-variant dark (&:is(.dark *));
 @custom-variant light (&:is(.light *));
 
 /* ملاحظة تطبيقية (خارج نطاق هالملف):
@@ -220,31 +218,6 @@
   --color-light-blue-bg:  #deeafb;   /* light-blue callout / border tint                */
   --color-light-blue-text:#1d4e89;   /* deep blue text on light-blue bg    */
   --color-text-muted:     #667085;   /* muted helper text (light mode)     */
-  --color-on-surface-variant: #43474d; /* design.md on-surface-variant: body copy on light surfaces */
-
-  /* --- Color: Home hero (design.md light surfaces + brand blues) ---
-     The hero is a light area in both themes; these are its fixed colors. */
-  --color-hero-from:      #f8fbff;   /* surface gradient, start            */
-  --color-hero-via:       #f1f6fe;
-  --color-hero-to:        #e7effc;   /* surface gradient, end (light blue) */
-  --color-hero-wave-1:    #e9f0fc;   /* large wave                         */
-  --color-hero-wave-2:    #dae6f9;
-  --color-hero-wave-3:    #f3f7fe;   /* top corner wave                    */
-  --color-hero-wave-4:    #e4edfb;
-  --color-hero-wave-5:    #eef4fd;   /* low front wave                     */
-  --color-hero-line-1:    #b6cdef;   /* swoosh lines                       */
-  --color-hero-line-2:    #d3e1f6;
-  --color-hero-dot-1:     #8db0de;
-  --color-hero-dot-2:     #a9c3e8;
-  --color-hero-mark-1:    #8db6ec;   /* logo mark gradients: dot           */
-  --color-hero-mark-2:    #4f86d3;
-  --color-hero-mark-3:    #5d93da;   /* first chevron                      */
-  --color-hero-mark-4:    #2b60af;
-  --color-hero-mark-5:    #a2c6f2;   /* second chevron                     */
-  --color-hero-mark-6:    #5a91da;
-  --color-hero-card-line: #dce6f5;   /* preview strip border               */
-  --color-hero-tile-line: #e4ebf5;   /* preview tiles border               */
-  --color-hero-rail-line: #edf2f9;   /* preview side rail divider          */
   --color-success-green:  #10b981;   /* positive / complete / live states  */
   --color-success-bg:     #d1fae5;   /* soft success callout background    */
   --color-live-red:       #ef4444;   /* live / error / destructive accent  */
@@ -693,14 +666,6 @@ html[dir="rtl"] {
   --text-overline--line-height:    1.4;
 
   --text-code--line-height:        1.7;
-}
-
-/* A .light / .dark area (the home hero, the CTA) resets --font-default and
-   --font-ui to the Latin stack; in RTL, put the Arabic stack back inside it. */
-html[dir="rtl"] .light,
-html[dir="rtl"] .dark {
-  --font-default: var(--font-arabic);
-  --font-ui:      var(--font-arabic);
 }
 
 /* Zain for large headings (h1/h2) only; every other heading and all body/UI
@@ -1617,6 +1582,29 @@ html[dir="rtl"] .dark {
 
 :root,
 .light {
+  /* Home hero (design: docs/design/hero-light): light brand surface, waves,
+     swoosh lines, dots and the logo mark's gradients. */
+  --hero-from:   #f8fbff;
+  --hero-via:    #f1f6fe;
+  --hero-to:     #e7effc;
+  --hero-wave-1: #e9f0fc;
+  --hero-wave-2: #dae6f9;
+  --hero-wave-3: #f3f7fe;
+  --hero-wave-4: #e4edfb;
+  --hero-wave-5: rgb(238 244 253 / 85%);
+  --hero-line-1: #b6cdef;
+  --hero-line-2: #d3e1f6;
+  --hero-dot-1:  #8db0de;
+  --hero-dot-2:  #a9c3e8;
+  --hero-mark-1: #8db6ec;
+  --hero-mark-2: #4f86d3;
+  --hero-mark-3: #5d93da;
+  --hero-mark-4: #2b60af;
+  --hero-mark-5: #a2c6f2;
+  --hero-mark-6: #5a91da;
+  --hero-text:   #43474d;   /* design.md on-surface-variant */
+  --hero-glow:   rgb(43 96 175 / 22%);
+
   --ws-canvas: #edf2f9;
   --ws-glow-1: rgb(70 131 203 / 26%);
   --ws-glow-2: rgb(18 49 77 / 14%);
@@ -1661,6 +1649,30 @@ html[dir="rtl"] .dark {
   --track: rgb(160 190 226 / 14%);
   --segment: rgb(160 190 226 / 10%);
   --ink: #f3f6fb;
+
+  /* Home hero, dark: the same composition on deep navy — the waves are
+     lifted navy layers, the lines and dots muted brand blue, and the mark
+     keeps its blues (they read on navy) with a deeper shadow. */
+  --hero-from:   #0a1220;
+  --hero-via:    #0d1829;
+  --hero-to:     #11213a;
+  --hero-wave-1: #12223b;
+  --hero-wave-2: #183052;
+  --hero-wave-3: #0f1b2e;
+  --hero-wave-4: #15284a;
+  --hero-wave-5: rgb(16 31 54 / 85%);
+  --hero-line-1: #2f5a92;
+  --hero-line-2: #22426c;
+  --hero-dot-1:  #5b8ccc;
+  --hero-dot-2:  #3f6aa3;
+  --hero-mark-1: #8db6ec;
+  --hero-mark-2: #4f86d3;
+  --hero-mark-3: #6a9fe3;
+  --hero-mark-4: #2f66b8;
+  --hero-mark-5: #a8cbf5;
+  --hero-mark-6: #5f97df;
+  --hero-text:   #b3c0d4;
+  --hero-glow:   rgb(0 0 0 / 45%);
 
   --status-completed: #c2d5ea;
   --status-current: #7c3aed;
@@ -1713,6 +1725,26 @@ html[dir="rtl"] .dark {
   --color-track: var(--track);
   --color-segment: var(--segment);
   --color-ink: var(--ink);
+  --color-hero-from: var(--hero-from);
+  --color-hero-via: var(--hero-via);
+  --color-hero-to: var(--hero-to);
+  --color-hero-wave-1: var(--hero-wave-1);
+  --color-hero-wave-2: var(--hero-wave-2);
+  --color-hero-wave-3: var(--hero-wave-3);
+  --color-hero-wave-4: var(--hero-wave-4);
+  --color-hero-wave-5: var(--hero-wave-5);
+  --color-hero-line-1: var(--hero-line-1);
+  --color-hero-line-2: var(--hero-line-2);
+  --color-hero-dot-1: var(--hero-dot-1);
+  --color-hero-dot-2: var(--hero-dot-2);
+  --color-hero-mark-1: var(--hero-mark-1);
+  --color-hero-mark-2: var(--hero-mark-2);
+  --color-hero-mark-3: var(--hero-mark-3);
+  --color-hero-mark-4: var(--hero-mark-4);
+  --color-hero-mark-5: var(--hero-mark-5);
+  --color-hero-mark-6: var(--hero-mark-6);
+  --color-hero-text: var(--hero-text);
+  --color-hero-glow: var(--hero-glow);
   --color-glass-strong: var(--glass-fill-strong);
   --radius-icon: calc(var(--radius) * 0.75); /* 12px — icon boxes */
 }

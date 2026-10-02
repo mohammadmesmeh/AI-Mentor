@@ -30,15 +30,23 @@ describe("Hero", () => {
     expect(screen.getByRole("link", { name: m.cta })).toHaveAttribute("href", "/auth")
   })
 
-  it("stays light in both themes, and ends with the theme-coloured section wave", () => {
+  it("follows the theme (hero-* tokens, no forced light area) and ends with the section wave", () => {
     const { container } = renderHero("en")
     const section = container.querySelector("section")!
-    const light = section.querySelector(":scope > .light")
-    expect(light).toContainElement(screen.getByRole("heading", { level: 1 }))
-    // The wave is outside the .light area, so it matches the next section in either theme.
+    expect(section.className).toContain("from-hero-from")
+    expect(section.querySelector(".light, .dark")).toBeNull()
     const wave = section.lastElementChild!
-    expect(light).not.toContainElement(wave as HTMLElement)
     expect(wave.querySelector("svg")?.getAttribute("class")).toContain("text-background")
+  })
+
+  it("is two boxes, content and logo mark, side by side and vertically centered from lg", () => {
+    const { container } = renderHero("en")
+    const row = screen.getByRole("heading", { level: 1 }).parentElement!.parentElement!
+    expect(row.className).toContain("lg:flex-row")
+    expect(row.className).toContain("lg:items-center")
+    expect(row.children).toHaveLength(2)
+    expect(row.children[1].querySelector("svg")).not.toBeNull()
+    expect(container.querySelectorAll("h1")).toHaveLength(1)
   })
 
   it("the logo mark and the dots float (motion-safe only); no dashboard preview", () => {

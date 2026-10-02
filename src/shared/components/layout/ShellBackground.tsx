@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 /**
  * What sits behind the navbar at the top of the page:
  * - "light": a surface that follows the theme (auth, onboarding);
- * - "brand-light": the home hero, light in both themes;
+ * - "home": the home hero (its own light and dark look);
  * - "dark": a surface that is dark in both themes.
  */
-export type SurfaceTheme = "dark" | "light" | "brand-light"
+export type SurfaceTheme = "dark" | "light" | "home"
 
 const SurfaceThemeContext = createContext<SurfaceTheme>("dark")
 
@@ -35,7 +35,7 @@ function ShellBackground({ children, decor }: ShellBackgroundProps) {
     typeof pathname === "string" &&
     (pathname.startsWith("/auth") || pathname.startsWith("/onboarding"))
 
-  const surfaceTheme: SurfaceTheme = isAuthSurface ? "light" : pathname === "/" ? "brand-light" : "dark"
+  const surfaceTheme: SurfaceTheme = isAuthSurface ? "light" : pathname === "/" ? "home" : "dark"
 
   if (!isAuthSurface) {
     return (

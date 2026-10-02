@@ -155,10 +155,8 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
 
   const topTransparent = !isScrolled && !mobileOpen
   const isDarkTop = topTransparent && activeSurfaceTheme === "dark"
-  // On the home hero (light in both themes) the bar is a light area while it
-  // sits transparent over the hero, so it reads the same in dark mode.
-  const isHome = activeSurfaceTheme === "brand-light"
-  const isLightTop = topTransparent && isHome
+  // The home hero's navbar style (design: docs/design/hero-light).
+  const isHome = activeSurfaceTheme === "home"
   // The hero's buttons: pill, 40px, 15px semibold.
   const homeButton = isHome ? "min-h-10 rounded-full px-5 text-[0.9375rem] font-semibold" : undefined
 
@@ -192,8 +190,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
           <div
             className={cn(
               "flex h-14 items-center justify-between gap-3 px-4 sm:px-5",
-              isDarkTop && "dark",
-              isLightTop && "light"
+              isDarkTop && "dark"
             )}
           >
             <Logo />

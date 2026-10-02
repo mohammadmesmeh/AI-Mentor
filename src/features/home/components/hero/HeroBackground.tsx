@@ -30,7 +30,7 @@ function HeroBackground() {
       </defs>
       <path className="max-md:hidden" d="M1050 0 C 1130 110, 1260 170, 1384 175 L 1384 0 Z" fill="url(#hero-wave-b)" />
       <path d="M560 1004 C 700 880, 840 720, 960 560 C 1060 420, 1190 300, 1384 260 L 1384 1004 Z" fill="url(#hero-wave-a)" />
-      <path d="M760 1004 C 930 900, 1140 790, 1384 740 L 1384 1004 Z" className="fill-hero-wave-5" fillOpacity="0.85" />
+      <path d="M760 1004 C 930 900, 1140 790, 1384 740 L 1384 1004 Z" className="fill-hero-wave-5" />
       <g className="max-md:hidden" fill="none">
         <path d="M590 800 C 740 712, 880 652, 1060 632 C 1210 616, 1300 568, 1384 520" className="stroke-hero-line-1" strokeWidth="2.2" />
         <path d="M640 860 C 820 760, 1020 712, 1384 640" className="stroke-hero-line-2" strokeWidth="1.6" />
