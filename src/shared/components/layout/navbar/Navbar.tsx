@@ -159,8 +159,8 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
   // sits transparent over the hero, so it reads the same in dark mode.
   const isHome = activeSurfaceTheme === "brand-light"
   const isLightTop = topTransparent && isHome
-  // The hero's buttons: pill, 40px, Space Grotesk 15px semibold.
-  const homeButton = isHome ? "min-h-10 rounded-full px-5 font-body text-[0.9375rem] font-semibold" : undefined
+  // The hero's buttons: pill, 40px, 15px semibold.
+  const homeButton = isHome ? "min-h-10 rounded-full px-5 text-[0.9375rem] font-semibold" : undefined
 
   return (
     <header

@@ -34,7 +34,8 @@ function HeroMark({ className }: { className?: string }) {
           <feDropShadow dx="0" dy="14" stdDeviation="16" floodOpacity="0.22" style={{ floodColor: "var(--color-hero-mark-4)" }} />
         </filter>
       </defs>
-      <g filter="url(#hero-mark-shadow)" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* The float is on the group, so it doesn't fight the svg's entrance fade. */}
+      <g filter="url(#hero-mark-shadow)" fill="none" strokeLinecap="round" strokeLinejoin="round" className="motion-safe:animate-hero-float">
         <circle cx="58" cy="160" r="38" fill="url(#hero-mark-dot)" />
         <path d="M132 60l92 96-92 96" stroke="url(#hero-mark-chevron-1)" strokeWidth="72" />
         <path d="M250 72l82 84-82 84" stroke="url(#hero-mark-chevron-2)" strokeWidth="60" />

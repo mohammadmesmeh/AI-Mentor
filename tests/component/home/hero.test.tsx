@@ -30,9 +30,22 @@ describe("Hero", () => {
     expect(screen.getByRole("link", { name: m.cta })).toHaveAttribute("href", "/auth")
   })
 
-  it("stays light in both themes: the section is a .light area", () => {
+  it("stays light in both themes, and ends with the theme-coloured section wave", () => {
     const { container } = renderHero("en")
-    expect(container.querySelector("section")?.classList.contains("light")).toBe(true)
+    const section = container.querySelector("section")!
+    const light = section.querySelector(":scope > .light")
+    expect(light).toContainElement(screen.getByRole("heading", { level: 1 }))
+    // The wave is outside the .light area, so it matches the next section in either theme.
+    const wave = section.lastElementChild!
+    expect(light).not.toContainElement(wave as HTMLElement)
+    expect(wave.querySelector("svg")?.getAttribute("class")).toContain("text-background")
+  })
+
+  it("the logo mark and the dots float (motion-safe only); no dashboard preview", () => {
+    const { container } = renderHero("en")
+    const floating = container.querySelectorAll("[class*='motion-safe:animate-hero-float']")
+    expect(floating).toHaveLength(2)
+    expect(screen.queryByText("Example")).toBeNull()
   })
 
   it("the CTA arrow and the art mirror in RTL", () => {
@@ -43,20 +56,6 @@ describe("Hero", () => {
     // Background art and logo mark, both decorative.
     const art = svgs.filter((svg) => svg.getAttribute("aria-hidden") === "true" && svg.getAttribute("class")?.includes("rtl:-scale-x-100"))
     expect(art.length).toBeGreaterThanOrEqual(3)
-  })
-
-  it("the preview strip is labelled Example, uses the sample copy, and is hidden from assistive tech", () => {
-    renderHero("en")
-    const p = enMessages.hero.preview
-    const example = screen.getByText(p.example)
-    const strip = example.closest("[aria-hidden='true']")
-    expect(strip).not.toBeNull()
-    for (const text of [p.continue, p.task, p.taskMeta, p.today, p.progress, p.progressValue]) {
-      expect(strip).toHaveTextContent(text)
-    }
-    // Purple is only on the current-task dot.
-    expect(strip?.querySelector(".bg-status-current")).not.toBeNull()
-    // Nothing in the hero calls the API: it renders without a store.
   })
 
   it("en and ar have the same hero keys", () => {

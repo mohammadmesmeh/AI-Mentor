@@ -7,7 +7,7 @@
  *
  * Mirrored as a whole in RTL, so the art sits on the left there. Below md the
  * lines, dots and the top corner wave are dropped and only the large waves
- * stay. Decorative.
+ * stay. The dots float gently up and down (motion-safe only). Decorative.
  */
 function HeroBackground() {
   return (
@@ -35,7 +35,7 @@ function HeroBackground() {
         <path d="M590 800 C 740 712, 880 652, 1060 632 C 1210 616, 1300 568, 1384 520" className="stroke-hero-line-1" strokeWidth="2.2" />
         <path d="M640 860 C 820 760, 1020 712, 1384 640" className="stroke-hero-line-2" strokeWidth="1.6" />
       </g>
-      <g className="max-md:hidden">
+      <g className="max-md:hidden motion-safe:animate-hero-float-small">
         <circle cx="668" cy="694" r="5" className="fill-hero-dot-1" />
         <circle cx="760" cy="722" r="3.5" className="fill-hero-dot-2" />
         <circle cx="770" cy="712" r="2.5" className="fill-hero-dot-2" />

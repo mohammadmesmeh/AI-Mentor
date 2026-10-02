@@ -18,12 +18,12 @@ const navLinkStyles = {
     active: "text-foreground font-semibold",
     inactive: "text-muted-foreground",
   },
-  // The home hero's light navbar (design: docs/design/hero-light): Space
-  // Grotesk 15px in primary navy. Once scrolled in dark mode the bar is dark
+  // The home hero's light navbar (design: docs/design/hero-light): 15px in
+  // primary navy, in the site's UI font. Once scrolled in dark mode the bar is dark
   // glass, so the links take the normal light text there (over the hero the
   // bar is a .light area and `dark:` doesn't apply).
   brand: {
-    base: "font-body whitespace-nowrap rounded-full px-3 py-1.5 text-[0.9375rem] font-medium xl:px-4",
+    base: "font-ui whitespace-nowrap rounded-full px-3 py-1.5 text-[0.9375rem] font-medium xl:px-4",
     active: "text-primary font-semibold dark:text-foreground",
     inactive: "text-primary dark:text-foreground",
   },

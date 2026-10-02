@@ -206,17 +206,7 @@
   "hero": {
     "title": "Your Learning Journey, Powered by AI",
     "description": "Khatwa adapts to your goals, pace, and style — so you can learn smarter, grow faster, and reach your next step.",
-    "cta": "Start Learning",
-    "preview": {
-      "learner": "Maya",
-      "continue": "Continue your journey",
-      "example": "Example",
-      "task": "Build reusable components",
-      "taskMeta": "Project · 40 min · Stage 2 of 3",
-      "today": "Today's step",
-      "progress": "Plan progress",
-      "progressValue": "44%"
-    }
+    "cta": "Start Learning"
   },
   "howItWork": {
     "badge": "How Khatwa Works",
