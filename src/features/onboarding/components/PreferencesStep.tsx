@@ -13,16 +13,6 @@ interface PreferencesStepProps {
   onBack: () => void
 }
 
-const TIMEZONES = [
-  "UTC",
-  "Asia/Hebron",
-  "Asia/Riyadh",
-  "Asia/Dubai",
-  "Europe/London",
-  "Europe/Berlin",
-  "America/New_York",
-] as const
-
 const selectClass =
   "w-full rounded-lg border border-border bg-background p-3 text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
 
@@ -39,7 +29,6 @@ function PreferencesStep({ preferences, onChange, onNext, onBack }: PreferencesS
       await updatePreferences({
         uiLocale: preferences.uiLocale,
         resourceLanguage: preferences.resourceLanguage,
-        timezone: preferences.timezone,
       }).unwrap()
       onNext()
     } catch {
@@ -94,24 +83,6 @@ function PreferencesStep({ preferences, onChange, onNext, onBack }: PreferencesS
             <option value="ar">{t("prefArabic")}</option>
             <option value="en">{t("prefEnglish")}</option>
             <option value="both">{t("prefBoth")}</option>
-          </select>
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="pref-timezone" className="text-sm font-medium text-foreground">
-            {t("timezoneLabel")}
-          </label>
-          <select
-            id="pref-timezone"
-            className={selectClass}
-            value={preferences.timezone}
-            onChange={(e) => onChange({ timezone: e.target.value })}
-          >
-            {TIMEZONES.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone}
-              </option>
-            ))}
           </select>
         </div>
       </div>

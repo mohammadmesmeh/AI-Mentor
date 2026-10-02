@@ -26,7 +26,6 @@ export type ResourceLanguage = "ar" | "en" | "both"
 export interface Preferences {
   uiLocale: UiLocale
   resourceLanguage: ResourceLanguage
-  timezone: string
   updatedAt: string
 }
 

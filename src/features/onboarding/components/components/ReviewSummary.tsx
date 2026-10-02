@@ -77,7 +77,7 @@ function buildCoreRows(
 
 function buildPreferencesRow(
   t: (key: string) => string,
-  prefs: Pick<Preferences, "uiLocale" | "resourceLanguage" | "timezone">
+  prefs: Pick<Preferences, "uiLocale" | "resourceLanguage">
 ): ReviewRow {
   return {
     id: "preferences",
@@ -85,7 +85,6 @@ function buildPreferencesRow(
     value: [
       t(uiLocaleKeyMap[prefs.uiLocale] ?? "notSpecified"),
       t(resourceLanguageKeyMap[prefs.resourceLanguage] ?? "notSpecified"),
-      prefs.timezone || t("notSpecified"),
     ].join(" · "),
     step: 6,
   }

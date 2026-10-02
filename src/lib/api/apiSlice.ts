@@ -37,7 +37,6 @@ export interface RegisterArg {
 export interface PreferencesPatch {
   uiLocale?: UiLocale
   resourceLanguage?: ResourceLanguage
-  timezone?: string
 }
 
 export interface LearningProfileInput {
@@ -206,7 +205,6 @@ export const apiSlice = createApi({
         body: {
           ui_locale: patch.uiLocale,
           resource_language: patch.resourceLanguage,
-          timezone: patch.timezone,
         },
       }),
       transformResponse: (data: unknown) => data as Preferences,

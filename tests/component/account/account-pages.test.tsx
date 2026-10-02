@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
 import { Provider } from "react-redux"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
@@ -63,12 +62,12 @@ function backend() {
       })
     }),
     http.get(`${API_BASE}/me/preferences`, () =>
-      envelope({ ui_locale: "en", resource_language: "both", timezone: "UTC", updated_at: "2026-09-28T08:00:00Z" })
+      envelope({ ui_locale: "en", resource_language: "both", updated_at: "2026-09-28T08:00:00Z" })
     ),
     http.patch(`${API_BASE}/me/preferences`, async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>
       calls.patches.push(body)
-      return envelope({ ui_locale: "en", resource_language: "both", timezone: "UTC", updated_at: "x", ...body })
+      return envelope({ ui_locale: "en", resource_language: "both", updated_at: "x", ...body })
     }),
     http.post(`${API_BASE}/roadmap-generation-requests`, () => {
       calls.generation += 1
@@ -276,13 +275,12 @@ describe("Settings", () => {
     expect(calls.generation).toBe(0)
   })
 
-  it("timezone saves with PATCH", async () => {
-    const calls = backend()
+  it("has no time zone control: it is no longer a learner setting (§11)", async () => {
+    backend()
     renderPage(signedInStore(), <SettingsPage />)
-    const user = userEvent.setup()
-    await user.click(await screen.findByRole("combobox", { name: a.timezone }))
-    await user.click(await screen.findByRole("option", { name: "Asia/Hebron" }))
-    await waitFor(() => expect(calls.patches).toEqual([{ timezone: "Asia/Hebron" }]))
+    expect(await screen.findByRole("tablist", { name: a.resourceLanguage })).toBeInTheDocument()
+    expect(screen.queryByRole("combobox")).toBeNull()
+    expect(screen.queryByText(/time ?zone/i)).toBeNull()
   })
 
   it("theme is a local choice", async () => {

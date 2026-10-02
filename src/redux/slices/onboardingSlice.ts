@@ -21,14 +21,12 @@ export interface OnboardingFormState {
   preferences: {
     uiLocale: UiLocale
     resourceLanguage: ResourceLanguage
-    timezone: string
   }
 }
 
 export const defaultPreferences = {
   uiLocale: "en" as UiLocale,
   resourceLanguage: "both" as ResourceLanguage,
-  timezone: "UTC",
 }
 
 export const initialForm = (): OnboardingFormState => ({
@@ -80,12 +78,11 @@ const onboardingSlice = createSlice({
     },
     updatePreferences(
       state,
-      action: PayloadAction<Partial<Pick<Preferences, "uiLocale" | "resourceLanguage" | "timezone">>>
+      action: PayloadAction<Partial<Pick<Preferences, "uiLocale" | "resourceLanguage">>>
     ) {
       const patch = action.payload
       if (patch.uiLocale) state.form.preferences.uiLocale = patch.uiLocale
       if (patch.resourceLanguage) state.form.preferences.resourceLanguage = patch.resourceLanguage
-      if (patch.timezone) state.form.preferences.timezone = patch.timezone
     },
     hydrate(
       state,
@@ -113,7 +110,6 @@ const onboardingSlice = createSlice({
         state.form.preferences = {
           uiLocale: preferences.uiLocale,
           resourceLanguage: preferences.resourceLanguage,
-          timezone: preferences.timezone,
         }
       }
     },
