@@ -18,6 +18,13 @@ const navLinkStyles = {
     active: "text-foreground font-semibold",
     inactive: "text-muted-foreground",
   },
+  // The home hero's navbar (design: docs/design/hero-light): 15px in
+  // primary navy, in the site's UI font; light text in dark mode.
+  brand: {
+    base: "font-ui whitespace-nowrap rounded-full px-3 py-1.5 text-[0.9375rem] font-medium xl:px-4",
+    active: "text-primary font-semibold dark:text-foreground",
+    inactive: "text-primary dark:text-foreground",
+  },
 } as const
 
 type NavLink = {
@@ -27,6 +34,8 @@ type NavLink = {
 
 type NavLinksProps = {
   mobile?: boolean
+  /** Desktop links on the home hero. */
+  brand?: boolean
   onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
   link: NavLink
 }
@@ -36,6 +45,7 @@ const tapTransition = { type: "spring" as const, stiffness: 400, damping: 17 }
 
 export const NavLinks = ({
   mobile = false,
+  brand = false,
   onClick,
   link,
 }: NavLinksProps) => {
@@ -44,7 +54,9 @@ export const NavLinks = ({
 
   const styles = mobile
     ? navLinkStyles.mobile
-    : navLinkStyles.desktop
+    : brand
+      ? navLinkStyles.brand
+      : navLinkStyles.desktop
 
   return (
     <motion.span

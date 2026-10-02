@@ -355,7 +355,6 @@
   --animate-fade-in:        fade-in 0.4s var(--ease-out-soft) both;
   --animate-slide-up:       slide-up 0.45s var(--ease-out-soft) both;
   --animate-scale-in:       scale-in 0.25s var(--ease-out-soft) both;
-  --animate-float:          float 6s var(--ease-in-out-soft) infinite;
   --animate-glow-pulse:     glow-pulse 2.4s var(--ease-in-out-soft) infinite;
   --animate-gradient-shift: gradient-shift 8s ease infinite;
   --animate-soft-pulse:     soft-pulse 1.8s var(--ease-in-out-soft) infinite;
@@ -363,12 +362,17 @@
   --animate-shimmer:        shimmer 1.6s linear infinite;
   --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
   --animate-marquee:        marquee 70s linear infinite;
+  /* Same duration and ease as FadeInView, so the hero matches the page. */
+  --animate-hero-rise:      hero-rise 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  --animate-hero-fade:      hero-fade 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  /* The hero's logo mark and dots: a slow, small up-and-down float. */
+  --animate-hero-float:       hero-float 6s ease-in-out infinite;
+  --animate-hero-float-small: hero-float-small 4.5s ease-in-out infinite;
 
   /* --- Containers ---
      Max-width tokens for capped, centered layouts at the large end of the
      breakpoint scale (see §5 for the full responsive rationale). */
   --container-content: 77.5rem;  /* 1240px — max width for reading/app content */
-  --container-hero:    63.75rem; /* 1020px — hero text max-width               */
   --container-wide:    88rem;    /* 1408px — dashboards, kanban, wide tables  */
 }
 
@@ -1104,19 +1108,6 @@ html[dir="rtl"] {
   color: var(--color-canvas);
 }
 
-/* Fine dot-grid texture for dark sectional backdrops. Composes with
-   `dark-section` (color from it, pattern from this). Statically drawn,
-   so it is inherently reduced-motion safe; keep it decorative and mark
-   it `aria-hidden` in markup. */
-@utility dot-grid {
-  background-image: radial-gradient(
-    circle,
-    rgb(222 234 251 / 0.16) 1px,
-    transparent 1.25px
-  );
-  background-size: 24px 24px;
-}
-
 /* Accessible, on-brand focus ring — use instead of the browser default */
 @utility focus-ring {
   outline: none;
@@ -1262,10 +1253,21 @@ html[dir="rtl"] {
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* Gentle ambient float for hero illustrations / AI orb */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%      { transform: translateY(-8px); }
+/* Home hero entrance (motion-safe only). The h1 rises without fading so it
+   paints at once and stays the LCP element; the rest fades in after it. */
+@keyframes hero-rise {
+  from { transform: translateY(12px); }
+}
+@keyframes hero-fade {
+  from { opacity: 0; transform: translateY(12px); }
+}
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes hero-float-small {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
 }
 
 /* Pulsing glow for the "assistant is active" affordance */
@@ -1580,6 +1582,29 @@ html[dir="rtl"] {
 
 :root,
 .light {
+  /* Home hero (design: docs/design/hero-light): light brand surface, waves,
+     swoosh lines, dots and the logo mark's gradients. */
+  --hero-from:   #f8fbff;
+  --hero-via:    #f1f6fe;
+  --hero-to:     #e7effc;
+  --hero-wave-1: #e9f0fc;
+  --hero-wave-2: #dae6f9;
+  --hero-wave-3: #f3f7fe;
+  --hero-wave-4: #e4edfb;
+  --hero-wave-5: rgb(238 244 253 / 85%);
+  --hero-line-1: #b6cdef;
+  --hero-line-2: #d3e1f6;
+  --hero-dot-1:  #8db0de;
+  --hero-dot-2:  #a9c3e8;
+  --hero-mark-1: #8db6ec;
+  --hero-mark-2: #4f86d3;
+  --hero-mark-3: #5d93da;
+  --hero-mark-4: #2b60af;
+  --hero-mark-5: #a2c6f2;
+  --hero-mark-6: #5a91da;
+  --hero-text:   #43474d;   /* design.md on-surface-variant */
+  --hero-glow:   rgb(43 96 175 / 22%);
+
   --ws-canvas: #edf2f9;
   --ws-glow-1: rgb(70 131 203 / 26%);
   --ws-glow-2: rgb(18 49 77 / 14%);
@@ -1624,6 +1649,30 @@ html[dir="rtl"] {
   --track: rgb(160 190 226 / 14%);
   --segment: rgb(160 190 226 / 10%);
   --ink: #f3f6fb;
+
+  /* Home hero, dark: the same composition on deep navy — the waves are
+     lifted navy layers, the lines and dots muted brand blue, and the mark
+     keeps its blues (they read on navy) with a deeper shadow. */
+  --hero-from:   #0a1220;
+  --hero-via:    #0d1829;
+  --hero-to:     #11213a;
+  --hero-wave-1: #12223b;
+  --hero-wave-2: #183052;
+  --hero-wave-3: #0f1b2e;
+  --hero-wave-4: #15284a;
+  --hero-wave-5: rgb(16 31 54 / 85%);
+  --hero-line-1: #2f5a92;
+  --hero-line-2: #22426c;
+  --hero-dot-1:  #5b8ccc;
+  --hero-dot-2:  #3f6aa3;
+  --hero-mark-1: #8db6ec;
+  --hero-mark-2: #4f86d3;
+  --hero-mark-3: #6a9fe3;
+  --hero-mark-4: #2f66b8;
+  --hero-mark-5: #a8cbf5;
+  --hero-mark-6: #5f97df;
+  --hero-text:   #b3c0d4;
+  --hero-glow:   rgb(0 0 0 / 45%);
 
   --status-completed: #c2d5ea;
   --status-current: #7c3aed;
@@ -1676,6 +1725,26 @@ html[dir="rtl"] {
   --color-track: var(--track);
   --color-segment: var(--segment);
   --color-ink: var(--ink);
+  --color-hero-from: var(--hero-from);
+  --color-hero-via: var(--hero-via);
+  --color-hero-to: var(--hero-to);
+  --color-hero-wave-1: var(--hero-wave-1);
+  --color-hero-wave-2: var(--hero-wave-2);
+  --color-hero-wave-3: var(--hero-wave-3);
+  --color-hero-wave-4: var(--hero-wave-4);
+  --color-hero-wave-5: var(--hero-wave-5);
+  --color-hero-line-1: var(--hero-line-1);
+  --color-hero-line-2: var(--hero-line-2);
+  --color-hero-dot-1: var(--hero-dot-1);
+  --color-hero-dot-2: var(--hero-dot-2);
+  --color-hero-mark-1: var(--hero-mark-1);
+  --color-hero-mark-2: var(--hero-mark-2);
+  --color-hero-mark-3: var(--hero-mark-3);
+  --color-hero-mark-4: var(--hero-mark-4);
+  --color-hero-mark-5: var(--hero-mark-5);
+  --color-hero-mark-6: var(--hero-mark-6);
+  --color-hero-text: var(--hero-text);
+  --color-hero-glow: var(--hero-glow);
   --color-glass-strong: var(--glass-fill-strong);
   --radius-icon: calc(var(--radius) * 0.75); /* 12px — icon boxes */
 }
