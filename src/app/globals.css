@@ -2,7 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* `dark:` applies inside .dark — except inside a .light area nested in it
+   (e.g. the home hero, which stays light in both themes). */
+@custom-variant dark (&:is(.dark *):not(.dark .light, .dark .light *));
 @custom-variant light (&:is(.light *));
 
 /* ملاحظة تطبيقية (خارج نطاق هالملف):
@@ -218,6 +220,31 @@
   --color-light-blue-bg:  #deeafb;   /* light-blue callout / border tint                */
   --color-light-blue-text:#1d4e89;   /* deep blue text on light-blue bg    */
   --color-text-muted:     #667085;   /* muted helper text (light mode)     */
+  --color-on-surface-variant: #43474d; /* design.md on-surface-variant: body copy on light surfaces */
+
+  /* --- Color: Home hero (design.md light surfaces + brand blues) ---
+     The hero is a light area in both themes; these are its fixed colors. */
+  --color-hero-from:      #f8fbff;   /* surface gradient, start            */
+  --color-hero-via:       #f1f6fe;
+  --color-hero-to:        #e7effc;   /* surface gradient, end (light blue) */
+  --color-hero-wave-1:    #e9f0fc;   /* large wave                         */
+  --color-hero-wave-2:    #dae6f9;
+  --color-hero-wave-3:    #f3f7fe;   /* top corner wave                    */
+  --color-hero-wave-4:    #e4edfb;
+  --color-hero-wave-5:    #eef4fd;   /* low front wave                     */
+  --color-hero-line-1:    #b6cdef;   /* swoosh lines                       */
+  --color-hero-line-2:    #d3e1f6;
+  --color-hero-dot-1:     #8db0de;
+  --color-hero-dot-2:     #a9c3e8;
+  --color-hero-mark-1:    #8db6ec;   /* logo mark gradients: dot           */
+  --color-hero-mark-2:    #4f86d3;
+  --color-hero-mark-3:    #5d93da;   /* first chevron                      */
+  --color-hero-mark-4:    #2b60af;
+  --color-hero-mark-5:    #a2c6f2;   /* second chevron                     */
+  --color-hero-mark-6:    #5a91da;
+  --color-hero-card-line: #dce6f5;   /* preview strip border               */
+  --color-hero-tile-line: #e4ebf5;   /* preview tiles border               */
+  --color-hero-rail-line: #edf2f9;   /* preview side rail divider          */
   --color-success-green:  #10b981;   /* positive / complete / live states  */
   --color-success-bg:     #d1fae5;   /* soft success callout background    */
   --color-live-red:       #ef4444;   /* live / error / destructive accent  */
@@ -355,7 +382,6 @@
   --animate-fade-in:        fade-in 0.4s var(--ease-out-soft) both;
   --animate-slide-up:       slide-up 0.45s var(--ease-out-soft) both;
   --animate-scale-in:       scale-in 0.25s var(--ease-out-soft) both;
-  --animate-float:          float 6s var(--ease-in-out-soft) infinite;
   --animate-glow-pulse:     glow-pulse 2.4s var(--ease-in-out-soft) infinite;
   --animate-gradient-shift: gradient-shift 8s ease infinite;
   --animate-soft-pulse:     soft-pulse 1.8s var(--ease-in-out-soft) infinite;
@@ -363,12 +389,14 @@
   --animate-shimmer:        shimmer 1.6s linear infinite;
   --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
   --animate-marquee:        marquee 70s linear infinite;
+  /* Same duration and ease as FadeInView, so the hero matches the page. */
+  --animate-hero-rise:      hero-rise 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
+  --animate-hero-fade:      hero-fade 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) both;
 
   /* --- Containers ---
      Max-width tokens for capped, centered layouts at the large end of the
      breakpoint scale (see §5 for the full responsive rationale). */
   --container-content: 77.5rem;  /* 1240px — max width for reading/app content */
-  --container-hero:    63.75rem; /* 1020px — hero text max-width               */
   --container-wide:    88rem;    /* 1408px — dashboards, kanban, wide tables  */
 }
 
@@ -401,6 +429,8 @@
   --font-sans: var(--font-default);
   --font-body: var(--font-default);
   --font-display: var(--font-nunito);
+  /* design.md display face (Nunito Sans): the home hero's h1 and card titles. */
+  --font-hero: var(--font-nunito-sans);
   --font-ui: var(--font-inter);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -630,6 +660,7 @@ html[dir="rtl"] {
   --font-arabic:  var(--font-noto-arabic), var(--font-noto-arabic-latin);
   --font-default: var(--font-arabic);
   --font-nunito:  var(--font-arabic);
+  --font-nunito-sans: var(--font-arabic);
   --font-ui:      var(--font-arabic);
   /* `@theme inline` compiles the `font-ui` class to var(--font-inter), so
      overriding --font-ui alone never reached it: nav links, Button and the
@@ -662,6 +693,14 @@ html[dir="rtl"] {
   --text-overline--line-height:    1.4;
 
   --text-code--line-height:        1.7;
+}
+
+/* A .light / .dark area (the home hero, the CTA) resets --font-default and
+   --font-ui to the Latin stack; in RTL, put the Arabic stack back inside it. */
+html[dir="rtl"] .light,
+html[dir="rtl"] .dark {
+  --font-default: var(--font-arabic);
+  --font-ui:      var(--font-arabic);
 }
 
 /* Zain for large headings (h1/h2) only; every other heading and all body/UI
@@ -1104,19 +1143,6 @@ html[dir="rtl"] {
   color: var(--color-canvas);
 }
 
-/* Fine dot-grid texture for dark sectional backdrops. Composes with
-   `dark-section` (color from it, pattern from this). Statically drawn,
-   so it is inherently reduced-motion safe; keep it decorative and mark
-   it `aria-hidden` in markup. */
-@utility dot-grid {
-  background-image: radial-gradient(
-    circle,
-    rgb(222 234 251 / 0.16) 1px,
-    transparent 1.25px
-  );
-  background-size: 24px 24px;
-}
-
 /* Accessible, on-brand focus ring — use instead of the browser default */
 @utility focus-ring {
   outline: none;
@@ -1262,10 +1288,13 @@ html[dir="rtl"] {
   to   { opacity: 1; transform: scale(1); }
 }
 
-/* Gentle ambient float for hero illustrations / AI orb */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%      { transform: translateY(-8px); }
+/* Home hero entrance (motion-safe only). The h1 rises without fading so it
+   paints at once and stays the LCP element; the rest fades in after it. */
+@keyframes hero-rise {
+  from { transform: translateY(12px); }
+}
+@keyframes hero-fade {
+  from { opacity: 0; transform: translateY(12px); }
 }
 
 /* Pulsing glow for the "assistant is active" affordance */

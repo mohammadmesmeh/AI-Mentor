@@ -204,10 +204,19 @@
     "navLabel": "Footer navigation"
   },
   "hero": {
-    "title": "Your Personalized Learning Roadmap, Built by AI",
-    "description": "Tell Khatwa what you want to learn, where you are today, and where you want to go. Get a personalized roadmap that guides you step by step toward your goal.",
-    "ctaPrimary": "Create My Free Roadmap",
-    "ctaSecondary": "Explore Learning Paths"
+    "title": "Your Learning Journey, Powered by AI",
+    "description": "Khatwa adapts to your goals, pace, and style — so you can learn smarter, grow faster, and reach your next step.",
+    "cta": "Start Learning",
+    "preview": {
+      "learner": "Maya",
+      "continue": "Continue your journey",
+      "example": "Example",
+      "task": "Build reusable components",
+      "taskMeta": "Project · 40 min · Stage 2 of 3",
+      "today": "Today's step",
+      "progress": "Plan progress",
+      "progressValue": "44%"
+    }
   },
   "howItWork": {
     "badge": "How Khatwa Works",

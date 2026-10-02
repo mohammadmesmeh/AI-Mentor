@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, IBM_Plex_Mono, Nunito } from "next/font/google";
+import { Space_Grotesk, Inter, IBM_Plex_Mono, Nunito, Nunito_Sans } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies } from "next/headers";
 import { hasLocale } from "next-intl";
@@ -80,6 +80,15 @@ const nunito = Nunito({
   display: "swap",
 })
 
+// Nunito Sans: design.md's display face, used by the home hero (h1 and card
+// titles). Only the weights the hero uses.
+const nunitoSans = Nunito_Sans({
+  variable: "--font-nunito-sans",
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  display: "swap",
+})
+
 export const metadata: Metadata = {
   title: "Khatwa",
   description: "Khatwa is your personal AI mentor that builds your learning path from goals to growth.",
@@ -108,7 +117,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dir}
-      className={`${theme} ${spaceGrotesk.variable} ${notoSansArabic.variable} ${notoSansArabicLatin.variable} ${zain.variable} ${zainLatin.variable} ${inter.variable} ${ibmPlexMono.variable} ${nunito.variable} h-full antialiased`}
+      className={`${theme} ${spaceGrotesk.variable} ${notoSansArabic.variable} ${notoSansArabicLatin.variable} ${zain.variable} ${zainLatin.variable} ${inter.variable} ${ibmPlexMono.variable} ${nunito.variable} ${nunitoSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
