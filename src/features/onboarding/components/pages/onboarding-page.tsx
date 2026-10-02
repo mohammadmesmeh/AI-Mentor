@@ -35,6 +35,7 @@ import { StepFourSuccessGoal } from "../StepFourSuccessGoal"
 import { StepSixLearningPreferences } from "../StepSixLearningPreferences"
 import { PreferencesStep } from "../PreferencesStep"
 import { StepSevenReview } from "../StepSevenReview"
+import { validateMinutes } from "../../lib/timeCommitment"
 
 const TOTAL_STEPS = 7
 
@@ -162,9 +163,7 @@ function OnboardingFlow() {
     }
     if (
       !form.selfAssessedLevel ||
-      form.availableMinutesPerWeek === null ||
-      form.availableMinutesPerWeek === undefined ||
-      Number.isNaN(form.availableMinutesPerWeek) ||
+      validateMinutes(form.availableMinutesPerWeek) !== null ||
       form.preferredLearningMethods.length === 0 ||
       form.preferredResourceSources.length === 0
     ) {
@@ -177,7 +176,8 @@ function OnboardingFlow() {
       await putLearningProfile({
         goal: form.goal.trim(),
         selfAssessedLevel: form.selfAssessedLevel,
-        availableMinutesPerWeek: form.availableMinutesPerWeek,
+        // Always whole minutes (contract §12), whatever unit was picked.
+        availableMinutesPerWeek: form.availableMinutesPerWeek as number,
         desiredOutcome: form.desiredOutcome.trim(),
         preferredLearningMethods: form.preferredLearningMethods,
         preferredResourceSources: form.preferredResourceSources,

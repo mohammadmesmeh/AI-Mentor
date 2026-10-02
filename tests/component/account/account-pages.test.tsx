@@ -96,7 +96,7 @@ describe("Profile", () => {
     expect(screen.getByText(a.accountReadOnly)).toBeInTheDocument()
     expect(screen.getByText("Learn Git")).toBeInTheDocument()
     expect(screen.getByText(o.beginner)).toBeInTheDocument()
-    expect(screen.getByText("120 minutes a week")).toBeInTheDocument()
+    expect(screen.getByText("2 hours per week")).toBeInTheDocument()
     expect(screen.getByText(`${o.reading} and ${o.quizzes}`)).toBeInTheDocument()
     expect(screen.getByText(o.prefBoth)).toBeInTheDocument()
     // No controls for what the contract can't change.
@@ -115,7 +115,11 @@ describe("Profile", () => {
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
 
     fireEvent.change(screen.getByLabelText(a.goal), { target: { value: "Learn Git branching" } })
-    fireEvent.change(screen.getByLabelText(o.minutesPerWeek), { target: { value: "240" } })
+    // The stored 120 minutes opens as the "2 hours" preset.
+    expect(screen.getByRole("radio", { name: "2 hours" })).toBeChecked()
+    // "Other" in hours (the default unit): 4 hours go out as 240 minutes.
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(o.timeOther) }))
+    fireEvent.change(screen.getByLabelText(o.customTimeLabel), { target: { value: "4" } })
     fireEvent.click(screen.getByRole("radio", { name: new RegExp(o.intermediate) }))
     fireEvent.click(screen.getByRole("button", { name: a.save }))
 
@@ -137,15 +141,30 @@ describe("Profile", () => {
     const calls = backend()
     renderPage(signedInStore(), <ProfilePage />)
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
-    fireEvent.change(screen.getByLabelText(o.minutesPerWeek), { target: { value: "5" } })
+    fireEvent.click(screen.getByRole("radio", { name: new RegExp(o.timeOther) }))
+    // 0.1 hours = 6 minutes, under the contract's 15.
+    fireEvent.change(screen.getByLabelText(o.customTimeLabel), { target: { value: "0.1" } })
     for (const box of screen.getAllByRole("checkbox")) if ((box as HTMLInputElement).checked) fireEvent.click(box)
     fireEvent.click(screen.getByRole("button", { name: a.save }))
 
-    expect(await screen.findByText(o.minutesInvalid)).toBeInTheDocument()
+    expect(await screen.findByText(o.timeErrorTooLow)).toBeInTheDocument()
     expect(screen.getByText(a.methodsRequired)).toBeInTheDocument()
     expect(screen.getByText(o.sourcesError)).toBeInTheDocument()
-    expect(screen.getByLabelText(o.minutesPerWeek)).toHaveAttribute("aria-invalid", "true")
+    expect(screen.getByLabelText(o.customTimeLabel)).toHaveAttribute("aria-invalid", "true")
     expect(calls.puts).toHaveLength(0)
+  })
+
+  it("a stored time that isn't a preset opens as Other in the clearest unit", async () => {
+    const calls = backend()
+    server.use(http.get(`${API_BASE}/me/learning-profile`, () => envelope({ ...PROFILE, available_minutes_per_week: 90 })))
+    renderPage(signedInStore(), <ProfilePage />)
+    expect(await screen.findByText("1.5 hours per week")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: a.edit }))
+    expect(screen.getByRole("radio", { name: new RegExp(o.timeOther) })).toBeChecked()
+    expect(screen.getByLabelText(o.customTimeLabel)).toHaveValue("1.5")
+    fireEvent.click(screen.getByRole("button", { name: a.save }))
+    await waitFor(() => expect(calls.puts).toHaveLength(1))
+    expect((calls.puts[0] as { available_minutes_per_week: number }).available_minutes_per_week).toBe(90)
   })
 
   it("a legacy profile without sources must pick one before saving; picks are sent in priority order", async () => {
