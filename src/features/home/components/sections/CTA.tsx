@@ -8,7 +8,8 @@ import { FadeInView } from "@/shared/components/animations/FadeInView"
 import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 
 /**
- * The final call to action: navy in both themes and centered — the one
+ * The final call to action: the deep-navy contrast block in both themes
+ * (a lifted navy in dark mode, so it stands apart there too) and centered — the one
  * intentional exception to the start-aligned section headers. Its button is
  * the most important one on the page, so it is the only white one.
  */
@@ -17,7 +18,7 @@ export function CTA() {
 
   return (
     <section
-      className="dark-section relative overflow-hidden px-6 py-24"
+      className="relative overflow-hidden bg-section-contrast px-6 py-24 text-canvas"
       aria-labelledby="cta-heading"
     >
       {/* A soft brand-blue glow behind the content. */}

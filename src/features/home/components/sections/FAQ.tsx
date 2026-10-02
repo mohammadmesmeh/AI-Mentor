@@ -24,7 +24,7 @@ export function FAQ() {
   return (
     <section
       id="faq"
-      className="relative overflow-hidden bg-alt-bg pt-20 pb-0 sm:pt-24"
+      className="relative overflow-hidden bg-section-canvas pt-20 pb-0 sm:pt-24"
       aria-labelledby="faq-heading"
     >
       <Container>
@@ -52,7 +52,7 @@ export function FAQ() {
         </FadeInView>
       </Container>
 
-      <SectionWave fillClassName="text-midnight" className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-section-contrast" className="mt-16 sm:mt-20" />
     </section>
   )
 }
@@ -72,7 +72,7 @@ function FaqItem({ question, answer }: FaqItemProps) {
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-light-blue-bg/60 bg-light-blue-bg/40 backdrop-blur-md transition-colors duration-300"
+      className="section-card overflow-hidden rounded-2xl transition-colors duration-300 hover:bg-section-card-hover"
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
@@ -83,12 +83,12 @@ function FaqItem({ question, answer }: FaqItemProps) {
           onClick={() => setClicked((prev) => !prev)}
           aria-expanded={isOpen}
           aria-controls={contentId}
-          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-start font-display text-base font-bold text-primary sm:px-6 sm:py-5"
+          className="flex w-full items-center justify-between gap-4 px-5 py-4 text-start font-display text-base font-bold text-ink sm:px-6 sm:py-5"
         >
           <span>{question}</span>
           <ChevronRight
             className={cn(
-              "h-4 w-4 shrink-0 text-primary transition-transform duration-300 ease-out",
+              "h-4 w-4 shrink-0 text-ink transition-transform duration-300 ease-out",
               isOpen ? "rotate-90" : "rtl:rotate-180"
             )}
             aria-hidden="true"

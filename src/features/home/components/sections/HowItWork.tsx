@@ -60,7 +60,7 @@ export const HowItWork = () => {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden bg-background pt-10 pb-0 sm:pt-14 lg:pt-16"
+      className="relative overflow-hidden bg-section-canvas pt-10 pb-0 sm:pt-14 lg:pt-16"
       aria-labelledby="how-it-works-heading"
     >
       <Container>
@@ -94,7 +94,7 @@ export const HowItWork = () => {
         </ul>
       </Container>
 
-      <SectionWave fillClassName="text-alt-bg" flipX className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-section-alt" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }
