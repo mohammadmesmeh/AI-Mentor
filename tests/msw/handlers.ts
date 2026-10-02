@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw"
 import type { User } from "@/lib/api/types"
+import { deriveSources, errorBody, missingFields, validateLearningProfilePut, validatePreferencesPatch } from "./contract"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1"
 
@@ -25,6 +26,24 @@ function errorResponse(code: string, message: string, status = 400) {
     { error: { code, message }, meta: { request_id: crypto.randomUUID() } },
     { status }
   )
+}
+
+/**
+ * What the mocked backend has stored. Starts empty for every test (reset in
+ * tests/setup.ts): no learning profile yet, the default preferences of §6.
+ */
+export const mockState: {
+  profile: Record<string, unknown> | null
+  preferences: { ui_locale: string; resource_language: string; updated_at: string }
+} = { profile: null, preferences: defaultPreferences() }
+
+function defaultPreferences() {
+  return { ui_locale: "en", resource_language: "both", updated_at: new Date().toISOString() }
+}
+
+export function resetMockState() {
+  mockState.profile = null
+  mockState.preferences = defaultPreferences()
 }
 
 /**
@@ -78,49 +97,55 @@ export const handlers = [
     return jsonBody(TEST_USER)
   }),
 
-  http.get(`${API_BASE}/me/preferences`, () => {
-    return jsonBody({
-      ui_locale: "en",
-      resource_language: "both",
-      timezone: "UTC",
-      updatedAt: new Date().toISOString(),
-    })
-  }),
+  http.get(`${API_BASE}/me/preferences`, () => jsonBody(mockState.preferences)),
 
+  // §11: at least one of ui_locale / resource_language; a legacy timezone is
+  // accepted and ignored; anything else is a 422.
   http.patch(`${API_BASE}/me/preferences`, async ({ request }) => {
     const body = (await request.json()) as Record<string, string>
-    return jsonBody({
-      ui_locale: body.ui_locale ?? "en",
-      resource_language: body.resource_language ?? "both",
-      timezone: body.timezone ?? "UTC",
-      updatedAt: new Date().toISOString(),
-    })
+    const details = validatePreferencesPatch(body)
+    if (details) return HttpResponse.json(errorBody("validation_failed", "The given data was invalid.", details), { status: 422 })
+    mockState.preferences = {
+      ui_locale: body.ui_locale ?? mockState.preferences.ui_locale,
+      resource_language: body.resource_language ?? mockState.preferences.resource_language,
+      updated_at: new Date().toISOString(),
+    }
+    return jsonBody(mockState.preferences)
   }),
 
-  http.get(`${API_BASE}/me/learning-profile`, () => {
-    return HttpResponse.json(
-      { error: { code: "learning_profile_not_found", message: "Not found" }, meta: { request_id: crypto.randomUUID() } },
-      { status: 404 }
-    )
-  }),
+  http.get(`${API_BASE}/me/learning-profile`, () =>
+    mockState.profile
+      ? jsonBody(mockState.profile)
+      : HttpResponse.json(errorBody("learning_profile_not_found", "Learning profile not found."), { status: 404 })
+  ),
 
+  // §12: create-or-replace with the five request fields; sources are derived
+  // by the server (a legacy client's sources are validated, then ignored).
   http.put(`${API_BASE}/me/learning-profile`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>
-    return jsonBody({
+    const details = validateLearningProfilePut(body)
+    if (details) return HttpResponse.json(errorBody("validation_failed", "The given data was invalid.", details), { status: 422 })
+    const created = mockState.profile === null
+    const now = new Date().toISOString()
+    const methods = body.preferred_learning_methods as string[]
+    mockState.profile = {
       id: "lp-test-id",
       goal: body.goal,
       self_assessed_level: body.self_assessed_level,
       desired_outcome: body.desired_outcome,
       available_minutes_per_week: body.available_minutes_per_week,
-      preferred_learning_methods: body.preferred_learning_methods,
-      preferred_resource_sources: body.preferred_resource_sources,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+      preferred_learning_methods: methods,
+      preferred_resource_sources: deriveSources(methods),
+      created_at: (mockState.profile?.created_at as string | undefined) ?? now,
+      updated_at: now,
+    }
+    return jsonBody(mockState.profile, { status: created ? 201 : 200 })
   }),
 
+  // §13: derived from the stored profile and preferences.
   http.get(`${API_BASE}/me/onboarding-status`, () => {
-    return jsonBody({ completed: false, missingFields: [] })
+    const missing = missingFields(mockState.profile, mockState.preferences)
+    return jsonBody({ completed: missing.length === 0, missing_fields: missing })
   }),
 
   // Contract §17: no roadmap owns the active slot yet.

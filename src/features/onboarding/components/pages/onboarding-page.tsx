@@ -164,8 +164,7 @@ function OnboardingFlow() {
     if (
       !form.selfAssessedLevel ||
       validateMinutes(form.availableMinutesPerWeek) !== null ||
-      form.preferredLearningMethods.length === 0 ||
-      form.preferredResourceSources.length === 0
+      form.preferredLearningMethods.length === 0
     ) {
       dispatch(setSubmitStatus("failed"))
       dispatch(setSubmitError("stepSixSubmitFailed"))
@@ -179,8 +178,8 @@ function OnboardingFlow() {
         // Always whole minutes (contract §12), whatever unit was picked.
         availableMinutesPerWeek: form.availableMinutesPerWeek as number,
         desiredOutcome: form.desiredOutcome.trim(),
+        // Sources are derived by the server from the methods (contract §12).
         preferredLearningMethods: form.preferredLearningMethods,
-        preferredResourceSources: form.preferredResourceSources,
       }).unwrap()
       dispatch(setSubmitStatus("succeeded"))
       // Contract §22: generation starts as soon as onboarding completes — the
@@ -255,8 +254,6 @@ function OnboardingFlow() {
       <StepSixLearningPreferences
         preferences={form.preferredLearningMethods}
         onChangePreferences={(v) => dispatch(updateForm({ preferredLearningMethods: v }))}
-        sources={form.preferredResourceSources}
-        onChangeSources={(v) => dispatch(updateForm({ preferredResourceSources: v }))}
         onNext={handleNext}
         onBack={handleBack}
       />

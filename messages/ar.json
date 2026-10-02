@@ -359,24 +359,13 @@
     "loadingProfile": "جارٍ تحميل بياناتك…",
     "submitSessionExpired": "انتهت جلستك. سجّل الدخول مجددًا ثم أرسل إجاباتك.",
     "methodsGroupLabel": "أساليب التعلّم",
-    "sourcesTitle": "من أين تفضّل أن تتعلّم؟",
-    "sourcesDescription": "اختر حتى 4 مصادر. ترتيب اختيارك هو ترتيب أولويتك.",
-    "sourceYoutube": "فيديوهات يوتيوب",
-    "sourceDocs": "التوثيق الرسمي",
-    "sourceArticles": "المقالات",
-    "sourceCourses": "الدورات",
-    "sourcePriority": "الأولوية {n}",
-    "sourcesError": "اختر مصدرًا واحدًا على الأقل.",
-    "missingResourceSources": "مصادر التعلّم المفضلة",
-    "sources": "المصادر",
     "reviewFieldsInvalid": "لم تُقبل بعض الإجابات. صحّح العناصر المميّزة ثم أرسل مجددًا.",
     "fieldError": {
       "goal": "اكتب ما تريد تعلّمه، بحد أقصى 1000 حرف.",
       "self_assessed_level": "اختر أحد المستويات.",
       "desired_outcome": "صِف ما يعنيه النجاح لك، بحد أقصى 2000 حرف.",
       "available_minutes_per_week": "اختر وقتًا من 15 دقيقة إلى 168 ساعة بالأسبوع.",
-      "preferred_learning_methods": "اختر من طريقة إلى 4 طرق تعلّم مختلفة.",
-      "preferred_resource_sources": "اختر من مصدر إلى 4 مصادر مختلفة."
+      "preferred_learning_methods": "اختر من طريقة إلى 4 طرق تعلّم مختلفة."
     },
     "timePresetsLabel": "الوقت بالأسبوع",
     "timeOther": "وقت آخر",
@@ -646,8 +635,6 @@
     "savedShort": "حُفظ",
     "savingShort": "جارٍ الحفظ…",
     "saveFailedShort": "تعذّر الحفظ. حاول مرة أخرى.",
-    "memberSinceValue": "عضو منذ {date}",
-    "sources": "المصادر المفضلة",
-    "sourcesHint": "ترتيب اختيارك هو ترتيب أولويتك."
+    "memberSinceValue": "عضو منذ {date}"
   }
 }

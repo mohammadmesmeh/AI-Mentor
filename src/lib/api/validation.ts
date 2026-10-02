@@ -10,13 +10,12 @@ export const LEARNING_PROFILE_FIELDS = [
   "desired_outcome",
   "available_minutes_per_week",
   "preferred_learning_methods",
-  "preferred_resource_sources",
 ] as const
 export type LearningProfileField = (typeof LEARNING_PROFILE_FIELDS)[number]
 
 /**
  * The fields a 422 validation_failed rejected. Array rules come back per item
- * ("preferred_resource_sources.0"), so the index is dropped to get the field.
+ * ("preferred_learning_methods.0"), so the index is dropped to get the field.
  * The server's messages are English-only and never shown (FR-018): callers
  * show their own localized message for each field.
  */

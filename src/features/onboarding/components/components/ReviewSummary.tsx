@@ -7,7 +7,6 @@ import {
   levelKeyMap,
   preferenceKeyMap,
   resourceLanguageKeyMap,
-  sourceKeyMap,
   uiLocaleKeyMap,
 } from "../../lib/profileLabels"
 import { formatWeekly } from "../../lib/timeCommitment"
@@ -30,7 +29,6 @@ type CoreValues = Pick<
   | "availableMinutesPerWeek"
   | "desiredOutcome"
   | "preferredLearningMethods"
-  | "preferredResourceSources"
 >
 
 function buildCoreRows(
@@ -71,16 +69,6 @@ function buildCoreRows(
         ? values.preferredLearningMethods
             .map((m) => t(preferenceKeyMap[m] ?? "notSpecified"))
             .join(" · ")
-        : t("notSpecified"),
-      step: 5,
-    },
-    {
-      id: "sources",
-      field: "preferred_resource_sources",
-      label: t("sources"),
-      // Numbered: the order is the learner's priority.
-      value: values.preferredResourceSources.length
-        ? values.preferredResourceSources.map((s, i) => `${i + 1}. ${t(sourceKeyMap[s])}`).join(" · ")
         : t("notSpecified"),
       step: 5,
     },

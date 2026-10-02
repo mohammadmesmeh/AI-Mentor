@@ -5,7 +5,6 @@ import type {
   OnboardingStatus,
   Preferences,
   ResourceLanguage,
-  ResourceSource,
   SelfAssessedLevel,
   UiLocale,
 } from "@/lib/api/types"
@@ -19,8 +18,6 @@ export interface OnboardingFormState {
   availableMinutesPerWeek: number | null
   desiredOutcome: string
   preferredLearningMethods: LearningMethod[]
-  /** Priority order (contract §12). */
-  preferredResourceSources: ResourceSource[]
   preferences: {
     uiLocale: UiLocale
     resourceLanguage: ResourceLanguage
@@ -40,7 +37,6 @@ export const initialForm = (): OnboardingFormState => ({
   availableMinutesPerWeek: null,
   desiredOutcome: "",
   preferredLearningMethods: [],
-  preferredResourceSources: [],
   preferences: { ...defaultPreferences },
 })
 
@@ -110,8 +106,6 @@ const onboardingSlice = createSlice({
           availableMinutesPerWeek: learningProfile.availableMinutesPerWeek ?? null,
           desiredOutcome: learningProfile.desiredOutcome ?? "",
           preferredLearningMethods: learningProfile.preferredLearningMethods ?? [],
-          // null on legacy profiles: the learner picks them now.
-          preferredResourceSources: learningProfile.preferredResourceSources ?? [],
           preferences: { ...state.form.preferences },
         }
       }

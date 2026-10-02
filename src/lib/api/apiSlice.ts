@@ -7,7 +7,6 @@ import type {
   OnboardingStatus,
   Preferences,
   ResourceLanguage,
-  ResourceSource,
   Roadmap,
   RoadmapGenerationRequest,
   SelfAssessedLevel,
@@ -47,8 +46,6 @@ export interface LearningProfileInput {
   desiredOutcome: string
   availableMinutesPerWeek: number
   preferredLearningMethods: LearningMethod[]
-  /** Order matters: the learner's source priority (contract §12). */
-  preferredResourceSources: ResourceSource[]
 }
 
 export interface RoadmapGenerationArg {
@@ -240,7 +237,6 @@ export const apiSlice = createApi({
           desired_outcome: input.desiredOutcome,
           available_minutes_per_week: input.availableMinutesPerWeek,
           preferred_learning_methods: input.preferredLearningMethods,
-          preferred_resource_sources: input.preferredResourceSources,
         },
       }),
       transformResponse: (data: unknown) => data as LearningProfile,

@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event"
 import { Provider } from "react-redux"
 import { http, HttpResponse } from "msw"
 import { server } from "@tests/msw/server"
+import { deriveSources, errorBody, validateLearningProfilePut } from "@tests/msw/contract"
 import { IntlWrapper } from "@tests/helpers/intl"
 import { signedInStore, signedOutStore, type TestStore } from "@tests/helpers/store"
 import { clearSession } from "@/lib/api/auth"
@@ -32,7 +33,8 @@ const PROFILE = {
   desired_outcome: "Use Git daily",
   available_minutes_per_week: 120,
   preferred_learning_methods: ["reading_docs", "quizzes_drills"],
-  preferred_resource_sources: ["youtube", "official_documentation"],
+  // Derived by the server from the methods (§12).
+  preferred_resource_sources: ["official_documentation"],
   created_at: "2026-09-28T08:00:00Z",
   updated_at: "2026-09-28T08:00:00Z",
 }
@@ -51,7 +53,14 @@ function backend() {
     http.put(`${API_BASE}/me/learning-profile`, async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>
       calls.puts.push(body)
-      return envelope({ ...PROFILE, ...body })
+      // Validated like the backend: a body Render would reject is a 422 here.
+      const details = validateLearningProfilePut(body)
+      if (details) return HttpResponse.json(errorBody("validation_failed", "x", details), { status: 422 })
+      return envelope({
+        ...PROFILE,
+        ...body,
+        preferred_resource_sources: deriveSources(body.preferred_learning_methods as string[]),
+      })
     }),
     http.get(`${API_BASE}/me/preferences`, () =>
       envelope({ ui_locale: "en", resource_language: "both", timezone: "UTC", updated_at: "2026-09-28T08:00:00Z" })
@@ -103,13 +112,15 @@ describe("Profile", () => {
     expect(screen.queryByRole("textbox")).toBeNull()
   })
 
-  it("shows the preferred sources in priority order", async () => {
+  it("offers only the learning methods: sources are derived by the server, not a second choice", async () => {
     backend()
     renderPage(signedInStore(), <ProfilePage />)
-    expect(await screen.findByText(`1. ${o.sourceYoutube} · 2. ${o.sourceDocs}`)).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole("button", { name: a.edit }))
+    const boxes = screen.getAllByRole("checkbox")
+    expect(boxes.map((box) => box.closest("label")?.textContent)).toEqual([o.handsOn, o.reading, o.video, o.quizzes])
   })
 
-  it("edits the learning profile with one PUT of all six fields, and never generates a roadmap", async () => {
+  it("edits the learning profile with one PUT of the five fields (no sources), and never generates a roadmap", async () => {
     const calls = backend()
     renderPage(signedInStore(), <ProfilePage />)
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
@@ -131,9 +142,9 @@ describe("Profile", () => {
         desired_outcome: "Use Git daily",
         available_minutes_per_week: 240,
         preferred_learning_methods: ["reading_docs", "quizzes_drills"],
-        preferred_resource_sources: ["youtube", "official_documentation"],
       },
     ])
+    expect(calls.puts[0]).not.toHaveProperty("preferred_resource_sources")
     expect(calls.generation).toBe(0)
   })
 
@@ -149,7 +160,6 @@ describe("Profile", () => {
 
     expect(await screen.findByText(o.timeErrorTooLow)).toBeInTheDocument()
     expect(screen.getByText(a.methodsRequired)).toBeInTheDocument()
-    expect(screen.getByText(o.sourcesError)).toBeInTheDocument()
     expect(screen.getByLabelText(o.customTimeLabel)).toHaveAttribute("aria-invalid", "true")
     expect(calls.puts).toHaveLength(0)
   })
@@ -167,27 +177,27 @@ describe("Profile", () => {
     expect((calls.puts[0] as { available_minutes_per_week: number }).available_minutes_per_week).toBe(90)
   })
 
-  it("a legacy profile without sources must pick one before saving; picks are sent in priority order", async () => {
+  it("a legacy profile without methods must pick one before saving; the PUT never carries sources", async () => {
     const calls = backend()
-    server.use(http.get(`${API_BASE}/me/learning-profile`, () => envelope({ ...PROFILE, preferred_resource_sources: null })))
+    server.use(
+      http.get(`${API_BASE}/me/learning-profile`, () =>
+        envelope({ ...PROFILE, preferred_learning_methods: null, preferred_resource_sources: null })
+      )
+    )
     renderPage(signedInStore(), <ProfilePage />)
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
     fireEvent.click(screen.getByRole("button", { name: a.save }))
-    expect(await screen.findByText(o.sourcesError)).toBeInTheDocument()
+    expect(await screen.findByText(a.methodsRequired)).toBeInTheDocument()
     expect(calls.puts).toHaveLength(0)
 
-    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(o.sourceCourses) }))
-    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(o.sourceYoutube) }))
-    expect(screen.getByText("Priority 2")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("checkbox", { name: new RegExp(o.video) }))
     fireEvent.click(screen.getByRole("button", { name: a.save }))
     await waitFor(() => expect(calls.puts).toHaveLength(1))
-    expect((calls.puts[0] as { preferred_resource_sources: string[] }).preferred_resource_sources).toEqual([
-      "courses",
-      "youtube",
-    ])
+    expect(calls.puts[0]).toMatchObject({ preferred_learning_methods: ["video_walkthroughs"] })
+    expect(calls.puts[0]).not.toHaveProperty("preferred_resource_sources")
   })
 
-  it("a 422 on an array item (preferred_resource_sources.0) shows the sources error next to that field (ar/en)", async () => {
+  it("a 422 on an array item (preferred_learning_methods.0) shows the methods error next to that field", async () => {
     backend()
     server.use(
       http.put(`${API_BASE}/me/learning-profile`, () =>
@@ -195,8 +205,8 @@ describe("Profile", () => {
           {
             error: {
               code: "validation_failed",
-              message: "The selected preferred_resource_sources.0 is invalid.",
-              details: { "preferred_resource_sources.0": ["The selected preferred_resource_sources.0 is invalid."] },
+              message: "The selected preferred_learning_methods.0 is invalid.",
+              details: { "preferred_learning_methods.0": ["The selected preferred_learning_methods.0 is invalid."] },
             },
             meta: { request_id: "t" },
           },
@@ -207,7 +217,7 @@ describe("Profile", () => {
     renderPage(signedInStore(), <ProfilePage />)
     fireEvent.click(await screen.findByRole("button", { name: a.edit }))
     fireEvent.click(screen.getByRole("button", { name: a.save }))
-    expect(await screen.findByText(o.fieldError.preferred_resource_sources)).toBeInTheDocument()
+    expect(await screen.findByText(o.fieldError.preferred_learning_methods)).toBeInTheDocument()
     expect(screen.getByRole("alert")).toHaveTextContent(a.saveFailed)
     // The server's English message is never shown.
     expect(screen.queryByText(/is invalid/)).toBeNull()
