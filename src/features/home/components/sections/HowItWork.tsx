@@ -9,6 +9,7 @@ import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { useTranslations } from "next-intl"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
+import { GoalsPreview } from "../how-it-works/GoalsPreview"
 
 export const HowItWork = () => {
   const t = useT("howItWork")
@@ -87,7 +88,9 @@ export const HowItWork = () => {
                   description={step.description}
                   icon={step.icon}
                   className={cn("h-full", step.cardClass)}
-                />
+                >
+                  {index === 0 && <GoalsPreview />}
+                </StepCard>
               </FadeInView>
             </li>
           ))}
