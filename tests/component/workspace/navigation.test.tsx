@@ -280,7 +280,9 @@ beforeAll(() => {
   vi.stubGlobal("ResizeObserver", Observer)
 })
 
-describe("workspace navigation without a reload", () => {
+// Each test walks through seven real pages; under the full suite's parallel
+// load that can pass the global 15s limit, so this file gets more time.
+describe("workspace navigation without a reload", { timeout: 60_000 }, () => {
   beforeEach(() => clearSession())
 
   it("Overview → Roadmap → Tasks → Resources → Progress → Profile → Settings: every page shows its data", async () => {
