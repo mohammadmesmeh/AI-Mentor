@@ -94,14 +94,16 @@ IDs are ULID strings. Dates are ISO-8601 UTC strings or `null`.
 | `409` | Endpoint-specific conflict | Read `error.details` and show the relevant recovery action. |
 | `422` | `validation_failed` | Map `error.details.<field>` to form fields. |
 | `429` | `too_many_requests` | Disable retry temporarily; honor `Retry-After` if present. |
-| `503` | `authentication_service_unavailable` | Show a temporary-service error; do not clear tokens immediately. |
+| `503` | `authentication_service_unavailable` or `google_authentication_unavailable` | Show a temporary-service error; do not clear tokens immediately. |
 | `500` | `internal_error` | Show a generic retry state and retain `request_id`. |
 
 Endpoint-specific codes currently include `user_preferences_not_found`,
 `learning_profile_not_found`, `roadmap_generation_request_not_found`,
 `roadmap_not_found`, `active_roadmap_not_found`, `task_not_found`,
 `onboarding_incomplete`, `roadmap_generation_in_progress`,
-`roadmap_activation_conflict`, and `task_completion_conflict`.
+`roadmap_activation_conflict`, `task_completion_conflict`,
+`invalid_google_token`, `google_account_conflict`, and
+`google_authentication_unavailable`.
 
 ## 3. Authentication and token handling
 
@@ -158,6 +160,7 @@ Token responses include `Cache-Control: no-store` and `Pragma: no-cache`.
 | `GET` | `/health` | No | `200` |
 | `POST` | `/auth/register` | No | `201` |
 | `POST` | `/auth/login` | No | `200` |
+| `POST` | `/auth/google` | No | `200` |
 | `POST` | `/auth/refresh` | No | `200` |
 | `POST` | `/auth/logout` | Bearer | `204` |
 | `GET` | `/me` | Bearer | `200` |
@@ -234,6 +237,46 @@ response.
 
 Possible failures: `422 validation_failed`, `429 too_many_requests`. Login is
 limited to 5 attempts per normalized email/IP per minute.
+
+### `POST /auth/google`
+
+The frontend obtains a Google Identity Services ID token using the Web OAuth
+client whose Client ID is configured on both frontend and backend. It then sends
+the token in the JSON body; this endpoint does not use an OAuth redirect URI or
+a Google client secret.
+
+```json
+{
+  "id_token": "Google-ID-token"
+}
+```
+
+`id_token` is required, must be a string, and is limited to 8192 characters.
+Extra fields are rejected. The backend verifies the Google signature,
+expiration, issuer, audience (`GOOGLE_CLIENT_ID`), stable `sub`, email, and
+`email_verified` claim. The raw token is never persisted or logged.
+
+On first use, a verified identity creates a user and the same default
+preferences as registration. An existing local account is linked by email only
+when Google is authoritative for that address (`@gmail.com` or a Google
+Workspace `hd` claim). Other existing external-domain accounts require an
+explicit future linking flow and return a conflict. Later authentication is
+resolved by `sub`; a changed Google email does not change the local email. An
+email already linked to a different `sub` is never reassigned.
+
+Returns `200` with the standard authentication response for both new and
+existing users.
+
+Possible failures:
+
+- `401 invalid_google_token`: invalid, expired, unverified, or inactive identity.
+- `409 google_account_conflict`: email already linked to another Google identity.
+- `422 validation_failed`: invalid request body.
+- `429 too_many_requests`: limited to 10 attempts per IP per minute.
+- `503 google_authentication_unavailable`: missing server configuration or temporary certificate-verification failure.
+
+The frontend must treat the Google ID token as a credential: keep it out of
+URLs, logs, analytics, and error reports, and discard it after this exchange.
 
 ## 8. Refresh authentication
 
@@ -956,6 +999,7 @@ patterns are empty, and preflight caching uses `max_age=0`.
 | --- | --- | --- |
 | `POST /auth/register` | IP | 3/minute |
 | `POST /auth/login` | normalized email + IP | 5/minute |
+| `POST /auth/google` | IP | 10/minute |
 | `POST /auth/refresh` | IP | 10/minute |
 | `POST /roadmap-generation-requests` | authenticated user ID, fallback IP | 3/minute |
 
@@ -991,6 +1035,7 @@ JWT_REFRESH_TTL_DAYS=30
 JWT_CLOCK_SKEW_SECONDS=30
 ROADMAP_GENERATOR=gemini
 GEMINI_API_KEY=<secret>
+GEMINI_FALLBACK_API_KEY=<optional-secret-from-an-independent-project>
 GEMINI_MODEL=<available-model>
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 GEMINI_TIMEOUT_SECONDS=60
@@ -999,8 +1044,22 @@ YOUTUBE_API_KEY=<secret>
 YOUTUBE_BASE_URL=https://www.googleapis.com/youtube/v3
 YOUTUBE_TIMEOUT_SECONDS=10
 YOUTUBE_MAX_AGE_YEARS=5
+GOOGLE_CLIENT_ID=<web-oauth-client-id>
 QUEUE_CONNECTION=sync
 ```
+
+`GOOGLE_CLIENT_ID` is the public Web OAuth Client ID from Google Cloud. It must
+match the Client ID used by Google Identity Services in the frontend. Do not set
+or send a client secret for this ID-token exchange. Authorized JavaScript
+origins belong in Google Cloud; this backend flow requires no authorized
+redirect URI.
+
+When `GEMINI_FALLBACK_API_KEY` contains a different key, the server makes one
+fallback attempt after a primary `429` or Gemini `5xx` response. Both keys use
+`GEMINI_MODEL`. The keys should belong to different Google Cloud projects
+because quotas are project-scoped. Failover is internal and does not change the
+public generation API. Other `4xx`, connection, validation, and malformed-output
+failures are not retried, and neither key is logged.
 
 `QUEUE_CONNECTION=sync` is suitable for the current Render free prototype. A
 dedicated worker is recommended before production-scale AI traffic. The public

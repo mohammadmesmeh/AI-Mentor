@@ -37,6 +37,8 @@ function categoryFromCode(code: string): ApiErrorCategory {
       return "invalid_input"
     case "unauthenticated":
     case "forbidden":
+    // Contract §7 (POST /auth/google): the Google ID token was invalid, expired or unverified.
+    case "invalid_google_token":
       return "access_denied"
     case "not_found":
     case "user_preferences_not_found":
@@ -50,10 +52,13 @@ function categoryFromCode(code: string): ApiErrorCategory {
     case "roadmap_generation_in_progress":
     case "roadmap_activation_conflict":
     case "task_completion_conflict":
+    // The email is already linked to a different Google identity.
+    case "google_account_conflict":
       return "conflict"
     case "too_many_requests":
       return "rate_limited"
     case "authentication_service_unavailable":
+    case "google_authentication_unavailable":
     // Our own session route (src/app/api/session) could not reach the backend.
     case "session_upstream_unavailable":
       return "unavailable"

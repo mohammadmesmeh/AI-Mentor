@@ -26,7 +26,10 @@
       "registrationFailed": "We couldn't create your account. Please try again.",
       "serviceUnavailable": "Khatwa is temporarily unavailable. Please try again in a moment.",
       "tooManyRequests": "Too many attempts. Please wait a moment before trying again.",
-      "unexpectedError": "Something went wrong. Please try again."
+      "unexpectedError": "Something went wrong. Please try again.",
+      "googleFailed": "Google couldn't confirm your account. Please try again.",
+      "googleAccountConflict": "This email is already linked to a different Google account. Sign in with that Google account, or with your email and password.",
+      "googleServiceUnavailable": "Google sign-in is temporarily unavailable. Please try again in a moment, or use your email and password."
     },
     "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Enter your password again",
@@ -67,7 +70,8 @@
     "welcomeDescription": "Sign in and continue learning from where you left off.",
     "workEmail": "Work or Student Email",
     "workEmailPlaceholder": "name@organization.com",
-    "xLabel": "Khatwa on X"
+    "xLabel": "Khatwa on X",
+    "googleSigningIn": "Signing in with Google…"
   },
   "cta": {
     "button": "Start Learning Free",
