@@ -7,10 +7,6 @@ import { cn } from "@/lib/utils"
 export const inputClass =
   "input min-h-11 bg-glass-strong aria-invalid:border-primary-900 aria-invalid:ring-2 aria-invalid:ring-primary-900/15 dark:aria-invalid:border-status-completed"
 
-/** The time zone Select's trigger — and its same-size placeholder while it loads. */
-export const selectTriggerClass =
-  "flex h-11 w-full min-w-60 items-center justify-between rounded-md border border-line bg-glass-strong px-3 text-sm text-ink md:w-64"
-
 /**
  * A labelled group of real radio inputs drawn as selectable cards. Keyboard:
  * arrow keys move between options (native radio behavior); the focus ring is on

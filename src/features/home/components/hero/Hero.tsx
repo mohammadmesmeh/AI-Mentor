@@ -68,7 +68,7 @@ function Hero() {
         </div>
       </Container>
 
-      <SectionWave fillClassName="text-background" className="mt-8 sm:mt-12 lg:mt-0" />
+      <SectionWave fillClassName="text-section-canvas" className="mt-8 sm:mt-12 lg:mt-0" />
     </section>
   )
 }

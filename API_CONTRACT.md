@@ -212,7 +212,7 @@ Validation:
 - Extra fields are rejected.
 
 Returns `201` with the authentication response. New users receive default
-preferences: `ui_locale=en`, `resource_language=both`, `timezone=UTC`.
+preferences: `ui_locale=en`, `resource_language=both`.
 
 Possible failures: `422 validation_failed`, `429 too_many_requests`. Registration
 is limited to 3 attempts per IP per minute.
@@ -311,7 +311,6 @@ Returns `200`:
   "data": {
     "ui_locale": "ar",
     "resource_language": "both",
-    "timezone": "Asia/Hebron",
     "updated_at": "2026-09-10T09:31:14.000000Z"
   },
   "meta": {
@@ -330,8 +329,7 @@ Send at least one field. Omitted fields keep their current value.
 ```json
 {
   "ui_locale": "ar",
-  "resource_language": "ar",
-  "timezone": "Asia/Hebron"
+  "resource_language": "ar"
 }
 ```
 
@@ -339,7 +337,12 @@ Allowed values:
 
 - `ui_locale`: `ar` or `en`.
 - `resource_language`: `ar`, `en`, or `both`.
-- `timezone`: valid IANA timezone, maximum 64 characters.
+
+Timezone is no longer returned or selected by the learner. The database column
+is retained for existing records; application timestamps remain UTC. For older
+clients only, a valid IANA `timezone` (maximum 64 characters) is accepted and
+ignored. New clients must omit it and remove timezone controls from onboarding,
+review, and settings.
 
 Returns `200` with the preference response. Extra fields and an empty update
 are rejected with `422 validation_failed`.
@@ -363,8 +366,7 @@ Returns `200`, or `404 learning_profile_not_found` when it does not exist.
       "reading_docs"
     ],
     "preferred_resource_sources": [
-      "official_documentation",
-      "youtube"
+      "official_documentation"
     ],
     "created_at": "2026-09-10T09:43:04.000000Z",
     "updated_at": "2026-09-10T09:43:04.000000Z"
@@ -376,7 +378,9 @@ Returns `200`, or `404 learning_profile_not_found` when it does not exist.
 ```
 
 Legacy incomplete records can return `desired_outcome` or
-`preferred_learning_methods` or `preferred_resource_sources` as `null`.
+`preferred_learning_methods` as `null`. Derived `preferred_resource_sources`
+is `null` when learning methods are missing, not when historical stored sources
+are missing.
 
 ### `PUT /me/learning-profile`
 
@@ -391,17 +395,13 @@ This is an idempotent create-or-replace operation, not a partial update.
   "preferred_learning_methods": [
     "hands_on_projects",
     "reading_docs"
-  ],
-  "preferred_resource_sources": [
-    "official_documentation",
-    "youtube"
   ]
 }
 ```
 
 Validation:
 
-- All six fields are required.
+- All five fields in the request example are required.
 - `goal`: maximum 1,000 characters.
 - `desired_outcome`: maximum 2,000 characters.
 - `available_minutes_per_week`: integer from 15 to 10,080.
@@ -409,13 +409,33 @@ Validation:
   `intermediate`.
 - `preferred_learning_methods`: 1-4 unique values from
   `hands_on_projects`, `reading_docs`, `video_walkthroughs`, `quizzes_drills`.
-- `preferred_resource_sources`: 1-4 unique values from `youtube`,
-  `official_documentation`, `articles`, and `courses`. Array order is the
-  user's source-priority order.
+- `preferred_resource_sources` is derived by the server and must not be offered
+  as a second choice. Older clients may send 1-4 unique values from `youtube`,
+  `official_documentation`, `articles`, and `courses`; these values are validated
+  but ignored when saving and generating a new roadmap.
 - Extra fields are rejected.
 
 Returns `201` when created and `200` on later replacements. Both return the
 learning-profile response.
+
+Resource derivation follows the selected learning methods, in selection order:
+
+| Learning method | Behavior |
+| --- | --- |
+| `video_walkthroughs` | Verified YouTube video resources. |
+| `reading_docs` | Official documentation resources. |
+| `hands_on_projects` | Practical project/assignment tasks, not a separate source choice. |
+| `quizzes_drills` | Quiz/exercise tasks, not a separate source choice. |
+
+When only practice and/or quizzes are selected, official documentation supplies
+supporting resources. Sources are unique. GET still exposes
+`preferred_resource_sources` as derived output for client compatibility; it is
+not an editable answer. Existing profiles use this same derivation without
+requiring the learner to repeat onboarding. Already submitted generation
+snapshots and existing roadmaps retain their original data.
+
+Frontend requirement: show only the four learning methods, remove the separate
+source selector and source review row, and submit the five request fields above.
 
 ## 13. Onboarding status
 
@@ -441,7 +461,6 @@ self_assessed_level
 desired_outcome
 available_minutes_per_week
 preferred_learning_methods
-preferred_resource_sources
 resource_language
 ```
 
@@ -588,16 +607,20 @@ starts from `self_assessed_level`. For example, an intermediate frontend goal
 must remain frontend, omit unrelated backend/DevOps topics, and continue from
 intermediate material instead of restarting beginner fundamentals unless a
 named prerequisite is essential. Task formats follow
-`preferred_learning_methods`; resource types follow the selected source list.
+`preferred_learning_methods`; resource types follow the server-derived source list.
 
 When `youtube` is selected, the backend discards generated video URLs and
-searches YouTube Data API v3 once per task. Searches use the goal and task
-title, selected resource language, strict safe search, embeddable/syndicated
-video filters, a configurable recent window (five years by default), and
-YouTube's `rating` order. Only returned 11-character video IDs become canonical
-`https://www.youtube.com/watch?v=...` resources. Empty results or provider
-failures terminate safely as `roadmap_provider_failed`; invented fallback links
-are never persisted.
+searches YouTube Data API v3 for each task. It requests the most-viewed matching
+candidates, reads each video's public `viewCount`, reads each channel's public
+`subscriberCount`, and combines both signals for the final popularity order.
+Arabic preferences keep Arabic videos, English preferences keep English videos,
+and `both` searches Arabic first before filling remaining resource slots with
+English results. Searches use strict safe search and the configured recent
+window (five years by default); when that window has insufficient matching
+results, the backend retries without the date limit. Only returned 11-character
+video IDs become canonical `https://www.youtube.com/watch?v=...` resources.
+Exhausted searches or provider failures terminate safely as
+`roadmap_provider_failed`; invented fallback links are never persisted.
 
 Possible public `failure_code` values are `invalid_generated_roadmap`,
 `roadmap_provider_failed`, and `roadmap_generation_failed`. On provider failure,

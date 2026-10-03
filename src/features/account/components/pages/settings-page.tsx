@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import dynamic from "next/dynamic"
 import { useSelector } from "react-redux"
 import { skipToken } from "@reduxjs/toolkit/query"
 import { useLocale } from "next-intl"
@@ -24,18 +23,11 @@ import {
   Skeleton,
   WorkspaceCard,
 } from "@/features/dashboard/components/ui/workspace"
-import { SaveStatus, SettingRow, selectTriggerClass, type SaveState } from "../controls"
-
-// The Select's menu code is the heaviest part of this page: it loads right
-// after first paint, behind a placeholder of the same size.
-const TimezoneSelect = dynamic(() => import("../TimezoneSelect"), {
-  ssr: false,
-  loading: () => <div aria-hidden="true" className={`${selectTriggerClass} animate-pulse motion-reduce:animate-none`} />,
-})
+import { SaveStatus, SettingRow, type SaveState } from "../controls"
 
 /**
- * Only what the contract supports (§11): ui_locale, resource_language and
- * timezone via PATCH /me/preferences, plus the local theme and sign-out. There
+ * Only what the contract supports (§11): ui_locale and resource_language via
+ * PATCH /me/preferences (the time zone is no longer a learner setting), plus the local theme and sign-out. There
  * is no endpoint to change the password, name or email, or to delete the
  * account (§23), so none is offered (docs/backend-issues.md). Nothing here can
  * request a roadmap generation.
@@ -122,9 +114,6 @@ function LearningPreferencesPanel({ preferences }: { preferences: Preferences | 
   const labels = useStatusLabels()
   const [updatePreferences] = useUpdatePreferencesMutation()
   const [resourceSave, setResourceSave] = useState<SaveState>("idle")
-  const [timezoneSave, setTimezoneSave] = useState<SaveState>("idle")
-  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const allZones = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : []
 
   if (!preferences) {
     return (
@@ -136,11 +125,7 @@ function LearningPreferencesPanel({ preferences }: { preferences: Preferences | 
     )
   }
 
-  // Keep the saved value selectable even if this browser doesn't list it (e.g. "UTC").
-  const zones = allZones.includes(preferences.timezone) ? allZones : [preferences.timezone, ...allZones]
-  const zoneLabel = (zone: string) => zone.replace(/_/g, " ")
-
-  const save = (patch: { resourceLanguage?: ResourceLanguage; timezone?: string }, setState: (s: SaveState) => void) => {
+  const save = (patch: { resourceLanguage: ResourceLanguage }, setState: (s: SaveState) => void) => {
     setState("saving")
     updatePreferences(patch)
       .unwrap()
@@ -170,31 +155,6 @@ function LearningPreferencesPanel({ preferences }: { preferences: Preferences | 
         />
       </SettingRow>
 
-      <SettingRow
-        labelId="timezone-label"
-        htmlFor="timezone"
-        label={t("timezone")}
-        hint={t("timezoneHint")}
-        status={<SaveStatus state={timezoneSave} labels={labels} />}
-      >
-        <TimezoneSelect
-          id="timezone"
-          options={zones.map((zone) => ({ value: zone, label: zoneLabel(zone) }))}
-          value={preferences.timezone}
-          disabled={timezoneSave === "saving"}
-          onChange={(zone) => save({ timezone: zone }, setTimezoneSave)}
-        />
-        {deviceZone && deviceZone !== preferences.timezone && (
-          <Button
-            variant="glass"
-            className="min-h-11"
-            disabled={timezoneSave === "saving"}
-            onClick={() => save({ timezone: deviceZone }, setTimezoneSave)}
-          >
-            {t("useDeviceTimezone", undefined, { zone: zoneLabel(deviceZone) })}
-          </Button>
-        )}
-      </SettingRow>
     </WorkspaceCard>
   )
 }

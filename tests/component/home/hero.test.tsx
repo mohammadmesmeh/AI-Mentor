@@ -36,7 +36,7 @@ describe("Hero", () => {
     expect(section.className).toContain("from-hero-from")
     expect(section.querySelector(".light, .dark")).toBeNull()
     const wave = section.lastElementChild!
-    expect(wave.querySelector("svg")?.getAttribute("class")).toContain("text-background")
+    expect(wave.querySelector("svg")?.getAttribute("class")).toContain("text-section-canvas")
   })
 
   it("is two boxes, content and logo mark, side by side and vertically centered from lg", () => {

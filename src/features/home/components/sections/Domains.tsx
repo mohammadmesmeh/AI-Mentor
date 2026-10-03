@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Container } from "@/shared/components/ui/Container"
+import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { SectionHeader, sectionHighlight } from "@/shared/components/ui/SectionHeader"
 import { cn } from "@/lib/utils"
 
@@ -138,7 +139,7 @@ function MarqueeRow({
                   <li
                     key={`${repeat}-${item.key}`}
                     className={cn(
-                      "flex shrink-0 items-center rounded-2xl border bg-card shadow-dropdown",
+                      "flex shrink-0 items-center rounded-2xl border border-section-card-edge bg-section-card shadow-card",
                       // Per-card hover: only a deeper shadow — no scaling.
                       "transition-[box-shadow] duration-200 ease-out hover:shadow-floating",
                       size.card,
@@ -156,7 +157,7 @@ function MarqueeRow({
                     </span>
                     <span
                       className={cn(
-                        "whitespace-nowrap font-display font-bold text-primary",
+                        "whitespace-nowrap font-display font-bold text-ink",
                         size.label
                       )}
                     >
@@ -193,7 +194,7 @@ export function Domains() {
   return (
     <section
       id="domains"
-      className="relative overflow-hidden bg-background pt-20 pb-0 sm:pt-24"
+      className="relative overflow-hidden bg-section-canvas pt-20 pb-0 sm:pt-24"
       aria-labelledby="domains-heading"
     >
       <Container>
@@ -216,6 +217,8 @@ export function Domains() {
           ))}
         </div>
       </Container>
+
+      <SectionWave fillClassName="text-section-alt" className="mt-16 sm:mt-20" />
     </section>
   )
 }

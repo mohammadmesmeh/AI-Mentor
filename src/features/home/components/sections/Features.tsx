@@ -38,7 +38,7 @@ export function Features() {
   return (
     <section
       id="features"
-      className="relative overflow-hidden bg-alt-bg pt-20 pb-0 sm:pt-24"
+      className="relative overflow-hidden bg-section-alt pt-20 pb-0 sm:pt-24"
       aria-labelledby="features-heading"
     >
       <Container>
@@ -67,7 +67,7 @@ export function Features() {
         </div>
       </Container>
 
-      <SectionWave fillClassName="text-background" flipX className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-section-canvas" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }

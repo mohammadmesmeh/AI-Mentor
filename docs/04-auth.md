@@ -63,7 +63,7 @@ Start (no session)
 
 Per `API_CONTRACT.md` and `Backend/README.md` — current implementation evidence, not automatically the final agreed contract:
 
-- `POST /api/v1/register` → `201`; creates user, default preferences (`ui_locale=en`, `resource_language=both`, `timezone=UTC`), token pair. 3 attempts/IP/min.
+- `POST /api/v1/register` → `201`; creates user, default preferences (`ui_locale=en`, `resource_language=both`), token pair. 3 attempts/IP/min.
 - `POST /api/v1/login` → `200`; same generic `422 validation_failed` for bad credentials and inactive accounts (no account enumeration). 5 attempts/email/IP/min.
 - `POST /api/v1/refresh` → `200`; rotates the token pair atomically under a row lock; reuse revokes the family. 10 attempts/IP/min.
 - `POST /api/v1/logout` → `204`; revokes family and deny-lists `jti`/`sid`.

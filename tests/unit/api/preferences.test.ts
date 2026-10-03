@@ -59,3 +59,23 @@ describe("preferences 404 handling (FR-022)", () => {
     store.dispatch(apiSlice.util.resetApiState())
   })
 })
+describe("preferences contract (§11: no time zone)", () => {
+  it("PATCH sends only ui_locale / resource_language — never timezone — and the contract mock accepts it", async () => {
+    clearSession()
+    let body: Record<string, unknown> = {}
+    server.events.on("request:start", async ({ request }) => {
+      if (request.method === "PATCH" && request.url.endsWith("/me/preferences")) body = await request.clone().json()
+    })
+    const store = makeStore()
+    const saved = await store
+      .dispatch(apiSlice.endpoints.updatePreferences.initiate({ uiLocale: "ar", resourceLanguage: "both" }))
+      .unwrap()
+    server.events.removeAllListeners()
+
+    expect(body).toEqual({ ui_locale: "ar", resource_language: "both" })
+    expect(body).not.toHaveProperty("timezone")
+    expect(saved).toMatchObject({ uiLocale: "ar", resourceLanguage: "both" })
+    expect(saved).not.toHaveProperty("timezone")
+    store.dispatch(apiSlice.util.resetApiState())
+  })
+})

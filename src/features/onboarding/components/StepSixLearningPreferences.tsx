@@ -4,34 +4,28 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { OptionCard } from "./components/OptionCard"
 import { StepNavigation } from "./components/StepNavigation"
-import type { LearningMethod, ResourceSource } from "@/lib/api/types"
-import { SOURCES, sourceKeyMap, toggleSource } from "../lib/profileLabels"
+import type { LearningMethod } from "@/lib/api/types"
 
 interface StepSixLearningPreferencesProps {
   preferences: LearningMethod[]
   onChangePreferences: (value: LearningMethod[]) => void
-  /** In priority order (contract §12). */
-  sources: ResourceSource[]
-  onChangeSources: (value: ResourceSource[]) => void
   onNext: () => void
   onBack: () => void
 }
 
 /**
- * How the learner likes to learn (task formats) and where from (resource
- * sources, contract §12: 1-4, array order = priority). Both are required.
+ * How the learner likes to learn (contract §12 `preferred_learning_methods`,
+ * 1-4). The only learning-style question: the server derives the resource
+ * sources from these methods, so there is no separate source choice.
  */
 function StepSixLearningPreferences({
   preferences,
   onChangePreferences,
-  sources,
-  onChangeSources,
   onNext,
   onBack,
 }: StepSixLearningPreferencesProps) {
   const t = useTranslations("onboarding")
-  const [methodsError, setMethodsError] = useState("")
-  const [sourcesError, setSourcesError] = useState("")
+  const [error, setError] = useState("")
 
   const preferenceOptions = [
     { value: "hands_on_projects", title: t("handsOn") },
@@ -46,15 +40,14 @@ function StepSixLearningPreferences({
         ? preferences.filter((v) => v !== pref)
         : [...preferences, pref],
     )
-    if (methodsError) setMethodsError("")
+    if (error) setError("")
   }
 
   const handleContinue = () => {
-    const noMethods = preferences.length === 0
-    const noSources = sources.length === 0
-    setMethodsError(noMethods ? t("stepThreeError") : "")
-    setSourcesError(noSources ? t("sourcesError") : "")
-    if (noMethods || noSources) return
+    if (preferences.length === 0) {
+      setError(t("stepThreeError"))
+      return
+    }
     onNext()
   }
 
@@ -81,47 +74,9 @@ function StepSixLearningPreferences({
             />
           ))}
         </div>
-        {methodsError && (
+        {error && (
           <p className="text-sm text-danger-600 dark:text-danger-500" aria-live="polite">
-            {methodsError}
-          </p>
-        )}
-      </div>
-
-      <div role="group" aria-labelledby="sources-title" aria-describedby="sources-description" className="space-y-3">
-        <div className="space-y-1">
-          <h2 id="sources-title" className="font-display text-heading-sm font-semibold text-foreground">
-            {t("sourcesTitle")}
-          </h2>
-          <p id="sources-description" className="text-sm text-muted-foreground">
-            {t("sourcesDescription")}
-          </p>
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {SOURCES.map((source) => {
-            const rank = sources.indexOf(source)
-            return (
-              <OptionCard
-                key={source}
-                title={t(sourceKeyMap[source])}
-                selected={rank >= 0}
-                onClick={() => {
-                  onChangeSources(toggleSource(sources, source))
-                  if (sourcesError) setSourcesError("")
-                }}
-              >
-                {rank >= 0 && (
-                  <span className="mt-1 block text-xs font-medium text-secondary-700 dark:text-secondary-300">
-                    {t("sourcePriority", { n: rank + 1 })}
-                  </span>
-                )}
-              </OptionCard>
-            )
-          })}
-        </div>
-        {sourcesError && (
-          <p className="text-sm text-danger-600 dark:text-danger-500" aria-live="polite">
-            {sourcesError}
+            {error}
           </p>
         )}
       </div>
@@ -129,7 +84,7 @@ function StepSixLearningPreferences({
       <StepNavigation
         onBack={onBack}
         onContinue={handleContinue}
-        canContinue={preferences.length > 0 && sources.length > 0}
+        canContinue={preferences.length > 0}
       />
     </div>
   )

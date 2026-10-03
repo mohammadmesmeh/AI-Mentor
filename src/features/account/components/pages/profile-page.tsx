@@ -19,7 +19,7 @@ import {
   usePutLearningProfileMutation,
 } from "@/lib/api/apiSlice"
 import { asApiError } from "@/lib/api/errors"
-import type { LearningMethod, LearningProfile, ResourceSource, SelfAssessedLevel } from "@/lib/api/types"
+import type { LearningMethod, LearningProfile, SelfAssessedLevel } from "@/lib/api/types"
 import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
 import {
   LEVELS,
@@ -28,10 +28,18 @@ import {
   levelKeyMap,
   preferenceKeyMap,
   resourceLanguageKeyMap,
-  SOURCES,
-  sourceKeyMap,
-  toggleSource,
 } from "@/features/onboarding/lib/profileLabels"
+import {
+  TIME_PRESETS,
+  choiceFromMinutes,
+  choiceToMinutes,
+  formatDuration,
+  formatWeekly,
+  timeErrorKeyMap,
+  validateChoice,
+  type TimeChoice,
+} from "@/features/onboarding/lib/timeCommitment"
+import { CustomTimeFields } from "@/features/onboarding/components/components/CustomTimeFields"
 import { LEARNING_PROFILE_FIELDS, rejectedFields, type LearningProfileField } from "@/lib/api/validation"
 import { ErrorState, SignedOutState } from "@/features/dashboard/components/learning/shared"
 import {
@@ -116,10 +124,9 @@ type Draft = {
   goal: string
   selfAssessedLevel: SelfAssessedLevel | null
   desiredOutcome: string
-  minutes: string
+  /** A preset or "Other"; sent as whole minutes (contract §12). */
+  time: TimeChoice | null
   methods: LearningMethod[]
-  /** Priority order (contract §12). */
-  sources: ResourceSource[]
 }
 type DraftErrors = Partial<Record<keyof Draft, string>>
 
@@ -128,10 +135,8 @@ function toDraft(profile: LearningProfile): Draft {
     goal: profile.goal ?? "",
     selfAssessedLevel: profile.selfAssessedLevel ?? null,
     desiredOutcome: profile.desiredOutcome ?? "",
-    minutes: String(profile.availableMinutesPerWeek ?? ""),
+    time: choiceFromMinutes(profile.availableMinutesPerWeek),
     methods: profile.preferredLearningMethods ?? [],
-    // null on legacy profiles: the learner has to pick at least one to save.
-    sources: profile.preferredResourceSources ?? [],
   }
 }
 
@@ -145,10 +150,9 @@ function validate(draft: Draft, t: (key: string) => string, to: (key: string) =>
   const outcome = draft.desiredOutcome.trim()
   if (!outcome) errors.desiredOutcome = t("outcomeRequired")
   else if (outcome.length > 2000) errors.desiredOutcome = t("outcomeTooLong")
-  const minutes = Number(draft.minutes)
-  if (!Number.isInteger(minutes) || minutes < 15 || minutes > 10080) errors.minutes = to("minutesInvalid")
+  const timeProblem = validateChoice(draft.time)
+  if (timeProblem) errors.time = to(timeErrorKeyMap[timeProblem])
   if (draft.methods.length === 0) errors.methods = t("methodsRequired")
-  if (draft.sources.length === 0) errors.sources = to("sourcesError")
   return errors
 }
 
@@ -157,9 +161,8 @@ const SERVER_FIELDS: Record<LearningProfileField, keyof Draft> = {
   goal: "goal",
   self_assessed_level: "selfAssessedLevel",
   desired_outcome: "desiredOutcome",
-  available_minutes_per_week: "minutes",
+  available_minutes_per_week: "time",
   preferred_learning_methods: "methods",
-  preferred_resource_sources: "sources",
 }
 
 /**
@@ -234,7 +237,7 @@ function LearningProfilePanel({
             />
             <ProfileRow
               label={t("minutes")}
-              value={t("minutesValue", undefined, { count: profile.availableMinutesPerWeek })}
+              value={formatWeekly((key, values) => to(key, undefined, values), profile.availableMinutesPerWeek)}
             />
             <ProfileRow label={t("outcome")} value={profile.desiredOutcome} />
             <ProfileRow
@@ -244,14 +247,6 @@ function LearningProfilePanel({
                   ? new Intl.ListFormat(locale, { type: "conjunction" }).format(
                       profile.preferredLearningMethods.map((m) => to(preferenceKeyMap[m]))
                     )
-                  : null
-              }
-            />
-            <ProfileRow
-              label={t("sources")}
-              value={
-                profile.preferredResourceSources?.length
-                  ? profile.preferredResourceSources.map((s, i) => `${i + 1}. ${to(sourceKeyMap[s])}`).join(" · ")
                   : null
               }
             />
@@ -337,9 +332,10 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         goal: draft.goal.trim(),
         selfAssessedLevel: draft.selfAssessedLevel as SelfAssessedLevel,
         desiredOutcome: draft.desiredOutcome.trim(),
-        availableMinutesPerWeek: Number(draft.minutes),
+        // Always whole minutes, whatever unit was picked.
+        availableMinutesPerWeek: choiceToMinutes(draft.time) as number,
+        // Sources are derived by the server from the methods (contract §12).
         preferredLearningMethods: draft.methods,
-        preferredResourceSources: draft.sources,
       }).unwrap()
       onDone(true)
     } catch (caught) {
@@ -349,7 +345,7 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         return
       }
       // 422 validation_failed: mark each field the server rejected (array
-      // errors arrive per item, e.g. "preferred_resource_sources.0") with what
+      // errors arrive per item, e.g. "preferred_learning_methods.0") with what
       // the contract allows. The server's messages are English-only and never
       // shown (FR-018).
       const serverErrors: DraftErrors = {}
@@ -419,22 +415,11 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         )}
       </Field>
 
-      <Field id="lp-minutes" label={to("minutesPerWeek")} hint={to("minutesRangeHint")} error={errors.minutes}>
-        {(describedBy) => (
-          <input
-            id="lp-minutes"
-            type="number"
-            inputMode="numeric"
-            min={15}
-            max={10080}
-            value={draft.minutes}
-            onChange={(e) => set("minutes", e.target.value)}
-            aria-invalid={!!errors.minutes}
-            aria-describedby={describedBy}
-            className={cn(inputClass, "max-w-48")}
-          />
-        )}
-      </Field>
+      <TimeField
+        value={draft.time}
+        onChange={(time) => set("time", time)}
+        error={errors.time}
+      />
 
       <fieldset id="lp-methods" tabIndex={-1} className="m-0 space-y-3 border-0 p-0 outline-none" aria-describedby={errors.methods ? "lp-methods-error" : undefined}>
         <legend className="p-0 text-sm font-semibold text-ink">{t("methods")}</legend>
@@ -465,47 +450,6 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         {errors.methods && <FieldError id="lp-methods-error">{errors.methods}</FieldError>}
       </fieldset>
 
-      <fieldset
-        id="lp-sources"
-        tabIndex={-1}
-        className="m-0 space-y-3 border-0 p-0 outline-none"
-        aria-describedby={errors.sources ? "lp-sources-hint lp-sources-error" : "lp-sources-hint"}
-      >
-        <legend className="p-0 text-sm font-semibold text-ink">{t("sources")}</legend>
-        <p id="lp-sources-hint" className="m-0 text-xs text-muted-foreground">
-          {t("sourcesHint")}
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {SOURCES.map((source) => {
-            const rank = draft.sources.indexOf(source)
-            const checked = rank >= 0
-            return (
-              <label
-                key={source}
-                className={cn(
-                  "flex min-h-11 cursor-pointer items-center gap-3 rounded-md border px-3 py-2 text-sm font-medium transition-colors has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
-                  checked ? "border-primary-900 bg-secondary-100/60 dark:border-status-completed dark:bg-secondary-300/10" : "border-line bg-glass-strong hover:bg-card"
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => set("sources", toggleSource(draft.sources, source))}
-                  className="h-4 w-4 accent-primary"
-                />
-                <span className="flex-1">{to(sourceKeyMap[source])}</span>
-                {checked && (
-                  <span className="rounded-full bg-secondary-700/10 px-2 py-0.5 text-xs text-secondary-700 dark:text-secondary-300">
-                    {to("sourcePriority", undefined, { n: rank + 1 })}
-                  </span>
-                )}
-              </label>
-            )
-          })}
-        </div>
-        {errors.sources && <FieldError id="lp-sources-error">{errors.sources}</FieldError>}
-      </fieldset>
-
       {formError && (
         <p role="alert" className="m-0 flex items-start gap-2 rounded-icon border border-primary-900/20 bg-glass-strong px-4 py-3 text-sm font-medium text-ink">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -522,6 +466,69 @@ function LearningProfileForm({ profile, onDone }: { profile: LearningProfile; on
         </Button>
       </div>
     </form>
+  )
+}
+
+const OTHER = "other"
+
+/**
+ * Weekly time: the onboarding's presets as radio cards, or "Other" with a
+ * number and a unit. A stored value that isn't a preset opens as "Other".
+ */
+function TimeField({
+  value,
+  onChange,
+  error,
+}: {
+  value: TimeChoice | null
+  onChange: (value: TimeChoice) => void
+  error?: string
+}) {
+  const t = useT("account")
+  const to = useT("onboarding")
+  const format = (key: string, values?: Record<string, string | number>) => to(key, undefined, values)
+  const custom = value?.kind === "custom" ? value : null
+  const selected = custom ? OTHER : value?.kind === "preset" ? String(value.minutes) : null
+  const describedBy = [custom ? "lp-time-hint" : null, error ? "lp-time-error" : null].filter(Boolean).join(" ") || undefined
+
+  return (
+    <div id="lp-time" tabIndex={-1} className="space-y-3 outline-none">
+      <ChoiceGroup
+        name="lp-time"
+        legend={t("minutes")}
+        columns={3}
+        options={[
+          ...TIME_PRESETS.map((minutes) => ({ value: String(minutes), label: formatDuration(format, minutes) })),
+          { value: OTHER, label: to("timeOther"), description: to("timeOtherDescription") },
+        ]}
+        value={selected}
+        onChange={(next) => {
+          if (next === OTHER) {
+            if (!custom) onChange({ kind: "custom", amount: "", unit: "hours" })
+          } else {
+            onChange({ kind: "preset", minutes: Number(next) })
+          }
+        }}
+      />
+      {custom && (
+        <div className="space-y-1.5">
+          <CustomTimeFields
+            id="lp-time-amount"
+            amount={custom.amount}
+            unit={custom.unit}
+            onAmountChange={(amount) => onChange({ ...custom, amount })}
+            onUnitChange={(unit) => onChange({ ...custom, unit })}
+            invalid={!!error}
+            describedBy={describedBy}
+            inputClassName={inputClass}
+          />
+          <p id="lp-time-hint" className="m-0 text-xs text-muted-foreground">
+            {to("customTimeHint")}
+          </p>
+        </div>
+      )}
+      {error && <FieldError id="lp-time-error">{error}</FieldError>}
+    </div>
   )
 }
 

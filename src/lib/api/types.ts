@@ -26,13 +26,12 @@ export type ResourceLanguage = "ar" | "en" | "both"
 export interface Preferences {
   uiLocale: UiLocale
   resourceLanguage: ResourceLanguage
-  timezone: string
   updatedAt: string
 }
 
 export type SelfAssessedLevel = "complete_beginner" | "some_experience" | "intermediate"
 export type LearningMethod = "hands_on_projects" | "reading_docs" | "video_walkthroughs" | "quizzes_drills"
-/** Contract §12: where resources should come from. Array order is the learner's priority. */
+/** Contract §12: resource sources, derived by the server from the learning methods. */
 export type ResourceSource = "youtube" | "official_documentation" | "articles" | "courses"
 
 export interface LearningProfile {
@@ -42,7 +41,10 @@ export interface LearningProfile {
   desiredOutcome: string | null
   availableMinutesPerWeek: number
   preferredLearningMethods: LearningMethod[] | null
-  /** null for legacy records created before the field existed. */
+  /**
+   * Derived by the server from the learning methods (§12) — output only, never
+   * an answer the learner gives or the client sends. null when methods are.
+   */
   preferredResourceSources: ResourceSource[] | null
   createdAt: string
   updatedAt: string
@@ -54,7 +56,6 @@ export type MissingField =
   | "desired_outcome"
   | "available_minutes_per_week"
   | "preferred_learning_methods"
-  | "preferred_resource_sources"
   | "resource_language"
 
 export interface OnboardingStatus {

@@ -5,7 +5,6 @@ import type {
   OnboardingStatus,
   Preferences,
   ResourceLanguage,
-  ResourceSource,
   SelfAssessedLevel,
   UiLocale,
 } from "@/lib/api/types"
@@ -19,19 +18,15 @@ export interface OnboardingFormState {
   availableMinutesPerWeek: number | null
   desiredOutcome: string
   preferredLearningMethods: LearningMethod[]
-  /** Priority order (contract §12). */
-  preferredResourceSources: ResourceSource[]
   preferences: {
     uiLocale: UiLocale
     resourceLanguage: ResourceLanguage
-    timezone: string
   }
 }
 
 export const defaultPreferences = {
   uiLocale: "en" as UiLocale,
   resourceLanguage: "both" as ResourceLanguage,
-  timezone: "UTC",
 }
 
 export const initialForm = (): OnboardingFormState => ({
@@ -40,7 +35,6 @@ export const initialForm = (): OnboardingFormState => ({
   availableMinutesPerWeek: null,
   desiredOutcome: "",
   preferredLearningMethods: [],
-  preferredResourceSources: [],
   preferences: { ...defaultPreferences },
 })
 
@@ -84,12 +78,11 @@ const onboardingSlice = createSlice({
     },
     updatePreferences(
       state,
-      action: PayloadAction<Partial<Pick<Preferences, "uiLocale" | "resourceLanguage" | "timezone">>>
+      action: PayloadAction<Partial<Pick<Preferences, "uiLocale" | "resourceLanguage">>>
     ) {
       const patch = action.payload
       if (patch.uiLocale) state.form.preferences.uiLocale = patch.uiLocale
       if (patch.resourceLanguage) state.form.preferences.resourceLanguage = patch.resourceLanguage
-      if (patch.timezone) state.form.preferences.timezone = patch.timezone
     },
     hydrate(
       state,
@@ -110,8 +103,6 @@ const onboardingSlice = createSlice({
           availableMinutesPerWeek: learningProfile.availableMinutesPerWeek ?? null,
           desiredOutcome: learningProfile.desiredOutcome ?? "",
           preferredLearningMethods: learningProfile.preferredLearningMethods ?? [],
-          // null on legacy profiles: the learner picks them now.
-          preferredResourceSources: learningProfile.preferredResourceSources ?? [],
           preferences: { ...state.form.preferences },
         }
       }
@@ -119,7 +110,6 @@ const onboardingSlice = createSlice({
         state.form.preferences = {
           uiLocale: preferences.uiLocale,
           resourceLanguage: preferences.resourceLanguage,
-          timezone: preferences.timezone,
         }
       }
     },

@@ -73,7 +73,7 @@ Error:
 | `POST` | `/auth/refresh` | — | atomic rotation; family revocation on reuse; 10/min/IP |
 | `POST` | `/auth/logout` | Bearer | `204` |
 | `GET` | `/me` | Bearer | user; `status` active/suspended/deletion_requested |
-| `GET` / `PATCH` | `/me/preferences` | Bearer | `ui_locale` ar/en; `resource_language` ar/en/both; IANA `timezone` |
+| `GET` / `PATCH` | `/me/preferences` | Bearer | `ui_locale` ar/en; `resource_language` ar/en/both (no `timezone`: no longer a learner setting) |
 | `GET` / `PUT` | `/me/learning-profile` | Bearer | idempotent create-or-replace; 5 fields required |
 | `GET` | `/me/onboarding-status` | Bearer | `completed` + `missing_fields[]`; server-derived |
 | `POST` | `/roadmap-generation-requests` | Bearer + `Idempotency-Key` | `202` queued; replay same key → same request (202 active / 200 terminal); 3/min/user |

@@ -20,7 +20,6 @@ interface WireProfile {
   desired_outcome?: unknown
   available_minutes_per_week?: unknown
   preferred_learning_methods?: unknown
-  preferred_resource_sources?: unknown
 }
 
 describe("learning profile PUT replaces whole resource (FR-010)", () => {
@@ -54,7 +53,6 @@ describe("learning profile PUT replaces whole resource (FR-010)", () => {
       desiredOutcome: "Build an app",
       availableMinutesPerWeek: 300,
       preferredLearningMethods: ["hands_on_projects", "reading_docs"],
-      preferredResourceSources: ["official_documentation"],
     }
     const second: LearningProfileInput = {
       goal: "Learn Angular",
@@ -62,7 +60,6 @@ describe("learning profile PUT replaces whole resource (FR-010)", () => {
       desiredOutcome: "Refresh the goal entirely",
       availableMinutesPerWeek: 120,
       preferredLearningMethods: ["video_walkthroughs"],
-      preferredResourceSources: ["youtube", "courses"],
     }
 
     await store.dispatch(apiSlice.endpoints.putLearningProfile.initiate(first)).unwrap()
@@ -76,7 +73,6 @@ describe("learning profile PUT replaces whole resource (FR-010)", () => {
       desired_outcome: "Refresh the goal entirely",
       available_minutes_per_week: 120,
       preferred_learning_methods: ["video_walkthroughs"],
-      preferred_resource_sources: ["youtube", "courses"],
     })
     expect(replaced).toMatchObject({
       goal: "Learn Angular",
@@ -84,50 +80,77 @@ describe("learning profile PUT replaces whole resource (FR-010)", () => {
       desiredOutcome: "Refresh the goal entirely",
       availableMinutesPerWeek: 120,
       preferredLearningMethods: ["video_walkthroughs"],
-      preferredResourceSources: ["youtube", "courses"],
     })
 
     store.dispatch(apiSlice.util.resetApiState())
   })
 })
 
-describe("learning profile contract (§12, updated)", () => {
-  it("PUT sends exactly the six contract fields, sources in the learner's priority order", async () => {
+describe("learning profile contract (§12: five fields, sources derived by the server)", () => {
+  // Uses the default MSW handlers, which enforce the contract's validation
+  // (tests/msw/contract.ts): a body Render would reject is rejected here too.
+  it("PUT sends exactly the five request fields — never preferred_resource_sources — with minutes as an integer", async () => {
     clearSession()
     let body: Record<string, unknown> = {}
-    server.use(
-      http.put(`${API_BASE}/me/learning-profile`, async ({ request }) => {
-        body = (await request.json()) as Record<string, unknown>
-        return HttpResponse.json({ data: { id: "lp", ...body }, meta: { request_id: "r" } }, { status: 201 })
-      })
-    )
+    let status = 0
+    server.events.on("request:start", async ({ request }) => {
+      if (request.method === "PUT" && request.url.endsWith("/me/learning-profile")) body = await request.clone().json()
+    })
+    server.events.on("response:mocked", ({ request, response }) => {
+      if (request.method === "PUT" && request.url.endsWith("/me/learning-profile")) status = response.status
+    })
     const store = makeStore()
-    await store
+    const saved = await store
       .dispatch(
         apiSlice.endpoints.putLearningProfile.initiate({
           goal: "Learn React",
           selfAssessedLevel: "some_experience",
           desiredOutcome: "Ship an app",
           availableMinutesPerWeek: 180,
-          preferredLearningMethods: ["hands_on_projects"],
-          preferredResourceSources: ["courses", "youtube", "official_documentation"],
+          preferredLearningMethods: ["video_walkthroughs", "hands_on_projects"],
         })
       )
       .unwrap()
+    server.events.removeAllListeners()
+
     // "Extra fields are rejected" — nothing more, nothing less.
     expect(Object.keys(body).sort()).toEqual([
       "available_minutes_per_week",
       "desired_outcome",
       "goal",
       "preferred_learning_methods",
-      "preferred_resource_sources",
       "self_assessed_level",
     ])
-    expect(body.preferred_resource_sources).toEqual(["courses", "youtube", "official_documentation"])
+    expect(body).not.toHaveProperty("preferred_resource_sources")
+    expect(body.available_minutes_per_week).toBe(180)
+    expect(Number.isInteger(body.available_minutes_per_week)).toBe(true)
+    expect(status).toBe(201)
+    // GET/PUT still expose the derived sources as output.
+    expect(saved.preferredResourceSources).toEqual(["youtube"])
     store.dispatch(apiSlice.util.resetApiState())
   })
 
-  it("GET reads preferred_resource_sources, and null for a legacy record", async () => {
+  it("the contract mock rejects a body without the learning methods (422 with details)", async () => {
+    clearSession()
+    const store = makeStore()
+    const result = await store.dispatch(
+      apiSlice.endpoints.putLearningProfile.initiate({
+        goal: "Learn React",
+        selfAssessedLevel: "some_experience",
+        desiredOutcome: "Ship an app",
+        availableMinutesPerWeek: 10,
+        preferredLearningMethods: [],
+      })
+    )
+    expect(result.error).toMatchObject({ code: "validation_failed", category: "invalid_input" })
+    expect(Object.keys((result.error as { details: Record<string, unknown> }).details).sort()).toEqual([
+      "available_minutes_per_week",
+      "preferred_learning_methods",
+    ])
+    store.dispatch(apiSlice.util.resetApiState())
+  })
+
+  it("GET reads the derived preferred_resource_sources, null for a legacy record without methods", async () => {
     clearSession()
     server.use(
       http.get(`${API_BASE}/me/learning-profile`, () =>
@@ -138,7 +161,7 @@ describe("learning profile contract (§12, updated)", () => {
             self_assessed_level: "complete_beginner",
             desired_outcome: "Use Git",
             available_minutes_per_week: 120,
-            preferred_learning_methods: ["reading_docs"],
+            preferred_learning_methods: null,
             preferred_resource_sources: null,
           },
           meta: { request_id: "r" },

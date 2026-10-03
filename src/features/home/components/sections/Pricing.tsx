@@ -48,7 +48,7 @@ export function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative overflow-hidden bg-background pt-20 pb-0 sm:pt-24"
+      className="relative overflow-hidden bg-section-alt pt-20 pb-0 sm:pt-24"
       aria-labelledby="pricing-heading"
     >
       <Container>
@@ -74,7 +74,7 @@ export function Pricing() {
         </div>
       </Container>
 
-      <SectionWave fillClassName="text-alt-bg" flipX className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-section-canvas" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }
@@ -97,15 +97,15 @@ function PlanCard({ t, planKey, featureKeys, highlight, onFreeCta }: PlanCardPro
         highlight
           ? "premium-card"
           : cn(
-              "rounded-2xl border border-light-blue-bg/60 bg-light-blue-bg/40 backdrop-blur-md",
-              "transition-all duration-300 hover:-translate-y-1 hover:bg-light-blue-bg/60 hover:shadow-xl",
-              "motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:bg-light-blue-bg/40 motion-reduce:hover:shadow-none"
+              "section-card rounded-2xl",
+              "transition-all duration-300 hover:-translate-y-1 hover:bg-section-card-hover hover:shadow-card",
+              "motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             )
       )}
     >
     
 
-      <h3 className="relative font-display text-xl font-bold text-primary">
+      <h3 className="relative font-display text-xl font-bold text-ink">
         {t(`${planKey}.name`, planKey)}
       </h3>
 

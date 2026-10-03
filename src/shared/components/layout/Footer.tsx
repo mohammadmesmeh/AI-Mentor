@@ -36,7 +36,7 @@ function Footer() {
   const year = new Date().getFullYear()
 
   return (
-    <footer className="bg-midnight px-4 py-12 md:px-8 lg:px-12">
+    <footer className="border-t border-white/10 bg-midnight px-4 py-12 md:px-8 lg:px-12">
       <div className="mx-auto max-w-(--container-content)">
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:justify-between">
           <Link
