@@ -91,3 +91,11 @@ describe("auth form errors (contract §6, §7)", () => {
     expect(authErrorKey(error, "login")).toBe("tooManyRequests")
   })
 })
+
+describe("automatic retry", () => {
+  it("never retries a 429 automatically (contract: disable retry temporarily)", async () => {
+    const { isRetryableCategory } = await import("@/lib/api/errors")
+    expect(isRetryableCategory("rate_limited")).toBe(false)
+    expect(isRetryableCategory("unavailable")).toBe(true)
+  })
+})

@@ -179,10 +179,17 @@ A new account also shows why saves failed before the frontend was updated: `PUT 
 
 ---
 
-## Note: rate limits and the frontend's session route
+## 11. The refresh rate limit is shared by every learner, and its 429 has no `Retry-After`
 
-To keep learners signed in across reloads, the frontend now follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser.
+**Context** — to keep learners signed in across reloads, the frontend follows §3 rule 4: a Next.js route stores the refresh token in an HttpOnly cookie and calls `POST /auth/refresh` **from the frontend server**. Login and register still go from the browser. §25 limits `POST /auth/refresh` to **10 per minute per IP**, so every learner's refresh now counts against the frontend server's IP. With more than a handful of learners reloading, they get `429` and the app can't restore their session.
 
-§25 limits `POST /auth/refresh` to **10 per minute per IP**. Every learner's refresh now comes from the frontend server's IP, so with more than a handful of active learners they share one limit. The route sends the learner's IP in `X-Forwarded-For`.
+**What we measured** (2026-10-03, ~07:30 UTC, with an invalid refresh token so no session was touched):
 
-**Please confirm** — does the backend trust `X-Forwarded-For` from the frontend's host for rate limiting? If not, either trust it for known frontend origins, or key the refresh limit on the refresh-token family instead of the IP.
+- The limit counts every call, including rejected ones (`401`/`422`). After about 10 calls in a minute: `429 too_many_requests`, "Too Many Attempts." (`X-Request-ID 01M40B26Y8G7B0EY8NFJKPFVVB`).
+- **The 429 has no `Retry-After`** and no `X-RateLimit-*` headers. The successful calls do send `X-RateLimit-Remaining`. §2 says to honor `Retry-After` "if present"; the client can only guess the wait.
+- **`X-Forwarded-For` is not trusted:** calls with `X-Forwarded-For: 203.0.113.50` / `203.0.113.51` were counted against the caller's own IP (`X-RateLimit-Remaining` kept falling; `X-Request-ID 01M40AQDWRF4PK0PTFQ5W356Y1`, `01M40AQE3DETW73Z2V849EXVG7`). The session route sends the learner's IP in that header, but the backend keys the limit on the frontend server's IP.
+- **The counter looks per instance:** in a quick burst `X-RateLimit-Remaining` went 9, 9, 8, 7, 6, 5, 8, 7, 4 … and some calls passed after others had already been limited (`#21 401`, `#23 401` between `429`s). The effective limit is unpredictable.
+
+**What the frontend does now** — one restore per page load; concurrent refreshes share one request (also across tabs, and the session route reuses a just-made refresh for a tab that restores right after); on `429` the learner is not signed out, the app waits `Retry-After` (10 s when it is missing), retries once, and otherwise shows "We couldn't reach Khatwa" with a retry button. Read requests no longer retry a `429` automatically.
+
+**Please** — (1) trust `X-Forwarded-For` from the frontend's host (Vercel) for the refresh limit, or key that limit on the refresh-token family instead of the IP; (2) send `Retry-After` with `429` responses; (3) keep the rate-limit counter in a shared store so all instances agree.

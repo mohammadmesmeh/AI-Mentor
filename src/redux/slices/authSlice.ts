@@ -9,6 +9,12 @@ interface AuthState {
    * (SessionRestorer). Screens show loading meanwhile, never the sign-in state.
    */
   restoring: boolean
+  /**
+   * The cookie session could not be checked (backend unreachable or busy) even
+   * after retries. Not signed out — the cookie is kept — so screens offer a
+   * retry instead of sign-in.
+   */
+  unavailable: boolean
   error: string | null
 }
 
@@ -16,6 +22,7 @@ const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   restoring: true,
+  unavailable: false,
   error: null,
 }
 
@@ -33,11 +40,24 @@ const authSlice = createSlice({
       state.user = action.payload
       state.isAuthenticated = true
       state.restoring = false
+      state.unavailable = false
     },
     clearLocalSession(state) {
       state.user = null
       state.isAuthenticated = false
       state.restoring = false
+      state.unavailable = false
+    },
+    /** A retry of the cookie session check has started (screens show loading again). */
+    sessionRestoreStarted(state) {
+      state.restoring = true
+      state.unavailable = false
+    },
+    sessionUnavailable(state) {
+      state.user = null
+      state.isAuthenticated = false
+      state.restoring = false
+      state.unavailable = true
     },
     clearError(state) {
       state.error = null
@@ -45,6 +65,7 @@ const authSlice = createSlice({
   },
 })
 
-export const { sessionEstablished, clearLocalSession, clearError } = authSlice.actions
+export const { sessionEstablished, clearLocalSession, sessionRestoreStarted, sessionUnavailable, clearError } =
+  authSlice.actions
 export type { AuthState }
 export default authSlice.reducer

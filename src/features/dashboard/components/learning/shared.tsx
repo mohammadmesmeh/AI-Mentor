@@ -1,10 +1,13 @@
 "use client"
 
-import { AlertTriangle, Check, CircleAlert, ClipboardList, Clock, ExternalLink, Loader2, LogIn, Map as MapIcon } from "lucide-react"
+import { useSelector, useStore } from "react-redux"
+import { AlertTriangle, Check, CircleAlert, ClipboardList, Clock, CloudOff, ExternalLink, Loader2, LogIn, Map as MapIcon } from "lucide-react"
 import { useT } from "@/shared/hooks/useT"
 import { Button } from "@/shared/components/ui/Button"
 import { MetaItem, MetaList } from "@/shared/components/ui/MetaItem"
 import { cn } from "@/lib/utils"
+import type { RootState } from "@/redux/store"
+import { retrySessionRestore } from "@/shared/components/providers/SessionRestorer"
 import { WORKSPACE_ROUTES } from "@/lib/workspaceRoutes"
 import type { Resource, Roadmap, TaskType } from "@/lib/api/types"
 import type { LearnerRoadmapState } from "../../hooks/useLearnerRoadmap"
@@ -60,8 +63,31 @@ export function RoadmapGate({
   }
 }
 
+/**
+ * Not signed in. If the session check only failed for a temporary reason
+ * (backend unreachable or waking up), the cookie is still there: offer a retry
+ * instead of sending the learner to sign in.
+ */
 export function SignedOutState() {
   const td = useT("dashboard")
+  const store = useStore<RootState>()
+  const unavailable = useSelector((state: RootState) => state.auth.unavailable)
+  if (unavailable) {
+    return (
+      <PageState
+        role="alert"
+        icon={CloudOff}
+        tone="muted"
+        title={td("sessionUnavailableTitle")}
+        description={td("sessionUnavailableDescription")}
+        action={
+          <Button variant="primary" size="lg" className="min-h-11" onClick={() => retrySessionRestore(store)}>
+            {td("sessionUnavailableRetry")}
+          </Button>
+        }
+      />
+    )
+  }
   return (
     <PageState
       icon={LogIn}

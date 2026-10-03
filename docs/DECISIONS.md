@@ -40,6 +40,7 @@ On the client (`src/lib/api/auth.ts`):
 
 - A reload, a new tab or a returning visit within 30 days keeps the learner signed in.
 - For a moment after login, the refresh token passes through browser JavaScript on its way to `/store`. Proxying login through the route would avoid that, but then every login would come from the server's IP and share one rate limit. This trade-off was chosen deliberately.
-- Refresh calls now reach the backend from the frontend server's IP, and §25 limits refresh to 10/min per IP. The route forwards `X-Forwarded-For`. Whether the backend trusts it is an open question in `docs/backend-issues.md`.
+- Refresh calls now reach the backend from the frontend server's IP, and §25 limits refresh to 10/min per IP. The route forwards `X-Forwarded-For`, but the backend does not trust it (measured 2026-10-03; `docs/backend-issues.md` #11).
+- (2026-10-03) On a `429` from refresh the learner is not signed out: app load waits `Retry-After` (10 s when absent, which is what the backend sends today; at most 60 s), retries once while screens show loading, then offers a retry. The route passes `Retry-After` through, never reuses a failed result, and reuses a successful one for a tab that restores within 5 s with the just-rotated cookie. Read requests no longer auto-retry a `429` (§2: "disable retry temporarily").
 - The frontend now needs a Node runtime for `/api/session/*` (Vercel route handlers); a static export would not work.
 - Browsers accept `Secure` cookies on `http://localhost`, so development works without HTTPS.
