@@ -60,7 +60,7 @@ describe("auth refresh (FR-003, FR-004, FR-005)", () => {
           )
         }
         return HttpResponse.json(
-          { data: { ui_locale: "en", resource_language: "both", timezone: "UTC", updated_at: new Date().toISOString() }, meta: { request_id: "r4" } },
+          { data: { ui_locale: "en", resource_language: "both", updated_at: new Date().toISOString() }, meta: { request_id: "r4" } },
           { status: 200 }
         )
       }),

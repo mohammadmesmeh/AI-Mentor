@@ -62,7 +62,7 @@ Navy–purple signature duo; reserved for AI-glow, highlights, interactive accen
 
 ### Flat / role tokens
 
-- `--color-midnight #0a1930` (deep hero/navy section bg) · `--color-canvas #ffffff` · `--color-alt-bg #eff4fb` (light alternating bg) ·
+- `--color-midnight #0a1930` (deep hero/navy section bg) · `--color-canvas #f8fafc` · home sections use `--section-canvas` / `--section-alt` / `--section-contrast` (light `#f8fafc` / `#f1f5f9` / `#0a1930`, dark `#0a1527` / `#111c2d` / `#1a2d4c`; they alternate canvas → alt after the hero, the CTA is the contrast block) ·
 - `--color-light-blue-bg #deeafb` + `--color-light-blue-text #1d4e89` (light-blue callouts) · `--color-text-muted #667085` · `--color-success-green #10b981` + `--color-success-bg #d1fae5` · `--color-live-red #ef4444` · `--color-accent-purple #7c3aed`.
 
 ### Semantic scales
@@ -131,7 +131,7 @@ Declared semantically: `--radius-sm .375rem` (chips) · `--radius-md .625rem` (i
 ## Utility classes (`@utility`)
 
 - **Typography**: `text-heading`, `text-body`, `text-label` (uppercase eyebrow — no-op in RTL), `text-button` — all dir-aware.
-- **Surfaces**: `glass-card` (blur+saturate), `gradient-bg-brand` (navy→purple, hero only), `gradient-bg-subtle`, `gradient-text` (one hero headline max), `dark-section` (local midnight canvas + light text regardless of theme), `dot-grid` (decorative, reduced-motion-safe, `aria-hidden`). Scrollbars are styled globally from `--scrollbar-thumb` / `--scrollbar-thumb-hover` / `--scrollbar-track` (base layer), so no class is needed.
+- **Surfaces**: `glass-card` (blur+saturate), `section-card` (home-section cards: translucent `--section-card`, 12px blur, thin `--section-card-edge`, minimal shadow), `gradient-text` (one hero headline max), `dot-grid` (decorative, reduced-motion-safe, `aria-hidden`). Scrollbars are styled globally from `--scrollbar-thumb` / `--scrollbar-thumb-hover` / `--scrollbar-track` (base layer), so no class is needed.
 - **Interactive**: `focus-ring`, `btn-base`, `btn` (padding 0.625/1.125, body-sm), `hover-lift`, `badge-base`, `nav-link`, `card` (surface-card, `border-default`, `radius-lg`, `shadow-card`, 1.25rem padding), `chat-message`, `roadmap-card` (card + `border-inline-start` 3px primary).
 - **Font facades**: `font-inter`, `font-space-grotesk`, `font-arabic`, `font-rubik`.
 

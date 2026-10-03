@@ -1,4 +1,4 @@
-import { Hero } from "@/features/home/components/sections/Hero"
+import { Hero } from "@/features/home/components/hero/Hero"
 import { Features } from "@/features/home/components/sections/Features"
 import { Pricing } from "@/features/home/components/sections/Pricing"
 import { FAQ } from "@/features/home/components/sections/FAQ"

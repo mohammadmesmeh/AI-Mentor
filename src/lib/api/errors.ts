@@ -157,7 +157,12 @@ export function generationFailureKey(failureCode: string | null): string {
   }
 }
 
-/** True when a request with this error is safe to retry by re-running the same request. */
+/**
+ * True when a request with this error is safe to retry automatically by
+ * re-running the same request. Not a 429: the contract says to disable retry
+ * temporarily (§2), and an immediate retry only spends more of
+ * the limit.
+ */
 export function isRetryableCategory(category: ApiErrorCategory): boolean {
-  return category === "unavailable" || category === "rate_limited" || category === "unexpected"
+  return category === "unavailable" || category === "unexpected"
 }

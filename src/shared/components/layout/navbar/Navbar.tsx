@@ -155,6 +155,10 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
 
   const topTransparent = !isScrolled && !mobileOpen
   const isDarkTop = topTransparent && activeSurfaceTheme === "dark"
+  // The home hero's navbar style (design: docs/design/hero-light).
+  const isHome = activeSurfaceTheme === "home"
+  // The hero's buttons: pill, 40px, 15px semibold.
+  const homeButton = isHome ? "min-h-10 rounded-full px-5 text-[0.9375rem] font-semibold" : undefined
 
   return (
     <header
@@ -200,6 +204,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
                   <NavLinks
                     key={link.href}
                     link={link}
+                    brand={isHome}
                     onClick={(e) => handleNavClick(e, link.href)}
                   />
                 ))}
@@ -218,11 +223,11 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
               {!isFocused &&
                 (isAuthenticated ? (
                   <>
-                    <Button variant="primary" size="sm" href="/dashboard">
+                    <Button variant="primary" size="sm" href="/dashboard" className={homeButton}>
                       <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                       {t("dashboard", "Dashboard")}
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={handleLogout}>
+                    <Button variant="secondary" size="sm" onClick={handleLogout} className={homeButton}>
                       <LogOut
                         className="h-4 w-4 rtl:-scale-x-100"
                         aria-hidden="true"
@@ -232,10 +237,10 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
                   </>
                 ) : (
                   <>
-                    <Button variant="secondary" size="sm" href="/auth">
+                    <Button variant="secondary" size="sm" href="/auth" className={homeButton}>
                       {t("signIn", "Sign In")}
                     </Button>
-                    <Button variant="primary" size="sm" href="/auth">
+                    <Button variant="primary" size="sm" href="/auth" className={homeButton}>
                       {t("startLearning", "Start Learning")}
                     </Button>
                   </>
@@ -244,7 +249,7 @@ function Navbar({ navbarTheme }: NavbarProps = {}) {
 
             <div className="flex items-center gap-2 lg:hidden">
               {!isFocused && !isAuthenticated && (
-                <Button variant="primary" size="sm" href="/auth">
+                <Button variant="primary" size="sm" href="/auth" className={homeButton}>
                   {t("start", "Start")}
                 </Button>
               )}

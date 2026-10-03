@@ -59,7 +59,6 @@ function makeStore({ signedIn }: { signedIn: boolean }) {
       availableMinutesPerWeek: 120,
       desiredOutcome: "Use Git daily",
       preferredLearningMethods: ["reading_docs"],
-      preferredResourceSources: ["youtube", "official_documentation"],
     })
   )
   store.dispatch(goToStep(7))
@@ -133,31 +132,44 @@ describe("onboarding session handling", () => {
     expect(screen.queryByText(enMessages.dashboard.generationFailedGeneric)).toBeNull()
   })
 
-  it("sends preferred_resource_sources with the other five fields (the 422 root cause)", async () => {
+  it("sends the five contract fields — never preferred_resource_sources — and the contract mock accepts them", async () => {
+    // The default handler validates like the backend (tests/msw/contract.ts):
+    // extra or missing fields would come back as a 422.
     let body: Record<string, unknown> = {}
-    server.use(
-      http.put(`${API_BASE}/me/learning-profile`, async ({ request }) => {
-        body = (await request.json()) as Record<string, unknown>
-        return HttpResponse.json({ data: { id: "lp", ...body }, meta: { request_id: "t" } }, { status: 201 })
-      })
-    )
+    let status = 0
+    server.events.on("request:start", async ({ request }) => {
+      if (request.method === "PUT" && request.url.endsWith("/me/learning-profile")) body = await request.clone().json()
+    })
+    server.events.on("response:mocked", ({ request, response }) => {
+      if (request.method === "PUT" && request.url.endsWith("/me/learning-profile")) status = response.status
+    })
     renderOnboarding(makeStore({ signedIn: true }))
     await submit()
-    await waitFor(() => expect(body.preferred_resource_sources).toEqual(["youtube", "official_documentation"]))
-    expect(Object.keys(body)).toHaveLength(6)
+    await waitFor(() => expect(status).toBe(201))
+    expect(Object.keys(body).sort()).toEqual([
+      "available_minutes_per_week",
+      "desired_outcome",
+      "goal",
+      "preferred_learning_methods",
+      "self_assessed_level",
+    ])
+    expect(body).not.toHaveProperty("preferred_resource_sources")
+    // The time step's 2 hours, in minutes.
+    expect(body.available_minutes_per_week).toBe(120)
+    expect(await screen.findByText(enMessages.onboarding.stepSixSuccessTitle)).toBeInTheDocument()
   })
 
   it("a 422 flags the rejected answer on its review row, with what the contract allows", async () => {
     server.use(
       http.put(`${API_BASE}/me/learning-profile`, () =>
-        failure422({ available_minutes_per_week: ["must be at least 15"], "preferred_resource_sources.0": ["invalid"] })
+        failure422({ available_minutes_per_week: ["must be at least 15"], "preferred_learning_methods.0": ["invalid"] })
       )
     )
     renderOnboarding(makeStore({ signedIn: true }))
     await submit()
     expect(await screen.findByText(enMessages.onboarding.reviewFieldsInvalid)).toBeInTheDocument()
     expect(screen.getByText(enMessages.onboarding.fieldError.available_minutes_per_week)).toBeInTheDocument()
-    expect(screen.getByText(enMessages.onboarding.fieldError.preferred_resource_sources)).toBeInTheDocument()
+    expect(screen.getByText(enMessages.onboarding.fieldError.preferred_learning_methods)).toBeInTheDocument()
     expect(screen.queryByText(enMessages.onboarding.stepSixSubmitFailed)).toBeNull()
   })
 

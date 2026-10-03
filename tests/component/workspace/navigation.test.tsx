@@ -137,7 +137,7 @@ function backend({ hasRoadmap = true } = {}) {
     }),
     http.get(`${API_BASE}/me/preferences`, () => {
       calls.preferences += 1
-      return envelope({ ui_locale: "en", resource_language: "both", timezone: "UTC", updated_at: "2026-09-28T08:00:00Z" })
+      return envelope({ ui_locale: "en", resource_language: "both", updated_at: "2026-09-28T08:00:00Z" })
     }),
     http.get(`${API_BASE}/me/learning-profile`, () => {
       calls.learningProfile += 1

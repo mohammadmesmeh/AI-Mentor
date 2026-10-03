@@ -115,9 +115,34 @@ const unwrappedBaseQuery: BaseQueryFn<string | FetchArgs, unknown, ApiError> = a
   return { data: snakeToCamel(body) }
 }
 
-export type RefreshOutcome = { ok: boolean; signOut: boolean; user?: User }
+/**
+ * `retryAfterMs` is set only when the refresh was rate limited (429): how long
+ * to wait before the one retry, from the backend's Retry-After.
+ */
+export type RefreshOutcome = { ok: boolean; signOut: boolean; user?: User; retryAfterMs?: number }
 
-type RouteResult = { ok: true; data: unknown } | { ok: false; error: ApiError }
+type RouteResult = { ok: true; data: unknown } | { ok: false; error: ApiError; retryAfterMs?: number }
+
+/**
+ * Used when a 429 has no usable Retry-After — which is what the backend sends
+ * today (docs/backend-issues.md #11). Its window is one minute; 10s is a guess
+ * that keeps the loading screen short.
+ */
+export const DEFAULT_RETRY_AFTER_MS = 10_000
+/** Never keep a learner on the loading screen longer than this for one retry. */
+export const MAX_RETRY_AFTER_MS = 60_000
+
+/**
+ * Retry-After (RFC 9110): delay-seconds or an HTTP date. Clamped to
+ * [1s, MAX_RETRY_AFTER_MS]; missing or unreadable → DEFAULT_RETRY_AFTER_MS.
+ */
+export function parseRetryAfter(value: string | null, now = Date.now()): number {
+  if (!value) return DEFAULT_RETRY_AFTER_MS
+  const seconds = Number(value.trim())
+  const ms = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(value) - now
+  if (!Number.isFinite(ms)) return DEFAULT_RETRY_AFTER_MS
+  return Math.min(Math.max(ms, 1000), MAX_RETRY_AFTER_MS)
+}
 
 /**
  * Calls our own session route (src/app/api/session), which holds the refresh
@@ -144,7 +169,10 @@ async function sessionRoute(
     if (response.status === 204) return { ok: true, data: undefined }
     const json = (await response.json().catch(() => null)) as { data?: unknown } | null
     if (!response.ok) {
-      return { ok: false, error: toApiError(json ?? "", { headers: response.headers }, response.status) }
+      const error = toApiError(json ?? "", { headers: response.headers }, response.status)
+      return response.status === 429
+        ? { ok: false, error, retryAfterMs: parseRetryAfter(response.headers.get("retry-after")) }
+        : { ok: false, error }
     }
     return { ok: true, data: json?.data }
   } catch (error) {
@@ -196,7 +224,8 @@ async function runRefresh(): Promise<RefreshOutcome> {
       clearSession()
       return { ok: false, signOut: true }
     }
-    return { ok: false, signOut: false }
+    // A 429 also keeps the session; the caller may retry once after Retry-After.
+    return { ok: false, signOut: false, retryAfterMs: result.retryAfterMs }
   }
 
   const wire = result.data as WireAuthData | undefined

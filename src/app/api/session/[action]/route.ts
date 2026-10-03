@@ -60,6 +60,8 @@ interface UpstreamResult {
   body: string
   contentType: string
   requestId: string | null
+  /** Passed through on 429 so the client can wait before its one retry. */
+  retryAfter: string | null
 }
 
 function noStore(init: ResponseInit = {}): ResponseInit {
@@ -121,10 +123,16 @@ async function postBackend(
     body: await response.text(),
     contentType: response.headers.get("content-type") ?? "application/json",
     requestId: response.headers.get("x-request-id"),
+    retryAfter: response.headers.get("retry-after"),
   }
 }
 
-/** The caller's IP, so the backend's per-IP refresh limit isn't shared by every user of this server. */
+/**
+ * The caller's IP, so the backend's per-IP refresh limit (§25: 10/min) isn't
+ * shared by every user of this server. On Vercel, X-Forwarded-For carries the
+ * client IP set by the platform. Whether the backend trusts it is open
+ * (docs/backend-issues.md).
+ */
 function forwardedFor(request: NextRequest): Record<string, string> {
   const value = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip")
   return value ? { "X-Forwarded-For": value } : {}
@@ -136,6 +144,15 @@ function forwardedFor(request: NextRequest): Record<string, string> {
  * one refresh at a time (and one across tabs), but two requests that reach this
  * server with the same cookie share one backend call, and a request that
  * arrives just after the rotation (with the old cookie) gets the same result.
+ *
+ * A successful result is also kept under the *new* token for the same window:
+ * tabs opened together restore one after another (the Web Lock serializes
+ * them), each with the cookie the previous one just received, so they share one
+ * backend call instead of spending one of the 10 refreshes per minute each.
+ * In-memory, per server instance: best effort.
+ *
+ * Only successes are kept. A 429 or 503 is forgotten at once, so the client's
+ * retry after Retry-After really reaches the backend.
  */
 const refreshes = new Map<string, Promise<UpstreamResult>>()
 /**
@@ -146,13 +163,35 @@ const refreshes = new Map<string, Promise<UpstreamResult>>()
  */
 const REFRESH_GRACE_MS = 60_000
 
+function rotatedToken(upstream: UpstreamResult): string | null {
+  try {
+    const token = (JSON.parse(upstream.body) as { data?: WireAuthData }).data?.refresh_token
+    return typeof token === "string" ? token : null
+  } catch {
+    return null
+  }
+}
+
 function refreshOnce(token: string, request: NextRequest): Promise<UpstreamResult> {
   const existing = refreshes.get(token)
   if (existing) return existing
   const promise = postBackend("/auth/refresh", { refresh_token: token }, forwardedFor(request))
   refreshes.set(token, promise)
-  const forget = () => setTimeout(() => refreshes.delete(token), REFRESH_GRACE_MS)
-  promise.then(forget, () => refreshes.delete(token))
+  promise.then(
+    (upstream) => {
+      if (upstream.status < 200 || upstream.status >= 300) {
+        refreshes.delete(token)
+        return
+      }
+      const next = rotatedToken(upstream)
+      if (next && !refreshes.has(next)) refreshes.set(next, promise)
+      setTimeout(() => {
+        refreshes.delete(token)
+        if (next && refreshes.get(next) === promise) refreshes.delete(next)
+      }, REFRESH_GRACE_MS)
+    },
+    () => refreshes.delete(token)
+  )
   return promise
 }
 
@@ -164,6 +203,7 @@ function passThrough(upstream: UpstreamResult): NextResponse {
       headers: {
         "Content-Type": upstream.contentType,
         ...(upstream.requestId ? { "X-Request-ID": upstream.requestId } : {}),
+        ...(upstream.retryAfter ? { "Retry-After": upstream.retryAfter } : {}),
       },
     })
   )

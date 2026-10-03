@@ -7,9 +7,9 @@ import {
   levelKeyMap,
   preferenceKeyMap,
   resourceLanguageKeyMap,
-  sourceKeyMap,
   uiLocaleKeyMap,
 } from "../../lib/profileLabels"
+import { formatWeekly } from "../../lib/timeCommitment"
 import type { OnboardingFormState } from "@/redux/slices/onboardingSlice"
 
 interface ReviewRow {
@@ -29,10 +29,12 @@ type CoreValues = Pick<
   | "availableMinutesPerWeek"
   | "desiredOutcome"
   | "preferredLearningMethods"
-  | "preferredResourceSources"
 >
 
-function buildCoreRows(t: (key: string) => string, values: CoreValues): ReviewRow[] {
+function buildCoreRows(
+  t: (key: string, values?: Record<string, string | number>) => string,
+  values: CoreValues
+): ReviewRow[] {
   const minutes = values.availableMinutesPerWeek
   return [
     { id: "goal", field: "goal", label: t("goal"), value: values.goal.trim() || t("notSpecified"), step: 1 },
@@ -49,7 +51,7 @@ function buildCoreRows(t: (key: string) => string, values: CoreValues): ReviewRo
       id: "time",
       field: "available_minutes_per_week",
       label: t("time"),
-      value: minutes && minutes > 0 ? `${minutes} ${t("minutesPerWeek")}` : t("notSpecified"),
+      value: minutes && minutes > 0 ? formatWeekly(t, minutes) : t("notSpecified"),
       step: 3,
     },
     {
@@ -70,22 +72,12 @@ function buildCoreRows(t: (key: string) => string, values: CoreValues): ReviewRo
         : t("notSpecified"),
       step: 5,
     },
-    {
-      id: "sources",
-      field: "preferred_resource_sources",
-      label: t("sources"),
-      // Numbered: the order is the learner's priority.
-      value: values.preferredResourceSources.length
-        ? values.preferredResourceSources.map((s, i) => `${i + 1}. ${t(sourceKeyMap[s])}`).join(" · ")
-        : t("notSpecified"),
-      step: 5,
-    },
   ]
 }
 
 function buildPreferencesRow(
   t: (key: string) => string,
-  prefs: Pick<Preferences, "uiLocale" | "resourceLanguage" | "timezone">
+  prefs: Pick<Preferences, "uiLocale" | "resourceLanguage">
 ): ReviewRow {
   return {
     id: "preferences",
@@ -93,7 +85,6 @@ function buildPreferencesRow(
     value: [
       t(uiLocaleKeyMap[prefs.uiLocale] ?? "notSpecified"),
       t(resourceLanguageKeyMap[prefs.resourceLanguage] ?? "notSpecified"),
-      prefs.timezone || t("notSpecified"),
     ].join(" · "),
     step: 6,
   }

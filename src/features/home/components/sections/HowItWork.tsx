@@ -9,6 +9,7 @@ import { SectionWave } from "@/shared/components/ui/SectionWave"
 import { useTranslations } from "next-intl"
 import { useT } from "@/shared/hooks/useT"
 import { cn } from "@/lib/utils"
+import { GoalsPreview } from "../how-it-works/GoalsPreview"
 
 export const HowItWork = () => {
   const t = useT("howItWork")
@@ -60,7 +61,7 @@ export const HowItWork = () => {
   return (
     <section
       id="how-it-works"
-      className="relative overflow-hidden bg-background pt-10 pb-0 sm:pt-14 lg:pt-16"
+      className="relative overflow-hidden bg-section-canvas pt-10 pb-0 sm:pt-14 lg:pt-16"
       aria-labelledby="how-it-works-heading"
     >
       <Container>
@@ -87,14 +88,16 @@ export const HowItWork = () => {
                   description={step.description}
                   icon={step.icon}
                   className={cn("h-full", step.cardClass)}
-                />
+                >
+                  {index === 0 && <GoalsPreview />}
+                </StepCard>
               </FadeInView>
             </li>
           ))}
         </ul>
       </Container>
 
-      <SectionWave fillClassName="text-alt-bg" flipX className="mt-16 sm:mt-20" />
+      <SectionWave fillClassName="text-section-alt" flipX className="mt-16 sm:mt-20" />
     </section>
   )
 }

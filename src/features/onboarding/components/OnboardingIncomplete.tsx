@@ -16,7 +16,6 @@ const missingFieldKeyMap: Record<MissingField, string> = {
   desired_outcome: "missingDesiredOutcome",
   available_minutes_per_week: "missingMinutes",
   preferred_learning_methods: "missingMethods",
-  preferred_resource_sources: "missingResourceSources",
   resource_language: "missingResourceLanguage",
 }
 

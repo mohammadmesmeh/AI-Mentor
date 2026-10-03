@@ -12,7 +12,7 @@ const Logo = () => {
             className="group flex shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         >
             <span className="transition-transform duration-300 group-hover:scale-[1.03]" dir="ltr">
-                <BrandLogo className="h-10" priority />
+                <BrandLogo className="h-10" />
             </span>
         </Link>
     );
