@@ -193,3 +193,21 @@ A new account also shows why saves failed before the frontend was updated: `PUT 
 **What the frontend does now** — one restore per page load; concurrent refreshes share one request (also across tabs, and the session route reuses a just-made refresh for a tab that restores right after); on `429` the learner is not signed out, the app waits `Retry-After` (10 s when it is missing), retries once, and otherwise shows "We couldn't reach Khatwa" with a retry button. Read requests no longer retry a `429` automatically.
 
 **Please** — (1) trust `X-Forwarded-For` from the frontend's host (Vercel) for the refresh limit, or key that limit on the refresh-token family instead of the IP; (2) send `Retry-After` with `429` responses; (3) keep the rate-limit counter in a shared store so all instances agree.
+
+---
+
+## 12. `POST /auth/google` answers an invalid Google token with `500`, not `401 invalid_google_token`
+
+**What happened** — measured on 2026-10-03 (~19:30 UTC) with made-up tokens, so no real Google account was involved:
+
+- `{"id_token": "not-a-real-google-token"}` → `500 internal_error` (`X-Request-ID 01M41KXNC1VBTRDZ62CWPJH3G3`)
+- a JWT-shaped token with a bad signature → `500 internal_error` (`01M41KYYKRRMQDTGYPMSQJRRRC`)
+- `{"id_token": "abc"}` → `500 internal_error` (`01M41KYZCKGQ29BMSPAESRCG9D`)
+
+Request validation works as documented: no `id_token` → `422` "The id token field is required." (`01M41KXNRQMTGQE7PXA9RKSK8B`), an extra field → `422` "This field is not allowed." (`01M41KXNYYBZHPMZECXHMJC01M`).
+
+**What the contract says** — §7, `POST /auth/google`: "`401 invalid_google_token`: invalid, expired, unverified, or inactive identity" and "`503 google_authentication_unavailable`: missing server configuration or temporary certificate-verification failure."
+
+**User impact** — a learner whose Google sign-in fails sees the generic "Something went wrong" instead of "Google couldn't confirm your account". If the cause is a missing `GOOGLE_CLIENT_ID` on Render, real Google sign-ins fail the same way.
+
+**Suggested change** — return `401 invalid_google_token` when verification fails, and `503 google_authentication_unavailable` when `GOOGLE_CLIENT_ID` is not set. Please also confirm `GOOGLE_CLIENT_ID` is set on Render and matches the frontend's `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.

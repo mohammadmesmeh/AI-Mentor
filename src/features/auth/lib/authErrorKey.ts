@@ -21,3 +21,28 @@ export function authErrorKey(error: unknown, context: "login" | "register"): str
       return "unexpectedError"
   }
 }
+
+/**
+ * POST /auth/google failures (contract §7) → `auth.errors.*`:
+ * 401 invalid_google_token, 409 google_account_conflict, 429, 503
+ * google_authentication_unavailable, anything else.
+ */
+export function googleAuthErrorKey(error: unknown): string {
+  const apiError = asApiError(error)
+  switch (apiError.code) {
+    case "invalid_google_token":
+      return "googleFailed"
+    case "google_account_conflict":
+      return "googleAccountConflict"
+    case "google_authentication_unavailable":
+      return "googleServiceUnavailable"
+  }
+  switch (apiError.category) {
+    case "rate_limited":
+      return "tooManyRequests"
+    case "unavailable":
+      return "googleServiceUnavailable"
+    default:
+      return "unexpectedError"
+  }
+}

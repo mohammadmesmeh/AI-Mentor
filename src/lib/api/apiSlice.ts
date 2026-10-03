@@ -47,6 +47,11 @@ export interface LearningProfileInput {
   preferredLearningMethods: LearningMethod[]
 }
 
+/** A Google Identity Services ID token. A credential: never logged, kept, or put in a URL. */
+export interface GoogleAuthArg {
+  idToken: string
+}
+
 export interface RoadmapGenerationArg {
   idempotencyKey: string
 }
@@ -154,6 +159,16 @@ export const apiSlice = createApi({
     login: build.mutation<AuthData, LoginArg>({
       queryFn: (body, api, extraOptions) =>
         establishSession({ url: "/auth/login", method: "POST", body }, api, extraOptions),
+    }),
+
+    /**
+     * POST /auth/google (contract §7): exchanges a Google ID token for the
+     * standard authentication response, for new and existing users alike. Same
+     * session handling as login; the ID token is only in this request's body.
+     */
+    googleAuth: build.mutation<AuthData, GoogleAuthArg>({
+      queryFn: ({ idToken }, api, extraOptions) =>
+        establishSession({ url: "/auth/google", method: "POST", body: { id_token: idToken } }, api, extraOptions),
     }),
 
     logout: build.mutation<null, void>({
@@ -364,6 +379,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useLogoutMutation,
+  useGoogleAuthMutation,
   useGetMeQuery,
   useGetPreferencesQuery,
   useUpdatePreferencesMutation,

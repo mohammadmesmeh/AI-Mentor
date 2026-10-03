@@ -26,7 +26,10 @@
       "registrationFailed": "تعذّر إنشاء حسابك. يرجى المحاولة مرة أخرى.",
       "serviceUnavailable": "خدمة خطوة غير متاحة مؤقتًا. يرجى المحاولة مرة أخرى بعد قليل.",
       "tooManyRequests": "محاولات كثيرة جدًا. يرجى الانتظار قليلًا قبل المحاولة مرة أخرى.",
-      "unexpectedError": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+      "unexpectedError": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "googleFailed": "لم يتمكّن Google من تأكيد حسابك. حاول مرة أخرى.",
+      "googleAccountConflict": "هذا البريد مرتبط بحساب Google آخر. سجّل الدخول بحساب Google ذاك، أو ببريدك وكلمة المرور.",
+      "googleServiceUnavailable": "تسجيل الدخول عبر Google غير متاح مؤقتًا. حاول بعد قليل، أو استخدم بريدك وكلمة المرور."
     },
     "confirmPassword": "تأكيد كلمة المرور",
     "confirmPasswordPlaceholder": "أعد إدخال كلمة المرور",
@@ -67,7 +70,8 @@
     "welcomeDescription": "سجّل الدخول وواصل التعلم من حيث توقفت.",
     "workEmail": "البريد الإلكتروني ",
     "workEmailPlaceholder": "you@example.com",
-    "xLabel": "خطوة على X"
+    "xLabel": "خطوة على X",
+    "googleSigningIn": "جارٍ تسجيل الدخول عبر Google…"
   },
   "cta": {
     "button": "ابدأ التعلم مجانًا",

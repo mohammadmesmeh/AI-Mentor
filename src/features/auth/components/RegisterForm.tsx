@@ -9,6 +9,7 @@ import { Button } from "@/shared/components/ui/Button"
 import { useRegisterMutation } from "@/lib/api/apiSlice"
 import { registerSchema } from "../validation/registerSchema"
 import { FormField } from "./FormField"
+import { GoogleSignInButton } from "./social/GoogleSignInButton"
 import { authErrorKey } from "../lib/authErrorKey"
 import type { PasswordVisibility, RegisterFormValues } from "../types/auth.types"
 
@@ -160,6 +161,14 @@ function RegisterForm({ onSuccess }: RegisterFormProps) {
           </p>
         )}
       </div>
+
+      <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="h-px flex-1 bg-border/80" aria-hidden="true" />
+        {t("orContinueWith")}
+        <span className="h-px flex-1 bg-border/80" aria-hidden="true" />
+      </div>
+
+      <GoogleSignInButton />
 
       {errorKey && (
         <p className="text-sm text-danger-500" aria-live="polite">
