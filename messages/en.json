@@ -230,6 +230,24 @@
     "step4": {
       "title": "Keep Moving Forward",
       "description": "As you learn, your path adapts to your progress — spending less time on what you've already mastered and more on what still needs work. You'll always know exactly what to focus on next."
+    },
+    "preview": {
+      "goalLabel": "Your goal",
+      "goalText": "Become a front-end developer",
+      "levelLabel": "Your level",
+      "levels": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "timeLabel": "Time per week",
+      "times": {
+        "min30": "30 min",
+        "h1": "1 h",
+        "h2": "2 h",
+        "h5": "5 h"
+      },
+      "ready": "Ready"
     }
   },
   "metadata": {

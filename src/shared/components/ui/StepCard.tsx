@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 interface StepCardProps {
@@ -7,6 +8,8 @@ interface StepCardProps {
   description: string
   icon: LucideIcon
   className?: string
+  /** Extra content under the text (e.g. a decorative preview). */
+  children?: ReactNode
 }
 
 function StepCard({
@@ -15,6 +18,7 @@ function StepCard({
   description,
   icon: Icon,
   className,
+  children,
 }: StepCardProps) {
   return (
     <article
@@ -46,6 +50,8 @@ function StepCard({
       <p className="relative mt-2 text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
+
+      {children && <div className="relative mt-6">{children}</div>}
     </article>
   )
 }

@@ -227,6 +227,7 @@
   --color-success-100: #dcf5e4;
   --color-success-500: #22a55e;
   --color-success-600: #188a4b;
+  --color-success-700: #13703d;
   --color-success-900: #103b22;
 
   /* --- Color: Warning --- */
@@ -358,6 +359,7 @@
   --animate-gradient-shift: gradient-shift 8s ease infinite;
   --animate-soft-pulse:     soft-pulse 1.8s var(--ease-in-out-soft) infinite;
   --animate-typing:         typing-bounce 1.2s ease-in-out infinite;
+  --animate-caret-blink:    caret-blink 1s steps(1, end) infinite;
   --animate-shimmer:        shimmer 1.6s linear infinite;
   --animate-hover-lift:     hover-lift 0.2s var(--ease-out-soft) both;
   --animate-marquee:        marquee 70s linear infinite;
@@ -1265,6 +1267,10 @@ html[dir="rtl"] {
 }
 
 /* Three-dot typing indicator, staggered via nth-child in §8 */
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30%           { transform: translateY(-4px); opacity: 1; }
