@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { routing } from '../../i18n/routing';
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import Providers from "@/shared/components/providers/providers";
-import { ThemeProvider } from "@/shared/components/providers/ThemeProvider";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, ThemeProvider } from "@/shared/components/providers/ThemeProvider";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -32,9 +33,12 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
   const messages = await getMessages();
+  // The same cookie the root layout uses for the <html> class, so the theme
+  // toggle renders identically on the server and on the client.
+  const theme = (await cookies()).get(THEME_COOKIE)?.value === "dark" ? "dark" : "light";
 
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={theme}>
       <Providers messages={messages} locale={locale}>
         {children}
       </Providers>
