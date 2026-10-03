@@ -121,6 +121,57 @@ describe("POST /api/session/*", () => {
     expect(b.status).toBe(200)
   })
 
+  it("refresh: forwards the learner's IP so the backend's per-IP limit isn't shared by every user", async () => {
+    let forwarded: string | null = null
+    server.use(
+      http.post(`${API_BASE}/auth/refresh`, ({ request }) => {
+        forwarded = request.headers.get("x-forwarded-for")
+        return authResponse("rotated-ip-000000000001")
+      })
+    )
+    await call("refresh", { cookie: "ip-refresh-token-00000001", headers: { "x-forwarded-for": "203.0.113.7" } })
+    expect(forwarded).toBe("203.0.113.7")
+  })
+
+  it("refresh: a 429 keeps the cookie, passes Retry-After through, and isn't reused for the retry", async () => {
+    let calls = 0
+    server.use(
+      http.post(`${API_BASE}/auth/refresh`, () => {
+        calls += 1
+        return calls === 1
+          ? HttpResponse.json(
+              { error: { code: "rate_limited", message: "Too many" }, meta: { request_id: "t" } },
+              { status: 429, headers: { "Retry-After": "7" } }
+            )
+          : authResponse("rotated-after-429-000001")
+      })
+    )
+    const limited = await call("refresh", { cookie: "limited-refresh-token-001" })
+    expect(limited.status).toBe(429)
+    expect(limited.headers.get("retry-after")).toBe("7")
+    expect(limited.headers.get("set-cookie")).toBeNull()
+
+    // The retry (after Retry-After) reaches the backend instead of a cached 429.
+    const retried = await call("refresh", { cookie: "limited-refresh-token-001" })
+    expect(retried.status).toBe(200)
+    expect(calls).toBe(2)
+  })
+
+  it("refresh: a tab restoring right after another, with the just-rotated cookie, shares its backend call", async () => {
+    let calls = 0
+    server.use(
+      http.post(`${API_BASE}/auth/refresh`, () => {
+        calls += 1
+        return authResponse(`rotated-by-tab-${calls}-0000000001`)
+      })
+    )
+    const first = await call("refresh", { cookie: "tabs-refresh-token-000001" })
+    expect(first.headers.get("set-cookie")).toContain("masar_session=rotated-by-tab-1-0000000001")
+    const second = await call("refresh", { cookie: "rotated-by-tab-1-0000000001" })
+    expect(second.status).toBe(200)
+    expect(calls).toBe(1)
+  })
+
   it("logout: revokes with the bearer and the cookie's refresh token, then clears the cookie", async () => {
     let sent: unknown
     server.use(

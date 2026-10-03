@@ -33,6 +33,12 @@ const restoredStores = new WeakSet<object>()
 
 /** Waits before each retry of a temporary failure (the first attempt runs at once). */
 const RETRY_DELAYS_MS = [2000, 5000]
+/**
+ * A rate-limited refresh (429) is different: the backend allows 10 refreshes
+ * per minute per IP (contract §25), and retrying on our own schedule would only
+ * add to the count. Wait for its Retry-After and try once more — the last
+ * attempt either way.
+ */
 
 type AuthRoot = { auth: AuthState }
 type AuthStore = ReturnType<typeof useStore<AuthRoot>>
@@ -44,6 +50,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
  * any component, and a remount mid-restore must not leave `restoring` stuck.
  */
 async function runRestore(store: AuthStore): Promise<void> {
+  let lastAttempt = false
   for (let attempt = 0; ; attempt += 1) {
     const outcome = await restoreSession()
     if (outcome.ok && outcome.user) {
@@ -54,11 +61,17 @@ async function runRestore(store: AuthStore): Promise<void> {
       store.dispatch(clearLocalSession())
       return
     }
-    if (attempt >= RETRY_DELAYS_MS.length) {
+    // Still temporary: the cookie is kept and screens show loading meanwhile.
+    if (lastAttempt || (outcome.retryAfterMs === undefined && attempt >= RETRY_DELAYS_MS.length)) {
       store.dispatch(sessionUnavailable())
       return
     }
-    await wait(RETRY_DELAYS_MS[attempt])
+    if (outcome.retryAfterMs !== undefined) {
+      lastAttempt = true
+      await wait(outcome.retryAfterMs)
+    } else {
+      await wait(RETRY_DELAYS_MS[attempt])
+    }
   }
 }
 
